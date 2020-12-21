@@ -57,33 +57,9 @@ test('sub-menu appears when nav links are clicked', async () => {
 
   const menuButton = await screen.getByText(/menu/i);
   // Menu should be hidden by default on small screen
-  expect(await screen.getByText(/about/i)).not.toBeVisible();
+  await expect(await screen.getByText(/about/i)).not.toBeVisible();
 
   await user.click(menuButton);
-  expect(await screen.getByText(/about/i)).toBeVisible();
+  await expect(await screen.getByText(/about/i)).toBeVisible();
 });
 ```
-
-## Open questions that we need to figure out if we can realistically solve
-
-### Can we (re)implement the Jest-DOM expect(s) such that the argument is an ElementHandle (from puppeteer)?
-
-Can we implement this?
-
-```js
-await expect(await screen.getByText(/about/i)).toBeVisible();
-```
-
-Or will it have to be this?
-
-```js
-await expectToBeVisible(await screen.getByText(/about/i));
-```
-
-### Can we load un-transpiled code into the puppeteer environment?
-
-This is tricky the code we pass in is designed to run through a bundler
-
-- What happens if the code we want to test imports node_modules?
-- What happens if the code imports .ts files?
-- What happens if the code imports files with JSX?
