@@ -1,8 +1,8 @@
-import { createTab } from './src';
+import { createTab } from 'test-mule';
 
-test('sub-menu appears when nav links are clicked', async () => {
+test('basic element visibility test', async () => {
   const tab = await createTab();
-  const { screen, user } = tab;
+  const { screen } = tab;
 
   await tab.runJS(`
     import('./menu').then((module) => {
@@ -14,15 +14,9 @@ test('sub-menu appears when nav links are clicked', async () => {
       document.write('<button class="hidden">menu</button>')
       document.body.append(styleTag)
       styleTag.innerHTML = '.hidden { display: none }'
-      document.write('<label>name<input type="text" minlength="20">a</input></label>')
     });
   `);
 
   const menuButton = await screen.queryByText(/menu/);
   await expect(menuButton).not.toBeVisible();
-
-  const nameInput = await screen.getByLabelText(/name/);
-  await nameInput.type('hi');
-
-  await expect(nameInput).toBeInvalid();
 });

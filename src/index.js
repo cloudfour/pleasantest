@@ -4,6 +4,19 @@ import fetch from 'node-fetch';
 import { within } from 'pptr-testing-library';
 import './extend-expect';
 
+const defaultHTML = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:;base64,=" />
+    <title>test-mule</title>
+  </head>
+  <body></body>
+</html>
+`;
+
 const createServer = async () => {
   /** @type {import('chokidar').FSWatcher} */
   let watcher;
@@ -21,8 +34,22 @@ const createServer = async () => {
     });
   };
 
+  const viteHomeMiddleware = ({ app }) => {
+    app.use(async (ctx, next) => {
+      if (ctx.path === '/') {
+        ctx.type = 'html';
+        ctx.body = defaultHTML;
+      }
+      await next();
+    });
+  };
+
   const server = vite.createServer({
-    configureServer: [viteFakeModuleMiddleware, viteStealWatcherMiddleware],
+    configureServer: [
+      viteFakeModuleMiddleware,
+      viteStealWatcherMiddleware,
+      viteHomeMiddleware,
+    ],
     optimizeDeps: { auto: false },
     hmr: false,
   });
@@ -34,16 +61,34 @@ const createServer = async () => {
   return server;
 };
 
-let browserPromise = puppeteer.launch(
-  // { headless: true },
-  { headless: false, devtools: true },
-);
+const HEADLESS = true;
+
+let browserPromise = puppeteer.launch({
+  headless: HEADLESS,
+  devtools: !HEADLESS,
+  ignoreDefaultArgs: [
+    // Don't pop up "Chrome is being controlled by automated software"
+    '--enable-automation',
+  ],
+  // most are taken from https://github.com/GoogleChrome/chrome-launcher/blob/v0.13.4/src/flags.ts
+  args: [
+    // Don't pop up "Chrome is not your default browser"
+    '--no-default-browser-check',
+  ],
+});
 let serverPromise = createServer();
 
 export const createTab = async () => {
   const browser = await browserPromise;
+  const previousPages = await browser.pages();
   const page = await browser.newPage();
-  page.on('console', (message) => console.log(message.text()));
+  await Promise.all(previousPages.map((page) => page.close()));
+  page.on('console', (message) => {
+    const text = message.text();
+    // ignore vite spam
+    if (text.startsWith('[vite]')) return;
+    console.log(text);
+  });
 
   await serverPromise;
 

@@ -3,7 +3,7 @@
 [not ready for use]
 
 ```js
-import { clearBrowser, createTab } from 'test-mule';
+import { createTab } from 'test-mule';
 import MegaMenu from './mega-menu';
 
 test('sub-menu appears when nav links are clicked', async () => {

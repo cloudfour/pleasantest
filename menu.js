@@ -1,7 +1,5 @@
 class Menu {
-  constructor(param) {
-    console.log("im a menu", param);
-  }
+  constructor(param) {}
 }
 
 export default Menu;
