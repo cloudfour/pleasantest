@@ -16,16 +16,16 @@ const readConfig = async (configPath) => {
 
 /**
  * @param {string} configPath
- * @param {object} config
+ * @param {object} newConfig
  */
-const updateConfig = async (configPath, config) => {
+const updateConfig = async (configPath, newConfig) => {
   await fs.mkdir(path.dirname(configPath), { recursive: true });
   const oldConfig = await readConfig(configPath);
-  for (const prop in config) {
+  for (const prop in newConfig) {
     oldConfig[prop] = oldConfig[prop] || {};
-    Object.assign(oldConfig[prop], config[prop]);
+    Object.assign(oldConfig[prop], newConfig[prop]);
   }
-  await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
 };
 
 /**
