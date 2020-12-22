@@ -1,6 +1,5 @@
 import puppeteer from 'puppeteer';
 import * as vite from 'vite';
-import fetch from 'node-fetch';
 import { within } from 'pptr-testing-library';
 import './extend-expect';
 
@@ -13,7 +12,11 @@ const defaultHTML = `
     <link rel="icon" href="data:;base64,=" />
     <title>test-mule</title>
   </head>
-  <body></body>
+  <body>
+    <h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
+      Your test will run here
+    </h1>
+  </body>
 </html>
 `;
 
@@ -61,27 +64,30 @@ const createServer = async () => {
   return server;
 };
 
-const HEADLESS = true;
-
-let browserPromise = puppeteer.launch({
-  headless: HEADLESS,
-  devtools: !HEADLESS,
-  ignoreDefaultArgs: [
-    // Don't pop up "Chrome is being controlled by automated software"
-    '--enable-automation',
-  ],
-  // most are taken from https://github.com/GoogleChrome/chrome-launcher/blob/v0.13.4/src/flags.ts
-  args: [
-    // Don't pop up "Chrome is not your default browser"
-    '--no-default-browser-check',
-  ],
-});
+/** @type {Promise<puppeteer.Browser>} */
+let browserPromise;
 let serverPromise = createServer();
 
-export const createTab = async () => {
+export const createTab = async ({ headless = true } = {}) => {
+  browserPromise = puppeteer.launch({
+    headless: headless,
+    devtools: !headless,
+    ignoreDefaultArgs: [
+      // Don't pop up "Chrome is being controlled by automated software"
+      '--enable-automation',
+      // Unsupported flag that pops up a warning
+      '--enable-blink-features=IdleDetection',
+    ],
+    // most are taken from https://github.com/GoogleChrome/chrome-launcher/blob/v0.13.4/src/flags.ts
+    args: [
+      // Don't pop up "Chrome is not your default browser"
+      '--no-default-browser-check',
+    ],
+  });
   const browser = await browserPromise;
   const previousPages = await browser.pages();
   const page = await browser.newPage();
+  // close all other tabs
   await Promise.all(previousPages.map((page) => page.close()));
   page.on('console', (message) => {
     const text = message.text();
@@ -96,15 +102,50 @@ export const createTab = async () => {
 
   const user = {};
   const runJS = async (code) => {
-    const res = await fetch(`http://localhost:3000/fake-module?code=${code}`);
-    const transpiled = await res.text();
-    await page.evaluate(transpiled);
+    const encodedCode = encodeURIComponent(code);
+    const url = `http://localhost:3000/fake-module?code=${encodedCode}`;
+    await page.evaluateHandle(`import(${JSON.stringify(url)})`);
   };
   const doc = await page
     .evaluateHandle('document')
     .then((handle) => handle.asElement());
   const screen = within(doc);
-  return { screen, user, runJS };
+  const debug = async () => {
+    if (headless) {
+      throw new Error(
+        'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
+      );
+    }
+    // Block indefinitely (or until browser/tab is closed)
+    await new Promise((resolve) => {
+      page.on('close', resolve);
+      browser.on('disconnected', resolve);
+    });
+  };
+
+  /**
+   * Set the contents of document.body
+   * @param {string} html
+   */
+  const injectHTML = async (html) => {
+    await page.evaluate((html) => {
+      document.body.innerHTML = html;
+    }, html);
+  };
+
+  /**
+   * Set the contents of a new style tag
+   * @param {string} css
+   */
+  const injectCSS = async (css) => {
+    await page.evaluate((css) => {
+      const styleTag = document.createElement('style');
+      styleTag.innerHTML = css;
+      document.head.append(styleTag);
+    }, css);
+  };
+
+  return { screen, user, runJS, debug, injectCSS, injectHTML };
 };
 
 afterAll(async () => {

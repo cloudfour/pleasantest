@@ -1,22 +1,18 @@
 import { createTab } from 'test-mule';
 
 test('basic element visibility test', async () => {
-  const tab = await createTab();
+  const tab = await createTab({ headless: true });
   const { screen } = tab;
 
+  await tab.injectHTML('<button class="hidden">menu</button>');
+  await tab.injectCSS('.hidden { display: none }');
+
   await tab.runJS(`
-    import('./menu').then((module) => {
-      const Menu = module.default;
-      new Menu('nav');
-
-      const styleTag = document.createElement('style')
-
-      document.write('<button class="hidden">menu</button>')
-      document.body.append(styleTag)
-      styleTag.innerHTML = '.hidden { display: none }'
-    });
+    import Menu from './menu'
+    new Menu('nav');
   `);
 
-  const menuButton = await screen.queryByText(/menu/);
+  const menuButton = await screen.getByText(/menu/);
   await expect(menuButton).not.toBeVisible();
+  // await tab.debug();
 });
