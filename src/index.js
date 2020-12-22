@@ -5,7 +5,12 @@ import { within } from 'pptr-testing-library';
 import './extend-expect';
 
 const createServer = async () => {
-  const viteMiddleware = ({ app }) => {
+  /** @type {import('chokidar').FSWatcher} */
+  let watcher;
+  const viteStealWatcherMiddleware = ({ watcher: _watcher }) => {
+    watcher = _watcher;
+  };
+  const viteFakeModuleMiddleware = ({ app }) => {
     app.use(async (ctx, next) => {
       if (ctx.path === '/fake-module') {
         ctx.type = 'js';
@@ -17,19 +22,21 @@ const createServer = async () => {
   };
 
   const server = vite.createServer({
-    configureServer: [viteMiddleware],
+    configureServer: [viteFakeModuleMiddleware, viteStealWatcherMiddleware],
     optimizeDeps: { auto: false },
     hmr: false,
   });
   server.listen(3000);
+  // when the server closes, close vite's watcher (vite bug)
+  server.on('close', () => watcher.close());
   await new Promise((resolve) => server.on('listening', resolve));
 
   return server;
 };
 
 let browserPromise = puppeteer.launch(
-  { headless: true },
-  // { headless: false, devtools: true }
+  // { headless: true },
+  { headless: false, devtools: true },
 );
 let serverPromise = createServer();
 

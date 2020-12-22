@@ -1,4 +1,4 @@
-# Testing puppeteer thing
+# test-mule
 
 ```js
 const puppeteer = require('puppeteer');
@@ -22,7 +22,7 @@ await waitFor(() => getByText($document, 'Loading...'));
 ```
 
 ```js
-import { clearBrowser, createTab } from 'testing-puppeteer-thing';
+import { clearBrowser, createTab } from 'test-mule';
 import MegaMenu from './mega-menu';
 
 beforeEach(clearBrowser);
