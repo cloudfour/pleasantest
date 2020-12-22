@@ -1,31 +1,10 @@
 # test-mule
 
-```js
-const puppeteer = require('puppeteer');
-const { getDocument, queries, waitFor } = require('pptr-testing-library');
-
-const { getByTestId, getByLabelText } = queries;
-
-const browser = await puppeteer.launch();
-const page = await browser.newPage();
-
-// Grab ElementHandle for document
-const $document = await getDocument(page);
-// Your favorite query methods are available
-const $form = await getByTestId($document, 'my-form');
-// returned elements are ElementHandles too!
-const $email = await getByLabelText($form, 'Email');
-// interact with puppeteer like usual
-await $email.type('pptr@example.com');
-// waiting works too!
-await waitFor(() => getByText($document, 'Loading...'));
-```
+[not ready for use]
 
 ```js
 import { clearBrowser, createTab } from 'test-mule';
 import MegaMenu from './mega-menu';
-
-beforeEach(clearBrowser);
 
 test('sub-menu appears when nav links are clicked', async () => {
   const tab = await createTab();
