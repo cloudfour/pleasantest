@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import * as vite from 'vite';
 import { within } from 'pptr-testing-library';
+import { connectToBrowser } from './connect-to-browser';
 import './extend-expect';
 
 const defaultHTML = `
@@ -57,9 +58,24 @@ const createServer = async () => {
     hmr: false,
   });
   server.listen(3000);
-  // when the server closes, close vite's watcher (vite bug)
-  server.on('close', () => watcher.close());
   await new Promise((resolve) => server.on('listening', resolve));
+
+  const sockets = new Set();
+
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.once('close', () => sockets.delete(socket));
+  });
+
+  const originalClose = server.close;
+  server.close = (cb) => {
+    // force-kill all active connections
+    sockets.forEach((socket) => socket.destroy());
+    originalClose.call(server, cb);
+    // When the server closes, close vite's watcher (vite bug)
+    // Otherwise the process doesn't exit
+    watcher.close();
+  };
 
   return server;
 };
@@ -68,22 +84,11 @@ const createServer = async () => {
 let browserPromise;
 let serverPromise = createServer();
 
+/** Pages that are in "debug mode" that the user will have to manually close */
+const debuggedPages = new Set();
+
 export const createTab = async ({ headless = true } = {}) => {
-  browserPromise = puppeteer.launch({
-    headless: headless,
-    devtools: !headless,
-    ignoreDefaultArgs: [
-      // Don't pop up "Chrome is being controlled by automated software"
-      '--enable-automation',
-      // Unsupported flag that pops up a warning
-      '--enable-blink-features=IdleDetection',
-    ],
-    // most are taken from https://github.com/GoogleChrome/chrome-launcher/blob/v0.13.4/src/flags.ts
-    args: [
-      // Don't pop up "Chrome is not your default browser"
-      '--no-default-browser-check',
-    ],
-  });
+  browserPromise = connectToBrowser('chromium', headless);
   const browser = await browserPromise;
   const previousPages = await browser.pages();
   const page = await browser.newPage();
@@ -110,17 +115,14 @@ export const createTab = async ({ headless = true } = {}) => {
     .evaluateHandle('document')
     .then((handle) => handle.asElement());
   const screen = within(doc);
-  const debug = async () => {
+  const debug = () => {
     if (headless) {
       throw new Error(
         'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
       );
     }
-    // Block indefinitely (or until browser/tab is closed)
-    await new Promise((resolve) => {
-      page.on('close', resolve);
-      browser.on('disconnected', resolve);
-    });
+    debuggedPages.add(page);
+    throw new Error('[debug mode]');
   };
 
   /**
@@ -150,8 +152,14 @@ export const createTab = async ({ headless = true } = {}) => {
 
 afterAll(async () => {
   const browser = await browserPromise;
-  await browser.close();
+  // close all tabs, but not the browser itself (so it can be reused)
+  const pages = await browser.pages();
+  await Promise.all(
+    pages.map(async (page) => {
+      if (!debuggedPages.has(page)) await page.close();
+    }),
+  );
+  browser.disconnect();
   const server = await serverPromise;
-  server.close();
-  await new Promise((resolve) => server.on('close', resolve));
+  await new Promise((resolve) => server.close(resolve));
 });

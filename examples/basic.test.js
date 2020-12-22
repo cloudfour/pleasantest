@@ -14,5 +14,5 @@ test('basic element visibility test', async () => {
 
   const menuButton = await screen.getByText(/menu/);
   await expect(menuButton).not.toBeVisible();
-  // await tab.debug();
+  // tab.debug();
 });
