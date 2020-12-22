@@ -1,7 +1,9 @@
 import puppeteer from 'puppeteer';
 import * as vite from 'vite';
+import * as path from 'path';
 import { within } from 'pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
+import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
 
 const defaultHTML = `
@@ -21,17 +23,20 @@ const defaultHTML = `
 </html>
 `;
 
+let port = 3000;
+
 const createServer = async () => {
   /** @type {import('chokidar').FSWatcher} */
   let watcher;
   const viteStealWatcherMiddleware = ({ watcher: _watcher }) => {
     watcher = _watcher;
   };
-  const viteFakeModuleMiddleware = ({ app }) => {
+  const viteInlineModuleMiddleware = ({ app }) => {
     app.use(async (ctx, next) => {
-      if (ctx.path === '/fake-module') {
-        ctx.type = 'js';
-        ctx.body = ctx.request.query.code;
+      const query = ctx.request.query;
+      if (query['inline-code-type']) {
+        ctx.type = query['inline-code-type'];
+        ctx.body = query['inline-code'];
       }
       // make vite do built-in transforms
       await next();
@@ -50,14 +55,28 @@ const createServer = async () => {
 
   const server = vite.createServer({
     configureServer: [
-      viteFakeModuleMiddleware,
+      viteInlineModuleMiddleware,
       viteStealWatcherMiddleware,
       viteHomeMiddleware,
     ],
     optimizeDeps: { auto: false },
     hmr: false,
   });
-  server.listen(3000);
+
+  server.listen(port);
+
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+      setTimeout(() => {
+        server.close();
+        server.listen(++port);
+      }, 100);
+    } else {
+      console.error(`[vite] server error:`);
+      if (e.stack) console.log(e.stack);
+      console.error(e);
+    }
+  });
   await new Promise((resolve) => server.on('listening', resolve));
 
   const sockets = new Set();
@@ -89,6 +108,17 @@ const debuggedPages = new Set();
 
 export const createTab = async ({ headless = true } = {}) => {
   browserPromise = connectToBrowser('chromium', headless);
+
+  // Figure out the file that called createTab so that we can resolve paths correctly from there
+  const stack = parseStackTrace(new Error().stack);
+  const testFile = stack.find((stackItem) => {
+    // ignore if it is the current file
+    if (stackItem.fileName === __filename) return false;
+    // find the first item that is not the current file
+    return true;
+  }).fileName;
+  const testPath = path.relative(process.cwd(), testFile);
+
   const browser = await browserPromise;
   const previousPages = await browser.pages();
   const page = await browser.newPage();
@@ -98,31 +128,44 @@ export const createTab = async ({ headless = true } = {}) => {
     const text = message.text();
     // ignore vite spam
     if (text.startsWith('[vite]')) return;
-    console.log(text);
+    const type = message.type();
+    if (type === 'error') {
+      const error = new Error(text);
+      const location = message.location();
+      error.stack = `Error: ${text}
+    at ${location.url}`;
+      console.error('[browser]', error);
+    } else {
+      console.log('[browser]', text);
+    }
   });
 
   await serverPromise;
 
-  await page.goto('http://localhost:3000');
+  await page.goto(`http://localhost:${port}`);
 
-  const user = {};
   const runJS = async (code) => {
     const encodedCode = encodeURIComponent(code);
-    const url = `http://localhost:3000/fake-module?code=${encodedCode}`;
+    // This uses the testPath as the url so that if there are relative imports
+    // in the inline code, the relative imports are resolved relative to the test file
+    const url = `http://localhost:${port}/${testPath}?inline-code-type=js&inline-code=${encodedCode}`;
     await page.evaluateHandle(`import(${JSON.stringify(url)})`);
   };
   const doc = await page
     .evaluateHandle('document')
     .then((handle) => handle.asElement());
   const screen = within(doc);
-  const debug = () => {
+
+  /** @param {Error | undefined} [error] */
+  const debug = (error) => {
     if (headless) {
+      if (error) return; // means debug was not called directly by user, it was called from a query or assertion that failed
       throw new Error(
         'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
       );
     }
     debuggedPages.add(page);
-    throw new Error('[debug mode]');
+    throw error || new Error('[debug mode]');
   };
 
   /**
@@ -147,7 +190,31 @@ export const createTab = async ({ headless = true } = {}) => {
     }, css);
   };
 
-  return { screen, user, runJS, debug, injectCSS, injectHTML };
+  /**
+   * Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file
+   * @param {string} cssPath
+   */
+  const loadCSS = async (cssPath) => {
+    const fullPath = path.join(path.dirname(testPath), cssPath);
+    await page.evaluateHandle(
+      `import(${JSON.stringify('./' + fullPath + '?import')})`,
+    );
+  };
+
+  /**
+   * Load a JS (or ts, jsx) file. Pass a path that will be resolved from your test file
+   * @param {string} jsPath
+   */
+  const loadJS = async (jsPath) => {
+    const fullPath = jsPath.startsWith('.')
+      ? path.join(path.dirname(testPath), jsPath)
+      : jsPath;
+    await page.evaluateHandle(`import(${JSON.stringify('./' + fullPath)})`);
+  };
+
+  const utils = { runJS, injectCSS, injectHTML, loadCSS, loadJS };
+
+  return { screen, debug, utils, page };
 };
 
 afterAll(async () => {
@@ -156,6 +223,7 @@ afterAll(async () => {
   const pages = await browser.pages();
   await Promise.all(
     pages.map(async (page) => {
+      // leave any tab open if the test with it called debug()
       if (!debuggedPages.has(page)) await page.close();
     }),
   );
