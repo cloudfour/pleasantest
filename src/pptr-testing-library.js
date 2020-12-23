@@ -66,7 +66,7 @@ export const getQueriesForPage = (page) => {
           }
           return arg;
         });
-        return await page.evaluateHandle(
+        const result = await page.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           new Function(
             'args',
@@ -77,7 +77,7 @@ export const getQueriesForPage = (page) => {
                   return arg
                 })
                 try {
-                  await dtl.${queryName}(document, ...deserializedArgs)
+                  return await dtl.${queryName}(document, ...deserializedArgs)
                 } catch (error) {
                   window.__testMuleDebug__ = true
                   const formattedMessage = error.name === 'TestingLibraryElementError'
@@ -98,6 +98,17 @@ export const getQueriesForPage = (page) => {
           ),
           serializedArgs,
         );
+
+        if (await result.evaluate((r) => Array.isArray(r))) {
+          const array = Array(await result.evaluate((r) => r.length));
+          const props = await result.getProperties();
+          props.forEach((value, key) => {
+            array[key] = value;
+          });
+          return array;
+        }
+
+        return result;
       };
       return [queryName, query];
     }),
