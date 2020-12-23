@@ -267,10 +267,14 @@ afterAll(async () => {
   const browser = await browserPromise;
   // close all tabs, but not the browser itself (so it can be reused)
   const pages = await browser.pages();
+  let isHeadless = true;
+  try {
+    isHeadless = /headless/.test(await browser.version());
+  } catch {}
   await Promise.all(
     pages.map(async (page) => {
       // if it is headless, no reason to keep pages open, even if test failed
-      if (/headless/.test(browser.version())) return page.close();
+      if (isHeadless) return page.close();
       // leave any tab open if the test with it called debug()
       if (debuggedPages.has(page)) return;
       // check if the browser has a global window.__testMuleDebug__ set
