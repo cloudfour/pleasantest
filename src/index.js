@@ -167,7 +167,8 @@ export const createTab = async ({ headless = true } = {}) => {
 
   const browser = await browserPromise;
   const previousPages = await browser.pages();
-  const page = await browser.newPage();
+  const newContext = await browser.createIncognitoBrowserContext();
+  const page = await newContext.newPage();
   // close all other tabs
   await Promise.all(previousPages.map((page) => page.close()));
   page.on('console', (message) => {
