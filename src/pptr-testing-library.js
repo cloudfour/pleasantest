@@ -76,17 +76,23 @@ export const getQueriesForPage = (page) => {
                   if (arg.__serialized === 'RegExp') return new RegExp(arg.source, arg.flags)
                   return arg
                 })
-                const result = await dtl.${queryName}(document, ...deserializedArgs)
-                return result
-              })
-              .catch(error => {
-                window.__testMuleDebug__ = true
-                if (error.name === 'TestingLibraryElementError') {
-                  console.error('query failed\\n', error.message, '\\n\\nwithin:', error.container)
-                } else {
-                  console.error(error)
+                try {
+                  await dtl.${queryName}(document, ...deserializedArgs)
+                } catch (error) {
+                  window.__testMuleDebug__ = true
+                  const formattedMessage = error.name === 'TestingLibraryElementError'
+                    ? ['query failed\\n', ...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
+                    : [error]
+                  console.error(...formattedMessage)
+                  error.message = formattedMessage
+                    .map((item, i) => {
+                      const space = i === 0 || /\\s$/.test(formattedMessage[i - 1]) ? '' : ' '
+                      if (item instanceof Element) return space + dtl.__elementToString(item)
+                      if (item instanceof Document) return space + "#document"
+                      return item
+                    }).join('')
+                  throw error
                 }
-                throw error
               })
           `,
           ),
