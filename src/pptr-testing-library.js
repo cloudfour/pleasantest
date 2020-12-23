@@ -66,13 +66,9 @@ export const getQueriesForPage = (page) => {
           }
           return arg;
         });
-        const doc = await page
-          .evaluateHandle('document')
-          .then((handle) => handle.asElement());
-        return await doc.evaluateHandle(
+        return await page.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           new Function(
-            'element',
             'args',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async dtl => {
@@ -80,7 +76,7 @@ export const getQueriesForPage = (page) => {
                   if (arg.__serialized === 'RegExp') return new RegExp(arg.source, arg.flags)
                   return arg
                 })
-                const result = await dtl.${queryName}(element, ...deserializedArgs)
+                const result = await dtl.${queryName}(document, ...deserializedArgs)
                 return result
               })
               .catch(error => {
