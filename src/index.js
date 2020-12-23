@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { within } from 'pptr-testing-library';
+import { getQueriesForPage } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -56,13 +56,14 @@ const createServer = async () => {
   };
 
   const viteClientRuntimeMiddleware = ({ app }) => {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
     app.use(async (ctx, next) => {
-      if (ctx.path === '/@test-mule/runtime') {
+      if (ctx.path.startsWith('/@test-mule')) {
         ctx.type = 'js';
-        const p = path.join(
-          path.dirname(fileURLToPath(import.meta.url)),
-          '../jest-dom.js',
-        );
+        const p =
+          ctx.path === '/@test-mule/jest-dom'
+            ? path.join(currentDir, '../jest-dom.js')
+            : path.join(currentDir, '../pptr-testing-library-client.js');
         ctx.body = await fs.readFile(p, 'utf8');
       }
       await next();
@@ -104,6 +105,7 @@ const createServer = async () => {
       'jest-dom': '/Users/calebeby/Projects/test-mule/dist/jest-dom.js',
     },
     optimizeDeps: { auto: false },
+    cors: true,
     hmr: false,
   });
 
@@ -173,7 +175,8 @@ export const createTab = async ({ headless = true } = {}) => {
     // ignore vite spam
     if (text.startsWith('[vite]')) return;
     // ignore repeated messages within the browser
-    if (text.startsWith('matcher failed')) return;
+    if (text.startsWith('matcher failed') || text.startsWith('query failed'))
+      return;
     const type = message.type();
     if (type === 'error') {
       const error = new Error(text);
@@ -197,10 +200,6 @@ export const createTab = async ({ headless = true } = {}) => {
     const url = `http://localhost:${port}/${testPath}?inline-code-type=js&inline-code=${encodedCode}`;
     await page.evaluateHandle(`import(${JSON.stringify(url)})`);
   };
-  const doc = await page
-    .evaluateHandle('document')
-    .then((handle) => handle.asElement());
-  const screen = within(doc);
 
   const debug = () => {
     if (headless) {
@@ -257,6 +256,8 @@ export const createTab = async ({ headless = true } = {}) => {
   };
 
   const utils = { runJS, injectCSS, injectHTML, loadCSS, loadJS };
+
+  const screen = getQueriesForPage(page);
 
   return { screen, debug, utils, page };
 };

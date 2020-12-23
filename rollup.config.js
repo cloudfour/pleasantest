@@ -1,4 +1,5 @@
 import jestDomConfig from './src/jest-dom/rollup.config';
+import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
@@ -29,7 +30,7 @@ const mainConfig = {
   external: ['puppeteer', 'vite', 'pptr-testing-library'],
 };
 
-export default [mainConfig, jestDomConfig];
+export default [mainConfig, jestDomConfig, pptrTestingLibraryConfig];
 
 /**
  * Creates sub-bundles when you do `import fileName from "bundle:./path-here"

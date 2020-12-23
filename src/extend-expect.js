@@ -37,7 +37,7 @@ expect.extend(
           // @ts-ignore
           new Function(
             'element',
-            `return import("http://localhost:${port}/@test-mule/runtime").then(jestDom => {
+            `return import("http://localhost:${port}/@test-mule/jest-dom").then(jestDom => {
               const context = { ...(${ctxString}), ...jestDom.jestContext }
               const result = jestDom.${methodName}.call(context, element)
               if (result.pass === context.isNot) {
