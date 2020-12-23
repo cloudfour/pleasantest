@@ -1,6 +1,30 @@
-import * as jestDom from '@testing-library/jest-dom/matchers';
+import { port } from '.';
 
-const methods = Object.keys(jestDom);
+const methods = [
+  'toBeInTheDOM',
+  'toBeInTheDocument',
+  'toBeEmpty',
+  'toBeEmptyDOMElement',
+  'toContainElement',
+  'toContainHTML',
+  'toHaveTextContent',
+  'toHaveAttribute',
+  'toHaveClass',
+  'toHaveStyle',
+  'toHaveFocus',
+  'toHaveFormValues',
+  'toBeVisible',
+  'toBeDisabled',
+  'toBeEnabled',
+  'toBeRequired',
+  'toBeInvalid',
+  'toBeValid',
+  'toHaveValue',
+  'toHaveDisplayValue',
+  'toBeChecked',
+  'toBePartiallyChecked',
+  'toHaveDescription',
+];
 
 expect.extend(
   Object.fromEntries(
@@ -13,7 +37,7 @@ expect.extend(
           // @ts-ignore
           new Function(
             'element',
-            `return import("./jest-dom").then(jestDom => {
+            `return import("http://localhost:${port}/@test-mule/runtime").then(jestDom => {
               const context = { ...(${ctxString}), ...jestDom.jestContext }
               const result = jestDom.${methodName}.call(context, element)
               if (result.pass === context.isNot) {

@@ -1,10 +1,12 @@
 import puppeteer from 'puppeteer';
 import * as vite from 'vite';
 import * as path from 'path';
+import { promises as fs } from 'fs';
 import { within } from 'pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
+import { fileURLToPath } from 'url';
 
 const defaultHTML = `
 <!DOCTYPE html>
@@ -23,7 +25,7 @@ const defaultHTML = `
 </html>
 `;
 
-let port = 3000;
+export let port = 3000;
 
 const createServer = async () => {
   /** @type {import('chokidar').FSWatcher} */
@@ -48,6 +50,20 @@ const createServer = async () => {
       if (ctx.path === '/') {
         ctx.type = 'html';
         ctx.body = defaultHTML;
+      }
+      await next();
+    });
+  };
+
+  const viteClientRuntimeMiddleware = ({ app }) => {
+    app.use(async (ctx, next) => {
+      if (ctx.path === '/@test-mule/runtime') {
+        ctx.type = 'js';
+        const p = path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '../jest-dom.js',
+        );
+        ctx.body = await fs.readFile(p, 'utf8');
       }
       await next();
     });
@@ -82,7 +98,11 @@ const createServer = async () => {
       viteStealWatcherMiddleware,
       viteHomeMiddleware,
       viteDisablePollingMiddleware,
+      viteClientRuntimeMiddleware,
     ],
+    alias: {
+      'jest-dom': '/Users/calebeby/Projects/test-mule/dist/jest-dom.js',
+    },
     optimizeDeps: { auto: false },
     hmr: false,
   });

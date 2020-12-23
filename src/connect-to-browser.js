@@ -3,6 +3,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
 import puppeteer from 'puppeteer';
+import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 
 /** @param {string} configPath */
 const readConfig = async (configPath) => {
@@ -43,9 +44,7 @@ export const connectToBrowser = async (browser, headless) => {
       return await puppeteer.connect({ browserWSEndpoint: cachedWSEndpoint });
     } catch {}
   }
-  const subprocess = childProcess.fork(
-    require.resolve('./start-disowned-browser'),
-  );
+  const subprocess = childProcess.fork(startDisownedBrowserPath);
   const wsEndpoint = await new Promise((resolve) => {
     subprocess.send({ browser, headless });
     subprocess.on('message', async (msg) => {

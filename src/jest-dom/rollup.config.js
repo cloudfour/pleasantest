@@ -45,17 +45,16 @@ const stubPlugin = {
 
 /** @type {import('rollup').RollupOptions} */
 const config = {
-  input: [require.resolve('./index.js')],
+  input: ['src/jest-dom/index.js'],
   plugins: [
     stubPlugin,
     babel({ plugins: [cjsToEsm], configFile: false, babelHelpers: 'bundled' }),
     nodeResolve(),
-    // commonjs(),
-    // terser({ ecma: 2019 }),
+    terser({ ecma: 2019 }),
   ],
   external: ['css'],
   treeshake: { moduleSideEffects: 'no-external' },
-  output: { file: 'jest-dom.js' },
+  output: { file: 'dist/jest-dom.js' },
 };
 
 export default config;
