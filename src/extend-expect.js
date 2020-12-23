@@ -15,9 +15,18 @@ expect.extend(
             'element',
             `return import("./jest-dom").then(jestDom => {
               const context = { ...(${ctxString}), ...jestDom.jestContext }
-              return jestDom.${methodName}.call(context, element)
+              const result = jestDom.${methodName}.call(context, element)
+              if (result.pass === context.isNot) {
+                window.__testMuleDebug__ = true
+                const simplifiedMessage = result
+                  .message()
+                  .replace(/\\$\\$JEST_UTILS\\$\\$\\.([a-zA-Z]*)\\((.*?)\\)/g, '');
+                console.error('matcher failed:', simplifiedMessage.trim() + '\\n', element)
+              }
+              return result
             })`,
           ),
+          // the __testMuleDebug__ thing is a flag that is set in the browser global to keep it open, so that when the matcher fails it will mark the flag
           elementHandle,
         );
         const message = await result

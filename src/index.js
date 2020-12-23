@@ -53,11 +53,35 @@ const createServer = async () => {
     });
   };
 
+  // when the vite client disconnects from the server it polls to reconnect
+  // this feature is useless for our use case and it generates a lot of console noise
+  // so we are snipping this feature from their client code
+  const viteDisablePollingMiddleware = ({ app }) => {
+    app.use(async (ctx, next) => {
+      await next();
+
+      if (ctx.path === '/vite/client') {
+        ctx.body = ctx.body
+          .replace(
+            // here is code sninppet we are removing:
+            // socket.addEventListener('close', () => {
+            //   ...
+            // }, 1000);});
+            /socket\.addEventListener\('close'[\w\W]*?, [0-9]*\);[\s\r]*}\);/,
+            '',
+          )
+          .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
+          .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '');
+      }
+    });
+  };
+
   const server = vite.createServer({
     configureServer: [
       viteInlineModuleMiddleware,
       viteStealWatcherMiddleware,
       viteHomeMiddleware,
+      viteDisablePollingMiddleware,
     ],
     optimizeDeps: { auto: false },
     hmr: false,
@@ -128,6 +152,8 @@ export const createTab = async ({ headless = true } = {}) => {
     const text = message.text();
     // ignore vite spam
     if (text.startsWith('[vite]')) return;
+    // ignore repeated messages within the browser
+    if (text.startsWith('matcher failed')) return;
     const type = message.type();
     if (type === 'error') {
       const error = new Error(text);
@@ -156,16 +182,14 @@ export const createTab = async ({ headless = true } = {}) => {
     .then((handle) => handle.asElement());
   const screen = within(doc);
 
-  /** @param {Error | undefined} [error] */
-  const debug = (error) => {
+  const debug = () => {
     if (headless) {
-      if (error) return; // means debug was not called directly by user, it was called from a query or assertion that failed
       throw new Error(
         'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
       );
     }
     debuggedPages.add(page);
-    throw error || new Error('[debug mode]');
+    throw new Error('[debug mode]');
   };
 
   /**
@@ -223,8 +247,17 @@ afterAll(async () => {
   const pages = await browser.pages();
   await Promise.all(
     pages.map(async (page) => {
+      // if it is headless, no reason to keep pages open, even if test failed
+      if (/headless/.test(browser.version())) return page.close();
       // leave any tab open if the test with it called debug()
-      if (!debuggedPages.has(page)) await page.close();
+      if (debuggedPages.has(page)) return;
+      // check if the browser has a global window.__testMuleDebug__ set
+      // If it does, then that means that a matcher failed and left that mark there
+      const hasDebugFlag = await page
+        .evaluateHandle(() => window.__testMuleDebug__)
+        .then((v) => v.jsonValue());
+      if (hasDebugFlag) return;
+      return page.close();
     }),
   );
   browser.disconnect();
