@@ -39,17 +39,17 @@ export const __deserialize = (input) => {
 };
 
 /** @param {Element} el */
-export const __elementToString = (el, printChildren = true) => {
+const elementToString = (el, printChildren = true) => {
   let contents = '';
   if (printChildren && el.childNodes.length <= 3) {
     const singleLine =
       el.childNodes.length === 1 && el.childNodes[0] instanceof Text;
-    if (!singleLine) contents += '\n';
     for (const child of el.childNodes) {
       if (child instanceof Element) {
-        contents += '  ' + elementToString(child).split('\n').join('  \n');
+        contents +=
+          '\n  ' + elementToString(child, false).split('\n').join('  \n');
       } else if (child instanceof Text) {
-        contents += child.wholeText;
+        contents += (singleLine ? '' : '\n  ') + child.wholeText;
       }
     }
     if (!singleLine) contents += '\n';
@@ -58,3 +58,5 @@ export const __elementToString = (el, printChildren = true) => {
   }
   return el.outerHTML.replace(el.innerHTML, contents);
 };
+
+export { elementToString as __elementToString };

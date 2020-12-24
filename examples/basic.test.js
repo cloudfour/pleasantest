@@ -1,7 +1,7 @@
 import { createTab } from 'test-mule';
 
 test('basic element visibility test', async () => {
-  const { screen, utils, debug, page } = await createTab({ headless: true });
+  const { screen, utils, debug, page } = await createTab({ headless: false });
 
   await utils.injectHTML('<button class="hidden">menu</button>');
   // await utils.injectCSS('.hidden { display: none }');

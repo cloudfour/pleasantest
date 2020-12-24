@@ -20,6 +20,9 @@ process.on('message', async ({ browser, headless }) => {
       '--no-default-browser-check',
     ],
   });
+  const allPages = await browserInstance.pages();
+  // close startup page
+  await Promise.all(allPages.map((p) => p.close()));
   const browserWSEndpoint = browserInstance.wsEndpoint();
   process.send({ browserWSEndpoint });
   browserInstance.on('disconnected', () => process.exit());

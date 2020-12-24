@@ -145,32 +145,34 @@ const createServer = async () => {
   return server;
 };
 
-/** @type {Promise<puppeteer.Browser>} */
-let browserPromise;
+/**
+ * Keeps track of all the browser contexts started by this instance so we can clean them up later
+ * @type {puppeteer.BrowserContext[]}
+ */
+const browserContexts = [];
 let serverPromise = createServer();
 
 /** Pages that are in "debug mode" that the user will have to manually close */
 const debuggedPages = new Set();
 
 export const createTab = async ({ headless = true } = {}) => {
-  browserPromise = connectToBrowser('chromium', headless);
+  const browser = await connectToBrowser('chromium', headless);
+  const browserContext = await browser.createIncognitoBrowserContext();
+  browserContexts.push(browserContext);
+  const page = await browserContext.newPage();
 
   // Figure out the file that called createTab so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack);
   const testFile = stack.find((stackItem) => {
     // ignore if it is the current file
     if (stackItem.fileName === __filename) return false;
+    // ignore if it is an internal-to-node thing
+    if (!stackItem.fileName.startsWith('/')) return false;
     // find the first item that is not the current file
     return true;
   }).fileName;
   const testPath = path.relative(process.cwd(), testFile);
 
-  const browser = await browserPromise;
-  const previousPages = await browser.pages();
-  const newContext = await browser.createIncognitoBrowserContext();
-  const page = await newContext.newPage();
-  // close all other tabs
-  await Promise.all(previousPages.map((page) => page.close()));
   page.on('console', (message) => {
     const text = message.text();
     // ignore vite spam
@@ -263,30 +265,44 @@ export const createTab = async ({ headless = true } = {}) => {
   return { screen, debug, utils, page };
 };
 
-afterAll(async () => {
-  const browser = await browserPromise;
-  // close all tabs, but not the browser itself (so it can be reused)
-  const pages = await browser.pages();
+/**
+ * Closes all tabs (and the BrowserContext itself) as long as each tab is not in debug mode or failed
+ * @param {puppeteer.BrowserContext} context
+ */
+const cleanUpBrowserContext = async (context) => {
   let isHeadless = true;
   try {
-    isHeadless = /headless/.test(await browser.version());
+    isHeadless = /headless/.test(await context.browser().version());
   } catch {}
-  await Promise.all(
+  const pages = await context.pages();
+  /** Array of booleans for whether each tab should be open. Indexes match pages array */
+  const shouldLeaveOpen = await Promise.all(
     pages.map(async (page) => {
       // if it is headless, no reason to keep pages open, even if test failed
-      if (isHeadless) return page.close();
+      if (isHeadless) return false;
       // leave any tab open if the test with it called debug()
-      if (debuggedPages.has(page)) return;
+      if (debuggedPages.has(page)) return true;
       // check if the browser has a global window.__testMuleDebug__ set
       // If it does, then that means that a matcher failed and left that mark there
       const hasDebugFlag = await page
         .evaluateHandle(() => window.__testMuleDebug__)
-        .then((v) => v.jsonValue());
-      if (hasDebugFlag) return;
-      return page.close();
+        .then((v) => v.jsonValue())
+        .catch(() => false);
+      return hasDebugFlag;
     }),
   );
-  browser.disconnect();
+  if (shouldLeaveOpen.every((t) => t === false)) return await context.close();
+  await Promise.all(
+    shouldLeaveOpen.map(async (shouldLeaveOpen, i) => {
+      if (shouldLeaveOpen) return;
+      await pages[i].close().catch(() => {}); // sometimes it fails to close if it is already closed
+    }),
+  );
+};
+
+afterAll(async () => {
+  await Promise.all(browserContexts.map(cleanUpBrowserContext));
+  browserContexts.map((ctx) => ctx.browser().disconnect());
   const server = await serverPromise;
   await new Promise((resolve) => server.close(resolve));
 });
