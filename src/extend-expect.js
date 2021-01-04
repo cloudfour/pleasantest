@@ -31,7 +31,7 @@ expect.extend(
     methods.map((methodName) => {
       /** @param {import('puppeteer').ElementHandle} elementHandle */
       const matcher = async function (elementHandle) {
-        const ctxString = JSON.stringify(this);
+        const ctxString = JSON.stringify(this); // contains stuff like isNot and promise
         const result = await elementHandle.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           // @ts-ignore
@@ -50,7 +50,8 @@ expect.extend(
               return result
             })`,
           ),
-          // the __testMuleDebug__ thing is a flag that is set in the browser global to keep it open, so that when the matcher fails it will mark the flag
+          // the __testMuleDebug__ thing is a flag that is set in the browser global when the test fails
+          // to keep the tab open (afterAll checks for the flag before it closes tabs)
           elementHandle,
         );
         const message = await result
@@ -84,7 +85,7 @@ const deserialize = (message, context) => {
 
 /**
  * Called on every element in the JSON structure
- * @param {any} _key
+ * @param {string} _key
  * @param {unknown} value
  */
 function reviver(_key, value) {
