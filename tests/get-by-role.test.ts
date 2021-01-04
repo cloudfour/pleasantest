@@ -8,7 +8,7 @@ test('getByRole', async () => {
     <h2>Not this one</h2>
   `);
 
-  const heading = await screen.getByRole('heading', { name: /hii/i });
+  const heading = await screen.getByRole('headig', { name: /hi/ });
   await expect(heading).toBeVisible();
 });
 

@@ -85,20 +85,39 @@ export const getQueriesForPage = (page) => {
                     ? ['query failed\\n', ...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
                     : [error]
                   console.error(...formattedMessage)
-                  error.message = formattedMessage
-                    .map((item, i) => {
-                      const space = i === 0 || /\\s$/.test(formattedMessage[i - 1]) ? '' : ' '
-                      if (item instanceof Element) return space + dtl.__elementToString(item)
-                      if (item instanceof Document) return space + "#document"
-                      return item
-                    }).join('')
-                  throw error
+                  return {
+                    failed: true,
+                    message:
+                      formattedMessage
+                        .map((item, i) => {
+                          const space = i === 0 || /\\s$/.test(formattedMessage[i - 1]) ? '' : ' '
+                          if (item instanceof Element) return space + dtl.__elementToString(item)
+                          if (item instanceof Document) return space + "#document"
+                          return item
+                        })
+                        .join('')
+                  }
                 }
               })
           `,
           ),
           serializedArgs,
         );
+
+        const failureMessage = await result.evaluate(
+          (r) => r.failed && r.message,
+        );
+        if (failureMessage) {
+          const error = new Error(failureMessage);
+          // manipulate the stack trace and remove this function
+          // That way jest will show a code frame from the user's code, not ours
+          // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
+          if (Error.captureStackTrace) {
+            Error.captureStackTrace(error, query);
+          }
+
+          throw error;
+        }
 
         // if it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {

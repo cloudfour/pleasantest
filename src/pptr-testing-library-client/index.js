@@ -6,9 +6,7 @@ import { configure } from '@testing-library/dom/dist/config';
 // This map holds entries like { 123412398 => HTMLElement }
 // So then when we are about to log them we can replace with the pointers to the real elements
 const elementStringsMap = new Map();
-
-const randomNum = () => Math.floor(Math.random() * 100000000);
-
+// This gets used by the stub for pretty-dom, and also it is used in this file
 window.__putElementInStringMap = (el) => {
   const num = randomNum();
   elementStringsMap.set(num, el);
@@ -17,6 +15,14 @@ window.__putElementInStringMap = (el) => {
 
 configure({
   getElementError(message, container) {
+    // message is undefined sometimes, for example in the error message for "found multiple elements"
+    if (!message) {
+      const num = randomNum();
+      elementStringsMap.set(num, container);
+      return {
+        message: `$$DTL_ELEMENT$$${num}$`,
+      };
+    }
     const error = new Error(message);
     error.container = container;
     error.name = 'TestingLibraryElementError';
@@ -59,3 +65,5 @@ const elementToString = (el, printChildren = true) => {
 };
 
 export { elementToString as __elementToString };
+
+const randomNum = () => Math.floor(Math.random() * 100000000);
