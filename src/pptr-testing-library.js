@@ -100,6 +100,7 @@ export const getQueriesForPage = (page) => {
           serializedArgs,
         );
 
+        // if it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {
           const array = Array(await result.evaluate((r) => r.length));
           const props = await result.getProperties();
