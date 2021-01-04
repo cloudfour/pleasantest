@@ -12,7 +12,7 @@ const stubs = {
   `,
   [require.resolve('@testing-library/dom/dist/pretty-dom')]: `
     export const prettyDOM = (dom, maxLength, options) => {
-      return dom
+      return window.__putElementInStringMap(dom)
     }
   `,
 };

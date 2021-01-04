@@ -8,15 +8,12 @@ test('getByRole', async () => {
     <h2>Not this one</h2>
   `);
 
-  // TODO: fix what this logs when there is an error
   const heading = await screen.getByRole('heading', { name: /hii/i });
   await expect(heading).toBeVisible();
-
-  debug();
 });
 
 test('something else', async () => {
-  const { screen, utils, debug, page } = await createTab({ headless: false });
+  const { screen, utils, debug, page } = await createTab();
 
   await utils.injectHTML(`
     <h1>twooooo</h1>

@@ -9,15 +9,14 @@ const elementStringsMap = new Map();
 
 const randomNum = () => Math.floor(Math.random() * 100000000);
 
+window.__putElementInStringMap = (el) => {
+  const num = randomNum();
+  elementStringsMap.set(num, el);
+  return `$$DTL_ELEMENT$$${num}$`;
+};
+
 configure({
   getElementError(message, container) {
-    if (!message) {
-      const num = randomNum();
-      elementStringsMap.set(num, container);
-      return {
-        message: `$$DTL_ELEMENT$$${num}$`,
-      };
-    }
     const error = new Error(message);
     error.container = container;
     error.name = 'TestingLibraryElementError';
@@ -26,8 +25,8 @@ configure({
 });
 
 /**
+ * Replaces the $$DTL_ELEMENT$$ items back with real elements
  * @param {string} input
- * replaces back the $$DTL_ELEMENT$$ items with real elements
  */
 export const __deserialize = (input) => {
   const a = input.split('$$DTL_ELEMENT$$').reduce((outArr, segment, i) => {
