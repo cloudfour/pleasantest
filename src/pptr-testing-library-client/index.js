@@ -19,9 +19,7 @@ configure({
     if (!message) {
       const num = randomNum();
       elementStringsMap.set(num, container);
-      return {
-        message: `$$DTL_ELEMENT$$${num}$`,
-      };
+      return { message: `$$DTL_ELEMENT$$${num}$` };
     }
     const error = new Error(message);
     error.container = container;

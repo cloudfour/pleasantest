@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { getQueriesForPage } from './pptr-testing-library';
+import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -206,20 +206,15 @@ export const createTab = async ({ headless = true } = {}) => {
 
   const debug = () => {
     if (headless) {
-      throw new Error(
-        'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
+      throw removeFuncFromStackTrace(
+        new Error(
+          'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
+        ),
+        debug,
       );
     }
     debuggedPages.add(page);
-    const error = new Error('[debug mode]');
-    // manipulate the stack trace and remove this function
-    // That way jest will show a code frame from the user's code, not ours
-    // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(error, debug);
-    }
-
-    throw error;
+    throw removeFuncFromStackTrace(new Error('[debug mode]'), debug);
   };
 
   /**
@@ -268,9 +263,48 @@ export const createTab = async ({ headless = true } = {}) => {
 
   const utils = { runJS, injectCSS, injectHTML, loadCSS, loadJS };
 
-  const screen = getQueriesForPage(page);
+  const screen = getQueriesForElement(page);
 
-  return { screen, debug, utils, page };
+  /**
+   * Returns DOM Testing Library queries that only search within a single element
+   * @param {ElementHandle} element
+   */
+  const within = (element) => {
+    const type =
+      typeof element === 'object' && element.then && element.catch
+        ? 'Promise'
+        : typeof element;
+    if (type !== 'object' || !element.asElement) {
+      throw removeFuncFromStackTrace(
+        new Error(`Must pass elementhandle to within(el), received ${type}`),
+        within,
+      );
+    }
+    // returns null if it is a JSHandle that does not point to an element
+    const el = element.asElement();
+    if (!el) {
+      throw new Error(
+        'Must pass elementhandle to within(el), received a JSHandle that did not point to an element',
+      );
+    }
+    return getQueriesForElement(page, element);
+  };
+
+  return { screen, debug, utils, page, within };
+};
+
+/**
+ * @param {Error} error
+ * @param {function} fn
+ */
+const removeFuncFromStackTrace = (error, fn) => {
+  // manipulate the stack trace and remove fn from it
+  // That way jest will show a code frame from the user's code, not ours
+  // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(error, fn);
+  }
+  return error;
 };
 
 /**

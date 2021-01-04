@@ -8,14 +8,23 @@ test('getByRole', async () => {
     <h2>Not this one</h2>
   `);
 
-  const heading = await screen.getByRole('headig', { name: /hi/ });
+  const heading = await screen.getByRole('heading', { name: /hi/ });
   await expect(heading).toBeVisible();
 });
 
-test('something else', async () => {
-  const { screen, utils, debug, page } = await createTab();
+test('getByRole using within()', async () => {
+  const { screen, utils, debug, page, within } = await createTab({
+    headless: false,
+  });
 
   await utils.injectHTML(`
-    <h1>twooooo</h1>
+    <div>
+      <h1>twooooo</h1>
+    </div>
+    <h1>other</h1>
   `);
+
+  const div = within(await page.$('div'));
+  const heading = await div.getByRole('heading');
+  await expect(heading).toBeVisible();
 });

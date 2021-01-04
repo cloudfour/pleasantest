@@ -51,8 +51,11 @@ const queryNames = [
   'queryByTitle',
 ];
 
-/** @param {import("puppeteer").Page} page */
-export const getQueriesForPage = (page) => {
+/**
+ * @param {import("puppeteer").Page} page
+ * @param {import("puppeteer").ElementHandle} element
+ */
+export const getQueriesForElement = (page, element) => {
   const queries = Object.fromEntries(
     queryNames.map((queryName) => {
       const query = async (...args) => {
@@ -70,6 +73,7 @@ export const getQueriesForPage = (page) => {
           // using new Function to avoid babel transpiling the import
           new Function(
             'argsString',
+            'element',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async dtl => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
@@ -78,7 +82,7 @@ export const getQueriesForPage = (page) => {
                   return value
                 })
                 try {
-                  return await dtl.${queryName}(document, ...deserializedArgs)
+                  return await dtl.${queryName}(element, ...deserializedArgs)
                 } catch (error) {
                   window.__testMuleDebug__ = true
                   const formattedMessage = error.name === 'TestingLibraryElementError'
@@ -102,6 +106,9 @@ export const getQueriesForPage = (page) => {
           `,
           ),
           serializedArgs,
+          element
+            ? element.asElement()
+            : await page.evaluateHandle(() => document),
         );
 
         const failureMessage = await result.evaluate(
