@@ -56,25 +56,26 @@ export const getQueriesForPage = (page) => {
   const queries = Object.fromEntries(
     queryNames.map((queryName) => {
       const query = async (...args) => {
-        const serializedArgs = args.map((arg) => {
-          if (arg instanceof RegExp) {
+        const serializedArgs = JSON.stringify(args, (key, value) => {
+          if (value instanceof RegExp) {
             return {
               __serialized: 'RegExp',
-              source: arg.source,
-              flags: arg.flags,
+              source: value.source,
+              flags: value.flags,
             };
           }
-          return arg;
+          return value;
         });
         const result = await page.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           new Function(
-            'args',
+            'argsString',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async dtl => {
-                const deserializedArgs = args.map(arg => {
-                  if (arg.__serialized === 'RegExp') return new RegExp(arg.source, arg.flags)
-                  return arg
+                const deserializedArgs = JSON.parse(argsString, (key, value) => {
+                  if (value.__serialized === 'RegExp')
+                    return new RegExp(value.source, value.flags)
+                  return value
                 })
                 try {
                   return await dtl.${queryName}(document, ...deserializedArgs)
