@@ -274,6 +274,14 @@ export const createTab = async ({ headless = true } = {}) => {
       typeof element === 'object' && element.then && element.catch
         ? 'Promise'
         : typeof element;
+    if (type === 'Promise') {
+      throw removeFuncFromStackTrace(
+        new Error(
+          `Must pass elementhandle to within(el), received ${type}. Did you forget await?`,
+        ),
+        within,
+      );
+    }
     if (type !== 'object' || !element.asElement) {
       throw removeFuncFromStackTrace(
         new Error(`Must pass elementhandle to within(el), received ${type}`),
