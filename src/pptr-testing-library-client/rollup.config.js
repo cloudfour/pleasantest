@@ -38,7 +38,7 @@ const config = {
     stubPlugin,
     babel({ plugins: [cjsToEsm], configFile: false, babelHelpers: 'bundled' }),
     nodeResolve(),
-    // terser({ ecma: 2019 }),
+    terser({ ecma: 2019 }),
   ],
   external: [],
   treeshake: { moduleSideEffects: 'no-external' },
