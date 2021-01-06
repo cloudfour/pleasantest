@@ -1,4 +1,21 @@
 import { port } from '.';
+import type { queries, BoundFunctions } from '@testing-library/dom';
+
+type ElementToElementHandle<Input> = Input extends Element
+  ? import('puppeteer').ElementHandle
+  : Input extends Element[]
+  ? import('puppeteer').ElementHandle[]
+  : Input;
+
+type Promisify<Input> = Input extends Promise<any> ? Input : Promise<Input>;
+
+type UpdateReturnType<Fn> = Fn extends (...args: infer Args) => infer ReturnType
+  ? (...args: Args) => Promisify<ElementToElementHandle<ReturnType>>
+  : never;
+
+type AsyncDTLQueries = {
+  [K in keyof typeof queries]: UpdateReturnType<typeof queries[K]>;
+};
 
 const queryNames = [
   'findAllByAltText',
@@ -49,17 +66,17 @@ const queryNames = [
   'queryByTestId',
   'queryByText',
   'queryByTitle',
-];
+] as const;
 
-/**
- * @param {import("puppeteer").Page} page
- * @param {import("puppeteer").ElementHandle} element
- */
-export const getQueriesForElement = (page, element) => {
-  const queries = Object.fromEntries(
-    queryNames.map((queryName) => {
-      const query = async (...args) => {
-        const serializedArgs = JSON.stringify(args, (key, value) => {
+export const getQueriesForElement = (
+  page: import('puppeteer').Page,
+  element?: import('puppeteer').ElementHandle,
+) => {
+  // @ts-expect-error
+  const queries: BoundFunctions<AsyncDTLQueries> = Object.fromEntries(
+    queryNames.map((queryName: typeof queryNames[number]) => {
+      const query = async (...args: any[]) => {
+        const serializedArgs = JSON.stringify(args, (_key, value) => {
           if (value instanceof RegExp) {
             return {
               __serialized: 'RegExp',
@@ -71,6 +88,7 @@ export const getQueriesForElement = (page, element) => {
         });
         const result = await page.evaluateHandle(
           // using new Function to avoid babel transpiling the import
+          // @ts-expect-error
           new Function(
             'argsString',
             'element',
@@ -131,7 +149,7 @@ export const getQueriesForElement = (page, element) => {
           const array = Array(await result.evaluate((r) => r.length));
           const props = await result.getProperties();
           props.forEach((value, key) => {
-            array[key] = value;
+            array[(key as any) as number] = value;
           });
           return array;
         }

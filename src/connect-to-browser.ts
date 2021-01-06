@@ -3,10 +3,10 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
 import puppeteer from 'puppeteer';
+// @ts-expect-error
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 
-/** @param {string} configPath */
-const readConfig = async (configPath) => {
+const readConfig = async (configPath: string) => {
   try {
     const config = await fs.readFile(configPath, 'utf8').catch(() => '');
     const parsed = JSON.parse(config);
@@ -16,18 +16,14 @@ const readConfig = async (configPath) => {
 };
 
 /**
- * @param {string} configPath
- * @param {'chromium'} browser
- * @param {boolean} headless
- * @param {string | undefined} value
- * @param {string | undefined} [previousValue] If the read value does not match this, skips updating and returns the newly read value
+ * @param [previousValue] If the read value does not match this, skips updating and returns the newly read value
  */
 const updateConfig = async (
-  configPath,
-  browser,
-  headless,
-  value,
-  previousValue,
+  configPath: string,
+  browser: 'chromium',
+  headless: boolean,
+  value: string | undefined,
+  previousValue: string | undefined,
 ) => {
   await fs.mkdir(path.dirname(configPath), { recursive: true });
   const oldConfig = await readConfig(configPath);
@@ -44,23 +40,22 @@ const updateConfig = async (
 };
 
 /**
- * @param {string} configPath
- * @param {'chromium'} browser
- * @param {'headless' | 'headed'} headless
- * @param {number} timeLimit The maximum amount of time to wait for a browesr to start from another process
+ * @param timeLimit The maximum amount of time to wait for a browesr to start from another process
  */
 const connectToCachedBrowser = async (
-  configPath,
-  browser,
-  headless,
-  timeLimit = 5000,
+  configPath: string,
+  browser: 'chromium',
+  headless: boolean,
+  timeLimit: number = 5000,
 ) => {
   const config = await readConfig(configPath);
   const cachedWSEndpoint = config[browser]?.[headless ? 'headless' : 'headed'];
   // in case another process is currently starting a browser, wait for that process
   // rather than starting a whole new one
   if (cachedWSEndpoint === 'starting' && timeLimit > 0) {
-    return new Promise((resolve) => {
+    return new Promise<
+      puppeteer.Browser | { connected: false; previousValue: string }
+    >((resolve) => {
       // every 50ms check again (this is recursive)
       setTimeout(
         () =>
@@ -77,16 +72,21 @@ const connectToCachedBrowser = async (
   if (cachedWSEndpoint) {
     return await puppeteer
       .connect({ browserWSEndpoint: cachedWSEndpoint })
-      .catch(() => ({ connected: false, previousValue: cachedWSEndpoint }));
+      .catch(
+        () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
+      );
   }
-  return { connected: false, previousValue: cachedWSEndpoint };
+  return { connected: false, previousValue: cachedWSEndpoint } as const;
 };
 
-/**
- * @param {'chromium'} browser
- * @param {boolean} headless
- */
-export const connectToBrowser = async (browser, headless) => {
+const isBrowser = (input: unknown): input is puppeteer.Browser =>
+  // @ts-expect-error
+  input && typeof input === 'object' && input.version;
+
+export const connectToBrowser = async (
+  browser: 'chromium',
+  headless: boolean,
+) => {
   // I acknowledge that this code is gross and should be refactored
   // Constraints:
   // - If there is no browser in the config, multiple concurrent processes should only start 1 new browser
@@ -100,7 +100,7 @@ export const connectToBrowser = async (browser, headless) => {
     browser,
     headless,
   );
-  if (cachedBrowser.version) return cachedBrowser;
+  if (isBrowser(cachedBrowser)) return cachedBrowser;
   let valueWrittenInMeantime = await updateConfig(
     configPath,
     browser,
@@ -109,12 +109,19 @@ export const connectToBrowser = async (browser, headless) => {
     cachedBrowser.previousValue,
   );
   if (valueWrittenInMeantime) {
-    return await connectToCachedBrowser(configPath, browser, headless);
+    const connectedBrowser = await connectToCachedBrowser(
+      configPath,
+      browser,
+      headless,
+    );
+    if (!isBrowser(connectedBrowser))
+      throw new Error('unable to connect to brwoser');
+    return connectedBrowser;
   }
   const subprocess = childProcess.fork(startDisownedBrowserPath);
-  const wsEndpoint = await new Promise((resolve) => {
+  const wsEndpoint = await new Promise<string>((resolve) => {
     subprocess.send({ browser, headless });
-    subprocess.on('message', async (msg) => {
+    subprocess.on('message', async (msg: any) => {
       if (!msg.browserWSEndpoint) return;
       resolve(msg.browserWSEndpoint);
     });

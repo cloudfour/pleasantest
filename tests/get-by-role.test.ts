@@ -1,7 +1,7 @@
 import { createTab } from 'test-mule';
 
 test('getByRole', async () => {
-  const { screen, utils, debug, page } = await createTab();
+  const { screen, utils } = await createTab();
 
   await utils.injectHTML(`
     <h1>Hiiii</h1>
@@ -13,7 +13,7 @@ test('getByRole', async () => {
 });
 
 test('getByRole using within()', async () => {
-  const { screen, utils, debug, page, within } = await createTab();
+  const { utils, page, within } = await createTab();
 
   await utils.injectHTML(`
     <div>

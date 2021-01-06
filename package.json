@@ -4,6 +4,7 @@
     "@babel/core": "^7.12.10",
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
     "@babel/preset-env": "^7.12.11",
+    "@babel/preset-typescript": "^7.12.7",
     "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@testing-library/dom": "^7.29.0",
@@ -20,9 +21,11 @@
     "rollup": "^2.35.1",
     "rollup-plugin-prettier": "^2.1.0",
     "rollup-plugin-terser": "^7.0.2",
-    "smoldash": "^0.9.0"
+    "smoldash": "^0.9.0",
+    "typescript": "^4.1.3"
   },
   "dependencies": {
+    "@types/testing-library__jest-dom": "^5.9.5",
     "puppeteer": "^5.5.0",
     "vite": "^1.0.0-rc.13"
   },
@@ -39,6 +42,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "rollup -c rollup.config.js",
-    "build:watch": "rollup -c rollup.config.js --watch"
+    "build:watch": "rollup -c rollup.config.js --watch",
+    "type": "tsc",
+    "type:watch": "tsc --watch"
   }
 }

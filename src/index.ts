@@ -28,12 +28,11 @@ const defaultHTML = `
 export let port = 3000;
 
 const createServer = async () => {
-  /** @type {import('chokidar').FSWatcher} */
-  let watcher;
-  const viteStealWatcherMiddleware = ({ watcher: _watcher }) => {
-    watcher = _watcher;
+  let watcher: import('chokidar').FSWatcher;
+  const viteStealWatcherMiddleware: vite.ServerPlugin = ({ watcher: w }) => {
+    watcher = w;
   };
-  const viteInlineModuleMiddleware = ({ app }) => {
+  const viteInlineModuleMiddleware: vite.ServerPlugin = ({ app }) => {
     app.use(async (ctx, next) => {
       const query = ctx.request.query;
       if (query['inline-code-type']) {
@@ -45,7 +44,7 @@ const createServer = async () => {
     });
   };
 
-  const viteHomeMiddleware = ({ app }) => {
+  const viteHomeMiddleware: vite.ServerPlugin = ({ app }) => {
     app.use(async (ctx, next) => {
       if (ctx.path === '/') {
         ctx.type = 'html';
@@ -55,7 +54,7 @@ const createServer = async () => {
     });
   };
 
-  const viteClientRuntimeMiddleware = ({ app }) => {
+  const viteClientRuntimeMiddleware: vite.ServerPlugin = ({ app }) => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
     app.use(async (ctx, next) => {
       if (ctx.path.startsWith('/@test-mule')) {
@@ -73,7 +72,7 @@ const createServer = async () => {
   // when the vite client disconnects from the server it polls to reconnect
   // this feature is useless for our use case and it generates a lot of console noise
   // so we are snipping this feature from their client code
-  const viteDisablePollingMiddleware = ({ app }) => {
+  const viteDisablePollingMiddleware: vite.ServerPlugin = ({ app }) => {
     app.use(async (ctx, next) => {
       await next();
 
@@ -111,7 +110,7 @@ const createServer = async () => {
 
   server.listen(port);
 
-  server.on('error', (e) => {
+  server.on('error', (e: Error & { code?: string }) => {
     if (e.code === 'EADDRINUSE') {
       setTimeout(() => {
         server.close();
@@ -125,7 +124,7 @@ const createServer = async () => {
   });
   await new Promise((resolve) => server.on('listening', resolve));
 
-  const sockets = new Set();
+  const sockets = new Set<import('net').Socket>();
 
   server.on('connection', (socket) => {
     sockets.add(socket);
@@ -140,16 +139,14 @@ const createServer = async () => {
     // When the server closes, close vite's watcher (vite bug)
     // Otherwise the process doesn't exit
     watcher.close();
+    return server;
   };
 
   return server;
 };
 
-/**
- * Keeps track of all the browser contexts started by this instance so we can clean them up later
- * @type {puppeteer.BrowserContext[]}
- */
-const browserContexts = [];
+/** Keeps track of all the browser contexts started by this instance so we can clean them up later */
+const browserContexts: puppeteer.BrowserContext[] = [];
 let serverPromise = createServer();
 
 /** Pages that are in "debug mode" that the user will have to manually close */
@@ -162,7 +159,7 @@ export const createTab = async ({ headless = true } = {}) => {
   const page = await browserContext.newPage();
 
   // Figure out the file that called createTab so that we can resolve paths correctly from there
-  const stack = parseStackTrace(new Error().stack);
+  const stack = parseStackTrace(new Error().stack as string);
   const testFile = stack.find((stackItem) => {
     // ignore if it is the current file
     if (stackItem.fileName === __filename) return false;
@@ -170,7 +167,7 @@ export const createTab = async ({ headless = true } = {}) => {
     if (!stackItem.fileName.startsWith('/')) return false;
     // find the first item that is not the current file
     return true;
-  }).fileName;
+  })!.fileName;
   const testPath = path.relative(process.cwd(), testFile);
 
   page.on('console', (message) => {
@@ -196,7 +193,7 @@ export const createTab = async ({ headless = true } = {}) => {
 
   await page.goto(`http://localhost:${port}`);
 
-  const runJS = async (code) => {
+  const runJS = async (code: string) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
@@ -217,21 +214,15 @@ export const createTab = async ({ headless = true } = {}) => {
     throw removeFuncFromStackTrace(new Error('[debug mode]'), debug);
   };
 
-  /**
-   * Set the contents of document.body
-   * @param {string} html
-   */
-  const injectHTML = async (html) => {
+  /** Set the contents of document.body */
+  const injectHTML = async (html: string) => {
     await page.evaluate((html) => {
       document.body.innerHTML = html;
     }, html);
   };
 
-  /**
-   * Set the contents of a new style tag
-   * @param {string} css
-   */
-  const injectCSS = async (css) => {
+  /** Set the contents of a new style tag */
+  const injectCSS = async (css: string) => {
     await page.evaluate((css) => {
       const styleTag = document.createElement('style');
       styleTag.innerHTML = css;
@@ -239,22 +230,16 @@ export const createTab = async ({ headless = true } = {}) => {
     }, css);
   };
 
-  /**
-   * Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file
-   * @param {string} cssPath
-   */
-  const loadCSS = async (cssPath) => {
+  /** Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file */
+  const loadCSS = async (cssPath: string) => {
     const fullPath = path.join(path.dirname(testPath), cssPath);
     await page.evaluateHandle(
       `import(${JSON.stringify('./' + fullPath + '?import')})`,
     );
   };
 
-  /**
-   * Load a JS (or ts, jsx) file. Pass a path that will be resolved from your test file
-   * @param {string} jsPath
-   */
-  const loadJS = async (jsPath) => {
+  /** Load a JS (or TS, JSX) file. Pass a path that will be resolved from your test file */
+  const loadJS = async (jsPath: string) => {
     const fullPath = jsPath.startsWith('.')
       ? path.join(path.dirname(testPath), jsPath)
       : jsPath;
@@ -265,13 +250,14 @@ export const createTab = async ({ headless = true } = {}) => {
 
   const screen = getQueriesForElement(page);
 
-  /**
-   * Returns DOM Testing Library queries that only search within a single element
-   * @param {ElementHandle} element
-   */
-  const within = (element) => {
+  /** Returns DOM Testing Library queries that only search within a single element */
+  // the | null is so you can pass directly the result of page.$() which returns null if not found
+  const within = (element: puppeteer.ElementHandle | null) => {
     const type =
-      typeof element === 'object' && element.then && element.catch
+      element === null
+        ? 'null'
+        : // @ts-expect-error this is doing manual type checking
+        typeof element === 'object' && element.then && element.catch
         ? 'Promise'
         : typeof element;
     if (type === 'Promise') {
@@ -282,7 +268,7 @@ export const createTab = async ({ headless = true } = {}) => {
         within,
       );
     }
-    if (type !== 'object' || !element.asElement) {
+    if (type !== 'object' || element === null || !element.asElement) {
       throw removeFuncFromStackTrace(
         new Error(`Must pass elementhandle to within(el), received ${type}`),
         within,
@@ -302,13 +288,14 @@ export const createTab = async ({ headless = true } = {}) => {
 };
 
 /**
- * @param {Error} error
- * @param {function} fn
+ * Manipulate the stack trace and remove fn from it
+ * That way jest will show a code frame from the user's code, not ours
+ * https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
  */
-const removeFuncFromStackTrace = (error, fn) => {
-  // manipulate the stack trace and remove fn from it
-  // That way jest will show a code frame from the user's code, not ours
-  // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
+const removeFuncFromStackTrace = (
+  error: Error,
+  fn: (...params: any[]) => any,
+) => {
   if (Error.captureStackTrace) {
     Error.captureStackTrace(error, fn);
   }
@@ -319,7 +306,7 @@ const removeFuncFromStackTrace = (error, fn) => {
  * Closes all tabs (and the BrowserContext itself) as long as each tab is not in debug mode or failed
  * @param {puppeteer.BrowserContext} context
  */
-const cleanUpBrowserContext = async (context) => {
+const cleanUpBrowserContext = async (context: puppeteer.BrowserContext) => {
   let isHeadless = true;
   try {
     isHeadless = /headless/.test(await context.browser().version());

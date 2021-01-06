@@ -1,7 +1,8 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import cjsToEsm from 'babel-plugin-un-cjs';
 import { terser } from 'rollup-plugin-terser';
+
+const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
@@ -48,8 +49,14 @@ const config = {
   input: ['src/jest-dom/index.js'],
   plugins: [
     stubPlugin,
-    babel({ plugins: [cjsToEsm], configFile: false, babelHelpers: 'bundled' }),
-    nodeResolve(),
+    babel({
+      presets: ['@babel/preset-typescript'],
+      plugins: ['babel-plugin-un-cjs'],
+      configFile: false,
+      babelHelpers: 'bundled',
+      extensions,
+    }),
+    nodeResolve({ extensions }),
     terser({ ecma: 2019 }),
   ],
   external: ['css'],

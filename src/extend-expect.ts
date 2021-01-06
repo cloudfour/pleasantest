@@ -29,8 +29,10 @@ const methods = [
 expect.extend(
   Object.fromEntries(
     methods.map((methodName) => {
-      /** @param {import('puppeteer').ElementHandle} elementHandle */
-      const matcher = async function (elementHandle) {
+      const matcher = async function (
+        this: unknown,
+        elementHandle: import('puppeteer').ElementHandle,
+      ) {
         const ctxString = JSON.stringify(this); // contains stuff like isNot and promise
         const result = await elementHandle.evaluateHandle(
           // using new Function to avoid babel transpiling the import
@@ -54,6 +56,7 @@ expect.extend(
           // to keep the tab open (afterAll checks for the flag before it closes tabs)
           elementHandle,
         );
+        // @ts-expect-error it is used but for some reason ts doesn't recognize
         const message = await result
           .evaluateHandle((matcherResult) => matcherResult.message())
           .then((m) => m.jsonValue());
@@ -70,25 +73,18 @@ expect.extend(
   ),
 );
 
-/**
- * @param {string} message
- * @param {jest.MatcherContext} context
- */
-const deserialize = (message, context) => {
+// @ts-expect-error it is used but for some reason ts doesn't recognize
+const deserialize = (message: string, context: jest.MatcherContext) => {
   return message.replace(
     /\$\$JEST_UTILS\$\$\.([a-zA-Z]*)\((.*?)\)/g,
     (_match, funcName, args) => {
+      // @ts-expect-error
       return context.utils[funcName](...JSON.parse(args, reviver));
     },
   );
 };
 
-/**
- * Called on every element in the JSON structure
- * @param {string} _key
- * @param {unknown} value
- */
-function reviver(_key, value) {
+function reviver(_key: string, value: unknown) {
   // @ts-ignore
   if (typeof value === 'object' && value.__serialized === 'HTMLElement') {
     const wrapper = document.createElement('div');
@@ -97,4 +93,19 @@ function reviver(_key, value) {
     return wrapper.firstElementChild;
   }
   return value;
+}
+
+// These type definitions are incomplete
+// More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
+// You can copy-paste and change the return types to promises
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      /**
+       * Check if an element is currently visible to the user.
+       * https://github.com/testing-library/jest-dom#tobevisible
+       */
+      toBeVisible(): Promise<R>;
+    }
+  }
 }

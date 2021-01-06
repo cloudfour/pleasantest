@@ -1,8 +1,9 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import cjsToEsm from 'babel-plugin-un-cjs';
 import { terser } from 'rollup-plugin-terser';
 import { rollupPluginAriaQuery } from '../../rollup-plugin-aria-query';
+
+const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   'pretty-format': `
@@ -36,8 +37,14 @@ const config = {
   plugins: [
     rollupPluginAriaQuery(),
     stubPlugin,
-    babel({ plugins: [cjsToEsm], configFile: false, babelHelpers: 'bundled' }),
-    nodeResolve(),
+    babel({
+      presets: ['@babel/preset-typescript'],
+      plugins: ['babel-plugin-un-cjs'],
+      configFile: false,
+      babelHelpers: 'bundled',
+      extensions,
+    }),
+    nodeResolve({ extensions }),
     terser({ ecma: 2019 }),
   ],
   external: [],

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "paths": {
+      "test-mule": ["./src"]
+    },
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "target": "ES2019",
+    "types": ["jest"]
+  }
+}

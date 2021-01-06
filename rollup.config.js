@@ -3,11 +3,11 @@ import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.c
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import cjsToEsm from 'babel-plugin-un-cjs';
+const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 /** @type {import('rollup').RollupOptions} */
 const mainConfig = {
-  input: ['src/index.js'],
+  input: ['src/index.ts'],
   output: [
     {
       format: 'esm',
@@ -23,8 +23,14 @@ const mainConfig = {
     },
   ],
   plugins: [
-    babel({ plugins: [cjsToEsm], configFile: false, babelHelpers: 'bundled' }),
-    nodeResolve(),
+    babel({
+      presets: ['@babel/preset-typescript'],
+      plugins: ['babel-plugin-un-cjs'],
+      configFile: false,
+      babelHelpers: 'bundled',
+      extensions,
+    }),
+    nodeResolve({ extensions }),
     bundlePlugin(),
   ],
   external: ['puppeteer', 'vite', 'pptr-testing-library'],
