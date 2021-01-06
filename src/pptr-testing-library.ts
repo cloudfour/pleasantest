@@ -130,7 +130,7 @@ export const getQueriesForElement = (
         );
 
         const failureMessage = await result.evaluate(
-          (r) => r.failed && r.message,
+          (r) => typeof r === 'object' && r !== null && r.failed && r.message,
         );
         if (failureMessage) {
           const error = new Error(failureMessage);
@@ -154,7 +154,11 @@ export const getQueriesForElement = (
           return array;
         }
 
-        return result;
+        // if it is an element, return it
+        if (result.asElement() !== null) return result;
+
+        // try to JSON-ify it (for example if it is null from queryBy*)
+        return result.jsonValue();
       };
       return [queryName, query];
     }),
