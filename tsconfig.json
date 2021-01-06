@@ -12,6 +12,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "target": "ES2019",
-    "types": ["jest"]
-  }
+    "types": ["jest"],
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "examples/**/*.ts", "types.d.ts"]
 }

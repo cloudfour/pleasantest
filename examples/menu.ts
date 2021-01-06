@@ -1,5 +1,5 @@
 class Menu {
-  constructor(param) {}
+  constructor() {}
 }
 
 export default Menu;
