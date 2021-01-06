@@ -1,8 +1,8 @@
 import { createTab } from 'test-mule';
 
-test('byText', async () => {
+test('ByText', async () => {
   const { screen, utils } = await createTab();
-  utils.injectHTML(`
+  await utils.injectHTML(`
     <div>hi</div>
     <div>hello</div>
   `);
