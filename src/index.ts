@@ -145,7 +145,7 @@ const createServer = async () => {
   return server;
 };
 
-/** Keeps track of all the browser contexts started by this instance so we can clean them up later */
+/** Keeps track of all the browser contexts to can clean them up later */
 const browserContexts: puppeteer.BrowserContext[] = [];
 let serverPromise = createServer();
 
@@ -159,16 +159,24 @@ export const createTab = async ({ headless = true } = {}) => {
   const page = await browserContext.newPage();
 
   // Figure out the file that called createTab so that we can resolve paths correctly from there
-  const stack = parseStackTrace(new Error().stack as string);
+  const stack = parseStackTrace(new Error().stack as string).map(
+    (stackFrame) => {
+      if (stackFrame.fileName) return stackFrame.fileName;
+      return /\s*at\s+([\w/\-.]*)/.exec(stackFrame.raw)?.[1];
+    },
+  );
   const testFile = stack.find((stackItem) => {
+    if (!stackItem) return false;
     // ignore if it is the current file
-    if (stackItem.fileName === __filename) return false;
+    if (stackItem === __filename) return false;
     // ignore if it is an internal-to-node thing
-    if (!stackItem.fileName.startsWith('/')) return false;
+    if (!stackItem.startsWith('/')) return false;
     // find the first item that is not the current file
     return true;
-  })!.fileName;
-  const testPath = path.relative(process.cwd(), testFile);
+  });
+  const testPath = testFile
+    ? path.relative(process.cwd(), testFile)
+    : __filename;
 
   page.on('console', (message) => {
     const text = message.text();
