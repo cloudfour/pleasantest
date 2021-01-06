@@ -24,7 +24,7 @@ test('findBy', async () => {
   await expect(screen.findByText(/Hello/)).rejects.toThrow(
     'Found multiple elements with the text: /Hello/',
   );
-});
+}, 8000);
 
 test('getBy', async () => {
   const { screen, utils } = await createTab();
@@ -69,7 +69,7 @@ test('findAllBy', async () => {
 
   await utils.injectHTML(multipleElementMarkup);
   expect(await screen.findAllByText(/Hello/)).toHaveLength(2);
-});
+}, 8000);
 
 test('getAllBy', async () => {
   const { screen, utils } = await createTab();
