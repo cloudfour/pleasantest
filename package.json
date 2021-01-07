@@ -47,6 +47,7 @@
     "build": "rollup -c rollup.config.js",
     "build:watch": "rollup -c rollup.config.js --watch",
     "type": "tsc",
-    "type:watch": "tsc --watch"
+    "type:watch": "tsc --watch",
+    "lint": "prettier --write ."
   }
 }
