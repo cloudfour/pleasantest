@@ -118,7 +118,10 @@ export const connectToBrowser = async (
       throw new Error('unable to connect to brwoser');
     return connectedBrowser;
   }
-  const subprocess = childProcess.fork(startDisownedBrowserPath);
+  const subprocess = childProcess.fork(startDisownedBrowserPath, {
+    detached: true,
+    stdio: 'ignore',
+  });
   const wsEndpoint = await new Promise<string>((resolve) => {
     subprocess.send({ browser, headless });
     subprocess.on('message', async (msg: any) => {
@@ -136,7 +139,6 @@ export const connectToBrowser = async (
   if (valueWrittenInMeantime) {
     // another browser was started while this browser was starting
     // so we are going to kill the current browser and connect to the other one instead
-    console.log('connecting to cached');
     subprocess.kill();
     return await puppeteer.connect({
       browserWSEndpoint: valueWrittenInMeantime,
