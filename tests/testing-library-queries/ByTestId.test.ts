@@ -11,9 +11,7 @@ test('ByTestId', async () => {
   // finds just one
   await screen.getByTestId('foo');
   // doesn't find any
-  await expect(screen.getByTestId('woot')).rejects.toThrow(
-    'Unable to find',
-  );
+  await expect(screen.getByTestId('woot')).rejects.toThrow('Unable to find');
   // finds too many
   await expect(screen.getByTestId('bar')).rejects.toThrow(
     'Found multiple elements',

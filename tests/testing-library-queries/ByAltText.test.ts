@@ -15,7 +15,5 @@ test('ByAltText', async () => {
   );
   expect(await screen.getAllByAltText(/Foo/)).toHaveLength(2);
   // doesn't find any
-  await expect(screen.getByAltText('Baz')).rejects.toThrow(
-    'Unable to find',
-  );
+  await expect(screen.getByAltText('Baz')).rejects.toThrow('Unable to find');
 });

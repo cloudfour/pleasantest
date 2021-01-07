@@ -15,7 +15,5 @@ test('ByTitle', async () => {
   );
   expect(await screen.getAllByTitle(/Foo/)).toHaveLength(2);
   // doesn't find any
-  await expect(screen.getByTitle('Baz')).rejects.toThrow(
-    'Unable to find',
-  );
+  await expect(screen.getByTitle('Baz')).rejects.toThrow('Unable to find');
 });
