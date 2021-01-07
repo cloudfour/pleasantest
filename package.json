@@ -1,5 +1,8 @@
 {
   "name": "test-mule",
+  "engines": {
+    "node": "12 || 14"
+  },
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
