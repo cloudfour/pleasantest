@@ -1,6 +1,6 @@
 import { createTab } from 'test-mule';
 
-test.skip('basic element visibility test', async () => {
+test('basic element visibility test', async () => {
   const { screen, utils } = await createTab();
 
   await utils.injectHTML('<button class="hidden">menu</button>');

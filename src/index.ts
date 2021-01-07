@@ -1,12 +1,11 @@
 import puppeteer from 'puppeteer';
 import * as vite from 'vite';
 import * as path from 'path';
-import { promises as fs } from 'fs';
 import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
-import { fileURLToPath } from 'url';
+import { URLSearchParams, fileURLToPath } from 'url';
 
 const defaultHTML = `
 <!DOCTYPE html>
@@ -28,119 +27,66 @@ const defaultHTML = `
 export let port = 3000;
 
 const createServer = async () => {
-  let watcher: import('chokidar').FSWatcher;
-  const viteStealWatcherMiddleware: vite.ServerPlugin = ({ watcher: w }) => {
-    watcher = w;
-  };
-  const viteInlineModuleMiddleware: vite.ServerPlugin = ({ app }) => {
-    app.use(async (ctx, next) => {
-      const query = ctx.request.query;
-      if (query['inline-code-type']) {
-        ctx.type = query['inline-code-type'];
-        ctx.body = query['inline-code'];
-      }
-      // make vite do built-in transforms
-      await next();
-    });
-  };
-
-  const viteHomeMiddleware: vite.ServerPlugin = ({ app }) => {
-    app.use(async (ctx, next) => {
-      if (ctx.path === '/') {
-        ctx.type = 'html';
-        ctx.body = defaultHTML;
-      }
-      await next();
-    });
-  };
-
-  const viteClientRuntimeMiddleware: vite.ServerPlugin = ({ app }) => {
-    const currentDir = path.dirname(fileURLToPath(import.meta.url));
-    app.use(async (ctx, next) => {
-      if (ctx.path.startsWith('/@test-mule')) {
-        ctx.type = 'js';
-        const p =
-          ctx.path === '/@test-mule/jest-dom'
-            ? path.join(currentDir, '../jest-dom.js')
-            : path.join(currentDir, '../pptr-testing-library-client.js');
-        ctx.body = await fs.readFile(p, 'utf8');
-      }
-      await next();
-    });
+  const inlineModulePlugin = (): vite.Plugin => {
+    const pluginName = 'test-mule-inline-module-plugin';
+    return {
+      name: pluginName,
+      enforce: 'pre',
+      resolveId(id) {
+        const [idWithoutQuery, qs] = id.split('?');
+        if (!qs) return null;
+        const parsedParams = new URLSearchParams(qs);
+        const inlineCode = parsedParams.get('inline-code');
+        if (!inlineCode) return null;
+        return `.${idWithoutQuery}#inline-code=${encodeURIComponent(
+          inlineCode,
+        )}`;
+      },
+      load(id) {
+        const hash = id.split('#')[1];
+        if (!hash) return null;
+        const inlineCode = new URLSearchParams(hash).get('inline-code');
+        if (!inlineCode) return null;
+        return inlineCode;
+      },
+    };
   };
 
-  // when the vite client disconnects from the server it polls to reconnect
-  // this feature is useless for our use case and it generates a lot of console noise
-  // so we are snipping this feature from their client code
-  const viteDisablePollingMiddleware: vite.ServerPlugin = ({ app }) => {
-    app.use(async (ctx, next) => {
-      await next();
-
-      if (ctx.path === '/vite/client') {
-        ctx.body = ctx.body
-          .replace(
-            // here is code sninppet we are removing:
-            // socket.addEventListener('close', () => {
-            //   ...
-            // }, 1000);});
-            /socket\.addEventListener\('close'[\w\W]*?, [0-9]*\);[\s\r]*}\);/,
-            '',
-          )
-          .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
-          .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '');
-      }
-    });
-  };
-
-  const server = vite.createServer({
-    configureServer: [
-      viteInlineModuleMiddleware,
-      viteStealWatcherMiddleware,
-      viteHomeMiddleware,
-      viteDisablePollingMiddleware,
-      viteClientRuntimeMiddleware,
-    ],
-    alias: {
-      'jest-dom': '/Users/calebeby/Projects/test-mule/dist/jest-dom.js',
+  const indexHTMLPlugin = (): vite.Plugin => ({
+    name: 'test-mule-index-html',
+    configureServer({ app }) {
+      app.use(async (req, res, next) => {
+        if (req.url !== '/') return next();
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html');
+        res.write(defaultHTML);
+        res.end();
+      });
     },
+  });
+
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const clientRuntimePlugin = (): vite.Plugin => ({
+    name: 'test-mule-client-runtime',
+    resolveId(id) {
+      if (!id.startsWith('/@test-mule')) return null;
+      return id === '/@test-mule/jest-dom'
+        ? path.join(currentDir, '../jest-dom.js')
+        : path.join(currentDir, '../pptr-testing-library-client.js');
+    },
+  });
+
+  const server = await vite.createServer({
     optimizeDeps: { auto: false },
-    cors: true,
-    hmr: false,
+    server: { port, cors: true, hmr: false },
+    plugins: [indexHTMLPlugin(), inlineModulePlugin(), clientRuntimePlugin()],
+    logLevel: 'warn',
   });
 
-  server.listen(port);
+  await server.listen();
 
-  server.on('error', (e: Error & { code?: string }) => {
-    if (e.code === 'EADDRINUSE') {
-      setTimeout(() => {
-        server.close();
-        server.listen(++port);
-      }, 100);
-    } else {
-      console.error(`[vite] server error:`);
-      if (e.stack) console.log(e.stack);
-      console.error(e);
-    }
-  });
-  await new Promise((resolve) => server.on('listening', resolve));
-
-  const sockets = new Set<import('net').Socket>();
-
-  server.on('connection', (socket) => {
-    sockets.add(socket);
-    socket.once('close', () => sockets.delete(socket));
-  });
-
-  const originalClose = server.close;
-  server.close = (cb) => {
-    // force-kill all active connections
-    sockets.forEach((socket) => socket.destroy());
-    originalClose.call(server, cb);
-    // When the server closes, close vite's watcher (vite bug)
-    // Otherwise the process doesn't exit
-    watcher.close();
-    return server;
-  };
+  // if original port was not available, use whichever vite ended up choosing
+  port = server.config.server.port || port;
 
   return server;
 };
@@ -205,8 +151,11 @@ export const createTab = async ({ headless = true } = {}) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
-    const url = `http://localhost:${port}/${testPath}?inline-code-type=js&inline-code=${encodedCode}`;
-    await page.evaluateHandle(`import(${JSON.stringify(url)})`);
+    const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
+    await page.evaluateHandle(`import(${JSON.stringify(url)})`).catch((e) => {
+      debuggedPages.add(page);
+      throw e;
+    });
   };
 
   const debug = () => {
@@ -242,7 +191,9 @@ export const createTab = async ({ headless = true } = {}) => {
   const loadCSS = async (cssPath: string) => {
     const fullPath = path.join(path.dirname(testPath), cssPath);
     await page.evaluateHandle(
-      `import(${JSON.stringify('./' + fullPath + '?import')})`,
+      `import(${JSON.stringify(
+        `http://localhost:${port}/${fullPath}?import`,
+      )})`,
     );
   };
 
@@ -251,7 +202,9 @@ export const createTab = async ({ headless = true } = {}) => {
     const fullPath = jsPath.startsWith('.')
       ? path.join(path.dirname(testPath), jsPath)
       : jsPath;
-    await page.evaluateHandle(`import(${JSON.stringify('./' + fullPath)})`);
+    await page.evaluateHandle(
+      `import(${JSON.stringify(`http://localhost:${port}/${fullPath}`)})`,
+    );
   };
 
   const utils = { runJS, injectCSS, injectHTML, loadCSS, loadJS };
@@ -349,5 +302,5 @@ afterAll(async () => {
   await Promise.all(browserContexts.map(cleanUpBrowserContext));
   browserContexts.map((ctx) => ctx.browser().disconnect());
   const server = await serverPromise;
-  await new Promise((resolve) => server.close(resolve));
+  await server.close();
 });
