@@ -1,4 +1,6 @@
+// @ts-expect-error
 export * from '@testing-library/dom/dist/queries';
+// @ts-expect-error
 import { configure } from '@testing-library/dom/dist/config';
 
 // DTL uses string interpolation with elements
@@ -13,36 +15,33 @@ window.__putElementInStringMap = (el) => {
   return `$$DTL_ELEMENT$$${num}$`;
 };
 
-configure({
+(configure as typeof import('@testing-library/dom').configure)({
   getElementError(message, container) {
     // message is undefined sometimes, for example in the error message for "found multiple elements"
     if (!message) {
       const num = randomNum();
       elementStringsMap.set(num, container);
-      return { message: `$$DTL_ELEMENT$$${num}$` };
+      return new Error(`$$DTL_ELEMENT$$${num}$`);
     }
     const error = new Error(message);
+    // @ts-expect-error
     error.container = container;
     error.name = 'TestingLibraryElementError';
     return error;
   },
 });
 
-/**
- * Replaces the $$DTL_ELEMENT$$ items back with real elements
- * @param {string} input
- */
-export const __deserialize = (input) => {
+/** Replaces the $$DTL_ELEMENT$$ items back with real elements */
+export const __deserialize = (input: string) => {
   const a = input.split('$$DTL_ELEMENT$$').reduce((outArr, segment, i) => {
     if (i === 0) return outArr.concat(segment);
-    const [_, number, rest] = /^([0-9]*)\$([\w\W]*)$/g.exec(segment);
+    const [, number, rest] = /^([0-9]*)\$([\w\W]*)$/g.exec(segment)!;
     return outArr.concat([elementStringsMap.get(Number(number)), rest]);
-  }, []);
+  }, [] as string[]);
   return a;
 };
 
-/** @param {Element} el */
-const elementToString = (el, printChildren = true) => {
+const elementToString = (el: Element, printChildren = true) => {
   let contents = '';
   if (printChildren && el.childNodes.length <= 3) {
     const singleLine =
