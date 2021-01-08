@@ -46,7 +46,7 @@ const stubPlugin = {
 
 /** @type {import('rollup').RollupOptions} */
 const config = {
-  input: ['src/jest-dom/index.js'],
+  input: ['src/jest-dom/index.ts'],
   plugins: [
     stubPlugin,
     babel({

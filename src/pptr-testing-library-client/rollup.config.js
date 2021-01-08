@@ -33,7 +33,7 @@ const stubPlugin = {
 
 /** @type {import('rollup').RollupOptions} */
 const config = {
-  input: ['src/pptr-testing-library-client/index.js'],
+  input: ['src/pptr-testing-library-client/index.ts'],
   plugins: [
     rollupPluginAriaQuery(),
     stubPlugin,
