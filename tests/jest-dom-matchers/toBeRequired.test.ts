@@ -18,7 +18,9 @@ test('toBeRequired', async () => {
   const requireInput = await screen.getByTestId('required-input');
   const ariaRequiredInput = await screen.getByTestId('aria-required-input');
   const conflictInput = await screen.getByTestId('conflicted-input');
-  const ariaNotRequiredInput = await screen.getByTestId('aria-not-required-input');
+  const ariaNotRequiredInput = await screen.getByTestId(
+    'aria-not-required-input',
+  );
   const optionalInput = await screen.getByTestId('optional-input');
   const unsportedType = await screen.getByTestId('unsupported-type');
   const select = await screen.getByTestId('select');
@@ -26,14 +28,14 @@ test('toBeRequired', async () => {
   const supportedRole = await screen.getByTestId('supported-role');
   const supportedRoleAria = await screen.getByTestId('supported-role-aria');
 
-  await expect(requireInput).toBeRequired()
-  await expect(ariaRequiredInput).toBeRequired()
-  await expect(conflictInput).toBeRequired()
-  await expect(ariaNotRequiredInput).not.toBeRequired()
-  await expect(optionalInput).not.toBeRequired()
-  await expect(unsportedType).not.toBeRequired()
-  await expect(select).toBeRequired()
-  await expect(textarea).toBeRequired()
-  await expect(supportedRole).not.toBeRequired()
-  await expect(supportedRoleAria).toBeRequired()
+  await expect(requireInput).toBeRequired();
+  await expect(ariaRequiredInput).toBeRequired();
+  await expect(conflictInput).toBeRequired();
+  await expect(ariaNotRequiredInput).not.toBeRequired();
+  await expect(optionalInput).not.toBeRequired();
+  await expect(unsportedType).not.toBeRequired();
+  await expect(select).toBeRequired();
+  await expect(textarea).toBeRequired();
+  await expect(supportedRole).not.toBeRequired();
+  await expect(supportedRoleAria).toBeRequired();
 });

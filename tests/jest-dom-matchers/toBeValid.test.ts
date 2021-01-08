@@ -21,18 +21,18 @@ test('toBeValid', async () => {
   await expect(validInput1).toBeValid();
   await expect(validForm1).toBeValid();
   await expect(expect(invalidInput1).toBeValid()).rejects.toThrow(
-    'element is not currently valid', 
+    'element is not currently valid',
   );
   await expect(expect(invalidInput2).toBeValid()).rejects.toThrow(
-    'element is not currently valid', 
+    'element is not currently valid',
   );
   await expect(expect(invalidInput3).toBeValid()).rejects.toThrow(
-    'element is not currently valid', 
+    'element is not currently valid',
   );
   await expect(expect(invalidInput4).toBeValid()).rejects.toThrow(
-    'element is not currently valid', 
+    'element is not currently valid',
   );
   await expect(expect(invalidForm1).toBeValid()).rejects.toThrow(
-    'element is not currently valid', 
+    'element is not currently valid',
   );
 });

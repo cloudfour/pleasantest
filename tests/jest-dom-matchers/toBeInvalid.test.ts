@@ -24,9 +24,9 @@ test('toBeInvalid', async () => {
   await expect(invalidInput4).toBeInvalid();
   await expect(invalidForm1).toBeInvalid();
   await expect(expect(validInput1).toBeInvalid()).rejects.toThrow(
-    'element is not currently invalid', 
+    'element is not currently invalid',
   );
   await expect(expect(validForm1).toBeInvalid()).rejects.toThrow(
-    'element is not currently invalid', 
+    'element is not currently invalid',
   );
 });
