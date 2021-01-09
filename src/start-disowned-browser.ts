@@ -5,11 +5,6 @@ type Browser = 'chromium' | 'firefox' | 'webkit';
 process.on(
   'message',
   async ({ browser, headless }: { browser: Browser; headless: boolean }) => {
-    if (browser !== 'chromium')
-      throw new Error(`unrecognized browser: ${browser}`);
-    if (typeof headless !== 'boolean')
-      throw new Error('headless must be a boolean');
-
     const browserInstance = await playwright[browser].launchServer({
       headless,
       devtools: !headless,

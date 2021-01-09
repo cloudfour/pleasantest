@@ -77,7 +77,7 @@ const createServer = async () => {
   });
 
   const server = await vite.createServer({
-    optimizeDeps: { auto: false },
+    optimizeDeps: { exclude: ['playwright'] },
     server: { port, cors: true, hmr: false },
     plugins: [indexHTMLPlugin(), inlineModulePlugin(), clientRuntimePlugin()],
     logLevel: 'warn',
