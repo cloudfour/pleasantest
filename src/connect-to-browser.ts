@@ -2,9 +2,11 @@ import * as childProcess from 'child_process';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
-import puppeteer from 'puppeteer';
+import playwright from 'playwright';
 // @ts-expect-error
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
+
+type Browser = 'chromium' | 'firefox' | 'webkit';
 
 const readConfig = async (configPath: string) => {
   try {
@@ -20,7 +22,7 @@ const readConfig = async (configPath: string) => {
  */
 const updateConfig = async (
   configPath: string,
-  browser: 'chromium',
+  browser: Browser,
   headless: boolean,
   value: string | undefined,
   previousValue: string | undefined,
@@ -44,7 +46,7 @@ const updateConfig = async (
  */
 const connectToCachedBrowser = async (
   configPath: string,
-  browser: 'chromium',
+  browser: Browser,
   headless: boolean,
   timeLimit: number = 5000,
 ) => {
@@ -54,7 +56,7 @@ const connectToCachedBrowser = async (
   // rather than starting a whole new one
   if (cachedWSEndpoint === 'starting' && timeLimit > 0) {
     return new Promise<
-      puppeteer.Browser | { connected: false; previousValue: string }
+      playwright.Browser | { connected: false; previousValue: string }
     >((resolve) => {
       // every 50ms check again (this is recursive)
       setTimeout(
@@ -70,8 +72,8 @@ const connectToCachedBrowser = async (
     });
   }
   if (cachedWSEndpoint) {
-    return await puppeteer
-      .connect({ browserWSEndpoint: cachedWSEndpoint })
+    return await playwright[browser]
+      .connect({ wsEndpoint: cachedWSEndpoint })
       .catch(
         () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
       );
@@ -79,14 +81,11 @@ const connectToCachedBrowser = async (
   return { connected: false, previousValue: cachedWSEndpoint } as const;
 };
 
-const isBrowser = (input: unknown): input is puppeteer.Browser =>
+const isBrowser = (input: unknown): input is playwright.Browser =>
   // @ts-expect-error
   input && typeof input === 'object' && input.version;
 
-export const connectToBrowser = async (
-  browser: 'chromium',
-  headless: boolean,
-) => {
+export const connectToBrowser = async (browser: Browser, headless: boolean) => {
   // I acknowledge that this code is gross and should be refactored
   // Constraints:
   // - If there is no browser in the config, multiple concurrent processes should only start 1 new browser
@@ -140,12 +139,12 @@ export const connectToBrowser = async (
     // another browser was started while this browser was starting
     // so we are going to kill the current browser and connect to the other one instead
     subprocess.kill();
-    return await puppeteer.connect({
-      browserWSEndpoint: valueWrittenInMeantime,
+    return await playwright[browser].connect({
+      wsEndpoint: valueWrittenInMeantime,
     });
   }
   // disconnect from the spawned process so it can keep running in the background
   subprocess.unref();
   subprocess.disconnect();
-  return await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  return await playwright[browser].connect({ wsEndpoint });
 };

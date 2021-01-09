@@ -9,6 +9,7 @@
     "paths": {
       "test-mule": ["./src"]
     },
+    "importsNotUsedAsValues": "error",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "target": "ES2019",

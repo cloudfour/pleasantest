@@ -1,10 +1,11 @@
 import { port } from '.';
 import type { queries, BoundFunctions } from '@testing-library/dom';
+import type { ElementHandle, JSHandle } from 'playwright';
 
 type ElementToElementHandle<Input> = Input extends Element
-  ? import('puppeteer').ElementHandle
+  ? ElementHandle
   : Input extends Element[]
-  ? import('puppeteer').ElementHandle[]
+  ? ElementHandle[]
   : Input;
 
 type Promisify<Input> = Input extends Promise<any> ? Input : Promise<Input>;
@@ -69,8 +70,8 @@ const queryNames = [
 ] as const;
 
 export const getQueriesForElement = (
-  page: import('puppeteer').Page,
-  element?: import('puppeteer').ElementHandle,
+  page: import('playwright').Page,
+  element?: import('playwright').ElementHandle,
 ) => {
   // @ts-expect-error
   const queries: BoundFunctions<AsyncDTLQueries> = Object.fromEntries(
@@ -86,12 +87,22 @@ export const getQueriesForElement = (
           }
           return value;
         });
-        const result = await page.evaluateHandle(
+        const el =
+          (element && element.asElement()) ||
+          (await page.evaluateHandle(() => document));
+        const result: JSHandle<
+          | Node
+          | Node[]
+          | {
+              failed: true;
+              message: string;
+            }
+        > = await el.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           // @ts-expect-error
           new Function(
-            'argsString',
             'element',
+            'argsString',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async dtl => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
@@ -124,12 +135,10 @@ export const getQueriesForElement = (
           `,
           ),
           serializedArgs,
-          element
-            ? element.asElement()
-            : await page.evaluateHandle(() => document),
         );
 
         const failureMessage = await result.evaluate(
+          // @ts-expect-error
           (r) => typeof r === 'object' && r !== null && r.failed && r.message,
         );
         if (failureMessage) {
@@ -146,7 +155,9 @@ export const getQueriesForElement = (
 
         // if it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {
-          const array = Array(await result.evaluate((r) => r.length));
+          const array = Array(
+            await result.evaluate((r) => (r as Node[]).length),
+          );
           const props = await result.getProperties();
           props.forEach((value, key) => {
             array[(key as any) as number] = value;

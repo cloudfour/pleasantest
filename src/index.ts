@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import type playwright from 'playwright';
 import * as vite from 'vite';
 import * as path from 'path';
 import { getQueriesForElement } from './pptr-testing-library';
@@ -92,15 +92,21 @@ const createServer = async () => {
 };
 
 /** Keeps track of all the browser contexts to can clean them up later */
-const browserContexts: puppeteer.BrowserContext[] = [];
+const browserContexts: playwright.BrowserContext[] = [];
 let serverPromise = createServer();
 
 /** Pages that are in "debug mode" that the user will have to manually close */
 const debuggedPages = new Set();
 
-export const createTab = async ({ headless = true } = {}) => {
-  const browser = await connectToBrowser('chromium', headless);
-  const browserContext = await browser.createIncognitoBrowserContext();
+export const createTab = async ({
+  headless = true,
+  browser: browserName = 'chromium',
+}: {
+  headless?: boolean;
+  browser?: 'chromium' | 'firefox' | 'webkit';
+} = {}) => {
+  const browser = await connectToBrowser(browserName, headless);
+  const browserContext = await browser.newContext();
   browserContexts.push(browserContext);
   const page = await browserContext.newPage();
 
@@ -213,7 +219,7 @@ export const createTab = async ({ headless = true } = {}) => {
 
   /** Returns DOM Testing Library queries that only search within a single element */
   // the | null is so you can pass directly the result of page.$() which returns null if not found
-  const within = (element: puppeteer.ElementHandle | null) => {
+  const within = (element: playwright.ElementHandle | null) => {
     const type =
       element === null
         ? 'null'
@@ -265,14 +271,14 @@ const removeFuncFromStackTrace = (
 
 /**
  * Closes all tabs (and the BrowserContext itself) as long as each tab is not in debug mode or failed
- * @param {puppeteer.BrowserContext} context
+ * @param {playwright.BrowserContext} context
  */
-const cleanUpBrowserContext = async (context: puppeteer.BrowserContext) => {
+const cleanUpBrowserContext = async (context: playwright.BrowserContext) => {
   let isHeadless = true;
   try {
-    isHeadless = /headless/.test(await context.browser().version());
+    isHeadless = /headless/.test(context.browser()!.version());
   } catch {}
-  const pages = await context.pages();
+  const pages = context.pages();
   /** Array of booleans for whether each tab should be open. Indexes match pages array */
   const shouldLeaveOpen = await Promise.all(
     pages.map(async (page) => {
@@ -300,7 +306,7 @@ const cleanUpBrowserContext = async (context: puppeteer.BrowserContext) => {
 
 afterAll(async () => {
   await Promise.all(browserContexts.map(cleanUpBrowserContext));
-  browserContexts.map((ctx) => ctx.browser().disconnect());
+  browserContexts.map((ctx) => ctx.browser()!.close());
   const server = await serverPromise;
   await server.close();
 });

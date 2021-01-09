@@ -1,3 +1,4 @@
+import type { JSHandle } from 'playwright';
 import { port } from '.';
 
 const methods = [
@@ -30,11 +31,11 @@ expect.extend(
   Object.fromEntries(
     methods.map((methodName) => {
       const matcher = async function (
-        this: unknown,
-        elementHandle: import('puppeteer').ElementHandle,
+        this: jest.MatcherContext,
+        elementHandle: import('playwright').ElementHandle,
       ) {
         const ctxString = JSON.stringify(this); // contains stuff like isNot and promise
-        const result = await elementHandle.evaluateHandle(
+        const result: JSHandle<jest.CustomMatcherResult> = await elementHandle.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           // @ts-ignore
           new Function(
@@ -56,12 +57,10 @@ expect.extend(
           // to keep the tab open (afterAll checks for the flag before it closes tabs)
           elementHandle,
         );
-        // @ts-expect-error it is used but for some reason ts doesn't recognize
         const message = await result
           .evaluateHandle((matcherResult) => matcherResult.message())
           .then((m) => m.jsonValue());
         const final = {
-          // @ts-ignore
           ...(await result.jsonValue()),
           message: () => deserialize(message, this),
         };
@@ -73,7 +72,6 @@ expect.extend(
   ),
 );
 
-// @ts-expect-error it is used but for some reason ts doesn't recognize
 const deserialize = (message: string, context: jest.MatcherContext) => {
   return message.replace(
     /\$\$JEST_UTILS\$\$\.([a-zA-Z]*)\((.*?)\)/g,
