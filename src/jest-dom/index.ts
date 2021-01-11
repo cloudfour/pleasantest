@@ -1,7 +1,7 @@
+// @ts-expect-error
 export * from '@testing-library/jest-dom/matchers';
 
-/** @type {{utils: Partial<jest.MatcherUtils['utils']>}} */
-export const jestContext = {
+export const jestContext: { utils: Partial<jest.MatcherUtils['utils']> } = {
   utils: {
     matcherHint(...args) {
       return `$$JEST_UTILS$$.matcherHint(${JSON.stringify(args, serialize)})`;
@@ -12,12 +12,8 @@ export const jestContext = {
   },
 };
 
-/**
- * Converts a parameter to something that can be JSON-serialized
- * @param {any} _key
- * @param {unknown} value
- */
-const serialize = (_key, value) => {
+/** Converts a parameter to something that can be JSON-serialized */
+const serialize = (_key: any, value: unknown) => {
   if (value instanceof HTMLElement) {
     return {
       __serialized: 'HTMLElement',
