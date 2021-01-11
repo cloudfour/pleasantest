@@ -81,7 +81,6 @@ const createServer = async () => {
     name: 'test-mule-disable-polling',
     transform(code, id) {
       if (!id.endsWith('vite/dist/client/client.js')) return null;
-      console.log('transforming', id);
       return code
         .replace(
           // here is code sninppet we are removing:
