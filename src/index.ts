@@ -31,6 +31,7 @@ const createServer = async () => {
     const pluginName = 'test-mule-inline-module-plugin';
     return {
       name: pluginName,
+      // has to run resolveId before vite's other resolve handlers
       enforce: 'pre',
       resolveId(id) {
         const [idWithoutQuery, qs] = id.split('?');
@@ -76,10 +77,34 @@ const createServer = async () => {
     },
   });
 
+  const disablePollingPlugin = (): vite.Plugin => ({
+    name: 'test-mule-disable-polling',
+    transform(code, id) {
+      if (!id.endsWith('vite/dist/client/client.js')) return null;
+      console.log('transforming', id);
+      return code
+        .replace(
+          // here is code sninppet we are removing:
+          // socket.addEventListener('close', () => {
+          //   ...
+          // }, 1000);});
+          /socket\.addEventListener\('close'[\w\W]*?, [0-9]*\);[\s\r]*}\);/,
+          '',
+        )
+        .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
+        .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '');
+    },
+  });
+
   const server = await vite.createServer({
     optimizeDeps: { auto: false },
     server: { port, cors: true, hmr: false },
-    plugins: [indexHTMLPlugin(), inlineModulePlugin(), clientRuntimePlugin()],
+    plugins: [
+      indexHTMLPlugin(),
+      inlineModulePlugin(),
+      clientRuntimePlugin(),
+      disablePollingPlugin(),
+    ],
     logLevel: 'warn',
   });
 
