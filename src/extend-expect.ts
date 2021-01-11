@@ -95,7 +95,7 @@ function reviver(_key: string, value: unknown) {
   return value;
 }
 
-// These type definitions are incomplete
+// These type definitions are incomplete, only including methods we've tested
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
 // You can copy-paste and change the return types to promises
 declare global {
