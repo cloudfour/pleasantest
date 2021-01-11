@@ -117,12 +117,13 @@ const createServer = async () => {
 
 /** Keeps track of all the browser contexts to can clean them up later */
 const browserContexts: puppeteer.BrowserContext[] = [];
-let serverPromise = createServer();
+let serverPromise: Promise<vite.ViteDevServer>;
 
 /** Pages that are in "debug mode" that the user will have to manually close */
 const debuggedPages = new Set();
 
 export const createTab = async ({ headless = true } = {}) => {
+  if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   browserContexts.push(browserContext);
@@ -325,6 +326,8 @@ const cleanUpBrowserContext = async (context: puppeteer.BrowserContext) => {
 afterAll(async () => {
   await Promise.all(browserContexts.map(cleanUpBrowserContext));
   browserContexts.map((ctx) => ctx.browser().disconnect());
-  const server = await serverPromise;
-  await server.close();
+  if (serverPromise) {
+    const server = await serverPromise;
+    await server.close();
+  }
 });
