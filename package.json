@@ -39,7 +39,7 @@
   "main": "./dist/cjs/index.cjs",
   "exports": {
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/cjs/index.mjs"
+    "import": "./dist/esm/index.mjs"
   },
   "scripts": {
     "test": "jest",
