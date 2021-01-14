@@ -41,6 +41,7 @@
     "import": "./dist/esm/index.mjs"
   },
   "scripts": {
+    "ci": "npm run type && npm run test && npm run lint",
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "rollup -c rollup.config.js",
