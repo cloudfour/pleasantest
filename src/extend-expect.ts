@@ -1,4 +1,4 @@
-import { port } from '.';
+import { port } from './vite-server';
 
 const methods = [
   'toBeInTheDOM',
@@ -41,19 +41,9 @@ expect.extend(
             'element',
             `return import("http://localhost:${port}/@test-mule/jest-dom").then(jestDom => {
               const context = { ...(${ctxString}), ...jestDom.jestContext }
-              const result = jestDom.${methodName}.call(context, element)
-              if (result.pass === context.isNot) {
-                window.__testMuleDebug__ = true
-                const simplifiedMessage = result
-                  .message()
-                  .replace(/\\$\\$JEST_UTILS\\$\\$\\.([a-zA-Z_$]*)\\((.*?)\\)/g, '');
-                console.error('matcher failed:', simplifiedMessage.trim() + '\\n', element)
-              }
-              return result
+              return jestDom.${methodName}.call(context, element)
             })`,
           ),
-          // the __testMuleDebug__ thing is a flag that is set in the browser global when the test fails
-          // to keep the tab open (afterAll checks for the flag before it closes tabs)
           elementHandle,
         );
         // @ts-expect-error it is used but for some reason ts doesn't recognize

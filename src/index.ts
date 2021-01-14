@@ -5,115 +5,10 @@ import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
-import { URLSearchParams, fileURLToPath } from 'url';
-
-const defaultHTML = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="data:;base64,=" />
-    <title>test-mule</title>
-  </head>
-  <body>
-    <h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
-      Your test will run here
-    </h1>
-  </body>
-</html>
-`;
-
-export let port = 3000;
-
-const createServer = async () => {
-  const inlineModulePlugin = (): vite.Plugin => {
-    const pluginName = 'test-mule-inline-module-plugin';
-    return {
-      name: pluginName,
-      // has to run resolveId before vite's other resolve handlers
-      enforce: 'pre',
-      resolveId(id) {
-        const [idWithoutQuery, qs] = id.split('?');
-        if (!qs) return null;
-        const parsedParams = new URLSearchParams(qs);
-        const inlineCode = parsedParams.get('inline-code');
-        if (!inlineCode) return null;
-        return `.${idWithoutQuery}#inline-code=${encodeURIComponent(
-          inlineCode,
-        )}`;
-      },
-      load(id) {
-        const hash = id.split('#')[1];
-        if (!hash) return null;
-        const inlineCode = new URLSearchParams(hash).get('inline-code');
-        if (!inlineCode) return null;
-        return inlineCode;
-      },
-    };
-  };
-
-  const indexHTMLPlugin = (): vite.Plugin => ({
-    name: 'test-mule-index-html',
-    configureServer({ app }) {
-      app.use(async (req, res, next) => {
-        if (req.url !== '/') return next();
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html');
-        res.write(defaultHTML);
-        res.end();
-      });
-    },
-  });
-
-  const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  const clientRuntimePlugin = (): vite.Plugin => ({
-    name: 'test-mule-client-runtime',
-    resolveId(id) {
-      if (!id.startsWith('/@test-mule')) return null;
-      return id === '/@test-mule/jest-dom'
-        ? path.join(currentDir, '../jest-dom.js')
-        : path.join(currentDir, '../pptr-testing-library-client.js');
-    },
-  });
-
-  const disablePollingPlugin = (): vite.Plugin => ({
-    name: 'test-mule-disable-polling',
-    transform(code, id) {
-      if (!id.endsWith('vite/dist/client/client.js')) return null;
-      return code
-        .replace(
-          // here is code sninppet we are removing:
-          // socket.addEventListener('close', () => {
-          //   ...
-          // }, 1000);});
-          /socket\.addEventListener\('close'[\w\W]*?, [0-9]*\);[\s\r]*}\);/,
-          '',
-        )
-        .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
-        .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '');
-    },
-  });
-
-  const server = await vite.createServer({
-    optimizeDeps: { auto: false },
-    server: { port, cors: true, hmr: false },
-    plugins: [
-      indexHTMLPlugin(),
-      inlineModulePlugin(),
-      clientRuntimePlugin(),
-      disablePollingPlugin(),
-    ],
-    logLevel: 'warn',
-  });
-
-  await server.listen();
-
-  // if original port was not available, use whichever vite ended up choosing
-  port = server.config.server.port || port;
-
-  return server;
-};
+import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
+import { ansiColorsLog } from './ansi-colors-browser';
+import { createServer, port } from './vite-server';
+koloristOpts.enabled = true;
 
 /** Keeps track of all the browser contexts to can clean them up later */
 const browserContexts: puppeteer.BrowserContext[] = [];
@@ -122,13 +17,20 @@ let serverPromise: Promise<vite.ViteDevServer>;
 /** Pages that are in "debug mode" that the user will have to manually close */
 const debuggedPages = new Set();
 
-export const createTab = async ({ headless = true } = {}) => {
-  if (!serverPromise) serverPromise = createServer();
-  const browser = await connectToBrowser('chromium', headless);
-  const browserContext = await browser.createIncognitoBrowserContext();
-  browserContexts.push(browserContext);
-  const page = await browserContext.newPage();
+type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
+interface WithBrowserBase {
+  (
+    testFn: (ctx: Awaited<ReturnType<typeof createTab>>) => Promise<void>,
+    opts?: { headless?: boolean },
+  ): () => Promise<void>;
+}
+
+interface WithBrowser extends WithBrowserBase {
+  headed: WithBrowserBase;
+}
+
+export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   // Figure out the file that called createTab so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
     (stackFrame) => {
@@ -145,17 +47,70 @@ export const createTab = async ({ headless = true } = {}) => {
     // find the first item that is not the current file
     return true;
   });
+
   const testPath = testFile
     ? path.relative(process.cwd(), testFile)
     : __filename;
+
+  return async () => {
+    const ctx = await createTab({ testPath, headless });
+    await testFn(ctx).catch(async (error) => {
+      let failureMessage = bold(white(bgRed(' FAIL '))) + '\n';
+      const testName = getTestName();
+      if (testName) {
+        failureMessage += '\n' + bold(red(`● ${testName}`)) + '\n';
+      }
+      failureMessage += '\n' + indent(error.message);
+
+      await ctx.page.evaluate((colorErr) => {
+        console.log(...colorErr);
+      }, ansiColorsLog(failureMessage));
+      ctx.page.browser().disconnect();
+      throw error;
+    });
+    // close since test passed
+    ctx.page.browser().close();
+  };
+};
+
+const getTestName = () => {
+  try {
+    return expect.getState().currentTestName;
+  } catch {
+    return null;
+  }
+};
+
+const indent = (input: string) =>
+  input
+    .split('\n')
+    .map((l) => '  ' + l)
+    .join('\n');
+
+withBrowser.headed = (fn, opts) =>
+  withBrowser(fn, { ...opts, headless: false });
+
+const createTab = async ({
+  testPath,
+  headless,
+}: {
+  testPath: string;
+  headless: boolean;
+}) => {
+  if (!serverPromise) serverPromise = createServer();
+  const browser = await connectToBrowser('chromium', headless);
+  const browserContext = await browser.createIncognitoBrowserContext();
+  browserContexts.push(browserContext);
+  const page = await browserContext.newPage();
 
   page.on('console', (message) => {
     const text = message.text();
     // ignore vite spam
     if (text.startsWith('[vite]')) return;
-    // ignore repeated messages within the browser
-    if (text.startsWith('matcher failed') || text.startsWith('query failed'))
-      return;
+    // This is naive, there is probably something better to check
+    // If the text includes %c, then it probably came from the jest output being forwarded into the browser
+    // So we don't need to print it _again_ in node, since it already came from node
+    if (text.includes('%c')) return;
     const type = message.type();
     if (type === 'error') {
       const error = new Error(text);
@@ -243,7 +198,7 @@ export const createTab = async ({ headless = true } = {}) => {
       element === null
         ? 'null'
         : // @ts-expect-error this is doing manual type checking
-        typeof element === 'object' && element.then && element.catch
+        typeof element === 'object' && Promise.resolve(element) === element // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
         ? 'Promise'
         : typeof element;
     if (type === 'Promise') {
@@ -288,44 +243,7 @@ const removeFuncFromStackTrace = (
   return error;
 };
 
-/**
- * Closes all tabs (and the BrowserContext itself) as long as each tab is not in debug mode or failed
- * @param {puppeteer.BrowserContext} context
- */
-const cleanUpBrowserContext = async (context: puppeteer.BrowserContext) => {
-  let isHeadless = true;
-  try {
-    isHeadless = /headless/.test(await context.browser().version());
-  } catch {}
-  const pages = await context.pages();
-  /** Array of booleans for whether each tab should be open. Indexes match pages array */
-  const shouldLeaveOpen = await Promise.all(
-    pages.map(async (page) => {
-      // if it is headless, no reason to keep pages open, even if test failed
-      if (isHeadless) return false;
-      // leave any tab open if the test with it called debug()
-      if (debuggedPages.has(page)) return true;
-      // check if the browser has a global window.__testMuleDebug__ set
-      // If it does, then that means that a matcher failed and left that mark there
-      const hasDebugFlag = await page
-        .evaluateHandle(() => window.__testMuleDebug__)
-        .then((v) => v.jsonValue())
-        .catch(() => false);
-      return hasDebugFlag;
-    }),
-  );
-  if (shouldLeaveOpen.every((t) => t === false)) return await context.close();
-  await Promise.all(
-    shouldLeaveOpen.map(async (shouldLeaveOpen, i) => {
-      if (shouldLeaveOpen) return;
-      await pages[i].close().catch(() => {}); // sometimes it fails to close if it is already closed
-    }),
-  );
-};
-
 afterAll(async () => {
-  await Promise.all(browserContexts.map(cleanUpBrowserContext));
-  browserContexts.map((ctx) => ctx.browser().disconnect());
   if (serverPromise) {
     const server = await serverPromise;
     await server.close();
