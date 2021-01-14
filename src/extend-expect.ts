@@ -95,12 +95,50 @@ function reviver(_key: string, value: unknown) {
   return value;
 }
 
-// These type definitions are incomplete
+// These type definitions are incomplete, only including methods we've tested
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
 // You can copy-paste and change the return types to promises
 declare global {
   namespace jest {
     interface Matchers<R> {
+      /**
+       * Check whether an element is disabled from the user's perspective.
+       * https://github.com/testing-library/jest-dom#tobedisabled
+       */
+      toBeDisabled(): Promise<R>;
+      /**
+       * Check whether an element is not disabled from the user's perspective.
+       * https://github.com/testing-library/jest-dom#tobeenabled
+       * Same as .not.toBeDisabled()
+       */
+      toBeEnabled(): Promise<R>;
+      /**
+       * Assert whether an element has content or not.
+       * https://github.com/testing-library/jest-dom#tobeemptydomelement
+       */
+      toBeEmptyDOMElement(): Promise<R>;
+      /**
+       * Assert whether an element is present in the document or not.
+       * https://github.com/testing-library/jest-dom#tobeinthedocument
+       */
+      toBeInTheDocument(): Promise<R>;
+      /**
+       * Check if the value of an element is currently invalid.
+       * Uses [HTML5 Constraint Validation](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation) and checks for `aria-invalid`.
+       * https://github.com/testing-library/jest-dom#tobeinvalid
+       */
+      toBeInvalid(): Promise<R>;
+      /**
+       * Check if a form element is currently required.
+       * https://github.com/testing-library/jest-dom#toberequired
+       */
+      toBeRequired(): Promise<R>;
+      /**
+       * Check if the value of an element is currently valid.
+       * Uses [HTML5 Constraint Validation](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation) and checks for `aria-invalid`.
+       * https://github.com/testing-library/jest-dom#tobevalid
+       */
+      toBeValid(): Promise<R>;
       /**
        * Check if an element is currently visible to the user.
        * https://github.com/testing-library/jest-dom#tobevisible
