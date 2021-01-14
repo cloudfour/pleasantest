@@ -46,7 +46,7 @@ expect.extend(
                 window.__testMuleDebug__ = true
                 const simplifiedMessage = result
                   .message()
-                  .replace(/\\$\\$JEST_UTILS\\$\\$\\.([a-zA-Z]*)\\((.*?)\\)/g, '');
+                  .replace(/\\$\\$JEST_UTILS\\$\\$\\.([a-zA-Z_$]*)\\((.*?)\\)/g, '');
                 console.error('matcher failed:', simplifiedMessage.trim() + '\\n', element)
               }
               return result
@@ -76,7 +76,7 @@ expect.extend(
 // @ts-expect-error it is used but for some reason ts doesn't recognize
 const deserialize = (message: string, context: jest.MatcherContext) => {
   return message.replace(
-    /\$\$JEST_UTILS\$\$\.([a-zA-Z]*)\((.*?)\)/g,
+    /\$\$JEST_UTILS\$\$\.([a-zA-Z_$]*)\((.*?)\)/g,
     (_match, funcName, args) => {
       // @ts-expect-error
       return context.utils[funcName](...JSON.parse(args, reviver));
