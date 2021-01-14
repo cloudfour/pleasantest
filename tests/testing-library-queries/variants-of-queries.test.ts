@@ -13,18 +13,18 @@ test('findBy', async () => {
   const { screen, utils } = await createTab();
 
   // This should work because findByText waits for up to 1s to see the element
-  setTimeout(() => utils.injectHTML(singleElementMarkup), 500);
+  setTimeout(() => utils.injectHTML(singleElementMarkup), 20);
   await screen.findByText(/Hello/);
 
-  await expect(screen.findByText(/Hellooooo/)).rejects.toThrow(
-    'Unable to find an element with the text: /Hellooooo/',
-  );
+  await expect(
+    screen.findByText(/Hellooooo/, {}, { timeout: 20 }),
+  ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
 
   await utils.injectHTML(multipleElementMarkup);
-  await expect(screen.findByText(/Hello/)).rejects.toThrow(
+  await expect(screen.findByText(/Hello/, {}, { timeout: 20 })).rejects.toThrow(
     'Found multiple elements with the text: /Hello/',
   );
-}, 8000);
+});
 
 test('getBy', async () => {
   const { screen, utils } = await createTab();
@@ -60,16 +60,18 @@ test('findAllBy', async () => {
   const { screen, utils } = await createTab();
 
   // This should work because findAllByText waits for up to 1s to find any matching elements
-  setTimeout(() => utils.injectHTML(singleElementMarkup), 500);
+  setTimeout(() => utils.injectHTML(singleElementMarkup), 20);
   expect(await screen.findAllByText(/Hello/)).toHaveLength(1);
 
-  await expect(screen.findAllByText(/Hellooooo/)).rejects.toThrow(
-    'Unable to find an element with the text: /Hellooooo/',
-  );
+  await expect(
+    screen.findAllByText(/Hellooooo/, {}, { timeout: 20 }),
+  ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
 
   await utils.injectHTML(multipleElementMarkup);
-  expect(await screen.findAllByText(/Hello/)).toHaveLength(2);
-}, 8000);
+  expect(await screen.findAllByText(/Hello/, {}, { timeout: 20 })).toHaveLength(
+    2,
+  );
+});
 
 test('getAllBy', async () => {
   const { screen, utils } = await createTab();
