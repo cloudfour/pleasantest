@@ -10,6 +10,7 @@ export const jestContext: { utils: Partial<jest.MatcherUtils['utils']> } = {
       return `$$JEST_UTILS$$.printReceived(${JSON.stringify(args, serialize)})`;
     },
     // TODO: this does not work in the browser
+    // @ts-expect-error
     RECEIVED_COLOR(...args) {
       return `$$JEST_UTILS$$.RECEIVED_COLOR(${JSON.stringify(
         args,
