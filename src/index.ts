@@ -96,7 +96,12 @@ const createServer = async () => {
   });
 
   const server = await vite.createServer({
-    optimizeDeps: { auto: false },
+    optimizeDeps: {
+      auto: false,
+      // not sure why this has to be excluded, since auto: false shoudl disable entirely
+      // Without this, intermittently, vite tries to bundle pptr and fails
+      exclude: ['puppeteer'],
+    },
     server: { port, cors: true, hmr: false },
     plugins: [
       indexHTMLPlugin(),
