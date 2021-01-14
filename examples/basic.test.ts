@@ -13,8 +13,8 @@ test(
     //   new Menu('nav');
     // `);
 
-    const menuButton = await screen.getByText(/menu/);
-    // const menuButton = await screen.getByText(/menuuuu/);
+    // const menuButton = await screen.getByText(/menu/);
+    const menuButton = await screen.getByText(/menuuuu/);
     // expect({ blue: 'green', asdf: 'hi' }).toEqual({
     //   blue: 'red',
     //   asdf: expect.any(String),

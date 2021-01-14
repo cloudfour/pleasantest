@@ -102,11 +102,9 @@ export const getQueriesForElement = (
                 try {
                   return await dtl.${queryName}(element, ...deserializedArgs)
                 } catch (error) {
-                  // window.__testMuleDebug__ = true
                   const formattedMessage = error.name === 'TestingLibraryElementError'
-                    ? ['query failed\\n', ...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
+                    ? [...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
                     : [error]
-                  // console.error(...formattedMessage)
                   return {
                     failed: true,
                     message:
