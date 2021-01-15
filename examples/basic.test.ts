@@ -2,7 +2,7 @@ import { withBrowser } from 'test-mule';
 
 test(
   'basic element visibility test',
-  withBrowser.headed(async ({ screen, utils }) => {
+  withBrowser(async ({ screen, utils }) => {
     await utils.injectHTML('<button class="hidden">menu</button>');
     // await utils.injectCSS('.hidden { display: none }');
     // await utils.loadCSS('./foo.css');
