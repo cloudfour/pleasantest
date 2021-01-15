@@ -69,7 +69,8 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
       throw error;
     });
     // close since test passed
-    ctx.page.browser().close();
+    await ctx.page.close();
+    ctx.page.browser().disconnect();
   };
 };
 
