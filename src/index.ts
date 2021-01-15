@@ -65,6 +65,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
       await ctx.page.evaluate((colorErr) => {
         console.log(...colorErr);
       }, ansiColorsLog(failureMessage));
+      if (headless) await ctx.page.close();
       ctx.page.browser().disconnect();
       throw error;
     });
