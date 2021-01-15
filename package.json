@@ -5,7 +5,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
-    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
     "@rollup/plugin-babel": "^5.2.2",
@@ -44,12 +43,14 @@
     "import": "./dist/esm/index.mjs"
   },
   "scripts": {
+    "ci": "npm run type && npm run test && npm run lint",
     "test": "jest",
     "test:watch": "jest --watch",
     "build": "rollup -c rollup.config.js",
     "build:watch": "rollup -c rollup.config.js --watch",
     "type": "tsc",
     "type:watch": "tsc --watch",
-    "lint": "prettier --write ."
+    "lint": "prettier --write .",
+    "check-lint": "prettier --check ."
   }
 }

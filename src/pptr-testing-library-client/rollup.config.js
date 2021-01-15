@@ -37,13 +37,7 @@ const config = {
   plugins: [
     rollupPluginAriaQuery(),
     stubPlugin,
-    babel({
-      presets: ['@babel/preset-typescript'],
-      plugins: ['babel-plugin-un-cjs'],
-      configFile: false,
-      babelHelpers: 'bundled',
-      extensions,
-    }),
+    babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
     terser({ ecma: 2019 }),
   ],
