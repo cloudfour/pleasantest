@@ -1,3 +1,4 @@
+import { deserialize } from './serialize';
 import { port } from './vite-server';
 
 const methods = [
@@ -53,7 +54,7 @@ expect.extend(
         const final = {
           // @ts-ignore
           ...(await result.jsonValue()),
-          message: () => deserialize(message, this),
+          message: () => runJestUtilsInNode(message, this),
         };
 
         return final;
@@ -63,27 +64,44 @@ expect.extend(
   ),
 );
 
-// @ts-expect-error it is used but for some reason ts doesn't recognize
-const deserialize = (message: string, context: jest.MatcherContext) => {
-  return message.replace(
-    /\$\$JEST_UTILS\$\$\.([a-zA-Z_$]*)\((.*?)\)/g,
-    (_match, funcName, args) => {
-      // @ts-expect-error
-      return context.utils[funcName](...JSON.parse(args, reviver));
-    },
-  );
-};
-
-function reviver(_key: string, value: unknown) {
-  // @ts-ignore
-  if (typeof value === 'object' && value.__serialized === 'HTMLElement') {
-    const wrapper = document.createElement('div');
-    // @ts-ignore
-    wrapper.innerHTML = value.outerHTML;
-    return wrapper.firstElementChild;
+// @ts-expect-error
+const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
+  // handling nested JEST_UTILS calls here is the complexity
+  const jestUtilsCalls = [
+    ...message.matchAll(/\$\$JEST_UTILS\$\$\.([a-zA-Z_$]*)\(/g),
+  ];
+  const closeParenRegex = /\)/g;
+  let jestUtilsCall;
+  while ((jestUtilsCall = jestUtilsCalls.pop())) {
+    const start = jestUtilsCall.index!;
+    const methodName = jestUtilsCall[1];
+    closeParenRegex.lastIndex = start;
+    const closeParenIndex = closeParenRegex.exec(message)?.index;
+    if (closeParenIndex !== undefined) {
+      const argsString = message.slice(
+        start + jestUtilsCall[0].length,
+        closeParenIndex,
+      );
+      let parsedArgs;
+      try {
+        parsedArgs = deserialize(argsString);
+      } catch (e) {
+        console.error(
+          'Error while deserializing',
+          argsString,
+          '\n\nin\n\n',
+          message,
+        );
+        // throw e;
+      }
+      const res: string = context.utils[methodName](...parsedArgs);
+      const escaped = res.replace(/"/g, '\\"');
+      message =
+        message.slice(0, start) + escaped + message.slice(closeParenIndex + 1);
+    }
   }
-  return value;
-}
+  return message;
+};
 
 // These type definitions are incomplete, only including methods we've tested
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts

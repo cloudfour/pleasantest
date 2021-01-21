@@ -51,7 +51,7 @@ const config = {
     stubPlugin,
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
-    terser({ ecma: 2019 }),
+    // terser({ ecma: 2019 }),
   ],
   external: ['css'],
   treeshake: { moduleSideEffects: 'no-external' },

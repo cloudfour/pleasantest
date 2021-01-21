@@ -8,7 +8,9 @@ import './extend-expect';
 import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
 import { ansiColorsLog } from './ansi-colors-browser';
 import { createServer, port } from './vite-server';
+import _ansiRegex from 'ansi-regex';
 koloristOpts.enabled = true;
+const ansiRegex = _ansiRegex({ onlyFirst: true });
 
 /** Keeps track of all the browser contexts to can clean them up later */
 const browserContexts: puppeteer.BrowserContext[] = [];
@@ -21,7 +23,9 @@ type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
 interface WithBrowserBase {
   (
-    testFn: (ctx: Awaited<ReturnType<typeof createTab>>) => Promise<void>,
+    testFn: (
+      ctx: Awaited<ReturnType<typeof createTab>>,
+    ) => void | Promise<void>,
     opts?: { headless?: boolean },
   ): () => Promise<void>;
 }
@@ -54,7 +58,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
 
   return async () => {
     const ctx = await createTab({ testPath, headless });
-    await testFn(ctx).catch(async (error) => {
+    await Promise.resolve(testFn(ctx)).catch(async (error) => {
       let failureMessage = bold(white(bgRed(' FAIL '))) + '\n';
       const testName = getTestName();
       if (testName) {
@@ -86,7 +90,16 @@ const getTestName = () => {
 const indent = (input: string) =>
   input
     .split('\n')
-    .map((l) => '  ' + l)
+    .map((l) => {
+      // if there is an escape code at the beginning of the line
+      // put the tab after the escape code
+      // the reason for this is to prevent the indentation from getting messed up from wrapping
+      // you can see this if you squish the devools window
+      const match = l.match(ansiRegex);
+      if (!match || match.index !== 0) return '  ' + l;
+      const insertPoint = match[0].length;
+      return l.slice(0, insertPoint) + '  ' + l.slice(insertPoint);
+    })
     .join('\n');
 
 withBrowser.headed = (fn, opts) =>

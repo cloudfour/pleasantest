@@ -12,6 +12,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "target": "ES2019",
+    "lib": ["ESNext", "DOM"],
     "types": ["jest"],
     "allowJs": true,
     "checkJs": true
