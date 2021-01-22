@@ -59,12 +59,12 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   return async () => {
     const ctx = await createTab({ testPath, headless });
     await Promise.resolve(testFn(ctx)).catch(async (error) => {
-      let failureMessage = bold(white(bgRed(' FAIL '))) + '\n';
+      let failureMessage = bold(white(bgRed(' FAIL '))) + '\n\n';
       const testName = getTestName();
       if (testName) {
-        failureMessage += '\n' + bold(red(`● ${testName}`)) + '\n';
+        failureMessage += bold(red(`● ${testName}`)) + '\n\n';
       }
-      failureMessage += '\n' + indent(error.message);
+      failureMessage += indent(error.message);
 
       await ctx.page.evaluate((colorErr) => {
         console.log(...colorErr);

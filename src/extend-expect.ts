@@ -82,18 +82,8 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
         start + jestUtilsCall[0].length,
         closeParenIndex,
       );
-      let parsedArgs;
-      try {
-        parsedArgs = deserialize(argsString);
-      } catch (e) {
-        console.error(
-          'Error while deserializing',
-          argsString,
-          '\n\nin\n\n',
-          message,
-        );
-        // throw e;
-      }
+      const parsedArgs = deserialize(argsString);
+      // @ts-expect-error
       const res: string = context.utils[methodName](...parsedArgs);
       const escaped = res.replace(/"/g, '\\"');
       message =
