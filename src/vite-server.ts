@@ -86,7 +86,8 @@ export const createServer = async () => {
           '',
         )
         .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
-        .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '');
+        .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '')
+        .replace(/setInterval(() => socket.send('ping'), \d+)/, '');
     },
   });
 
