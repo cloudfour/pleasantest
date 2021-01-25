@@ -1,4 +1,3 @@
-import { stripColors } from 'kolorist';
 import type { JSHandle } from 'puppeteer';
 import { deserialize } from './serialize';
 import { port } from './vite-server';
