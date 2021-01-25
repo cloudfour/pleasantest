@@ -2,6 +2,7 @@
 export * from '@testing-library/dom/dist/queries';
 // @ts-expect-error
 import { configure } from '@testing-library/dom/dist/config';
+import { printElement } from '../serialize';
 
 // DTL uses string interpolation with elements
 // That doesn't work well when we have live references to elements that we can log
@@ -41,26 +42,6 @@ export const __deserialize = (input: string) => {
   return a;
 };
 
-const elementToString = (el: Element, printChildren = true) => {
-  let contents = '';
-  if (printChildren && el.childNodes.length <= 3) {
-    const singleLine =
-      el.childNodes.length === 1 && el.childNodes[0] instanceof Text;
-    for (const child of el.childNodes) {
-      if (child instanceof Element) {
-        contents +=
-          '\n  ' + elementToString(child, false).split('\n').join('  \n');
-      } else if (child instanceof Text) {
-        contents += (singleLine ? '' : '\n  ') + child.wholeText;
-      }
-    }
-    if (!singleLine) contents += '\n';
-  } else {
-    contents = '[...]';
-  }
-  return el.outerHTML.replace(el.innerHTML, contents);
-};
-
-export { elementToString as __elementToString };
+export { printElement as __elementToString };
 
 const randomNum = () => Math.floor(Math.random() * 100000000);

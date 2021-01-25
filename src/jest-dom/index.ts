@@ -1,6 +1,7 @@
 // @ts-expect-error
 export * from '@testing-library/jest-dom/matchers';
-import { serialize } from '../serialize';
+export { reviveElementsInString, printElement } from '../serialize';
+import { addToElementCache, serialize } from '../serialize';
 
 const runUtilInNode = (name: string, args: any[]) => {
   // If there are nested calls to $$JEST_UTILS$$
@@ -36,8 +37,9 @@ export const jestContext: { utils: Partial<jest.MatcherUtils['utils']> } = {
     RECEIVED_COLOR: ((...args: any[]) =>
       runUtilInNode('RECEIVED_COLOR', args)) as any,
     stringify: (arg) => {
-      // TODO: Too hacky?
-      if (arg instanceof Element) return arg.outerHTML;
+      if (arg instanceof Element) {
+        return addToElementCache(arg);
+      }
       return runUtilInNode('stringify', [arg]);
     },
   },

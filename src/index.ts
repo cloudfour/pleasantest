@@ -1,5 +1,5 @@
-import puppeteer from 'puppeteer';
-import * as vite from 'vite';
+import type puppeteer from 'puppeteer';
+import type * as vite from 'vite';
 import * as path from 'path';
 import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
@@ -59,16 +59,35 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   return async () => {
     const ctx = await createTab({ testPath, headless });
     await Promise.resolve(testFn(ctx)).catch(async (error) => {
-      let failureMessage = bold(white(bgRed(' FAIL '))) + '\n\n';
+      if (headless) throw error;
+      let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
       const testName = getTestName();
       if (testName) {
-        failureMessage += bold(red(`● ${testName}`)) + '\n\n';
+        failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
       }
-      failureMessage += indent(error.message);
+      if (
+        error &&
+        error.matcherResult &&
+        error.matcherResult.messageForBrowser
+      ) {
+        const messageForBrowser: unknown[] =
+          error.matcherResult.messageForBrowser;
+        failureMessage.push(
+          ...messageForBrowser.map((segment: unknown, i) => {
+            if (typeof segment !== 'string') return segment;
+            if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
+              return indent(segment, false);
+            }
+            return indent(segment);
+          }),
+        );
+      } else {
+        failureMessage.push(indent(error.message));
+      }
 
-      await ctx.page.evaluate((colorErr) => {
+      await ctx.page.evaluate((...colorErr) => {
         console.log(...colorErr);
-      }, ansiColorsLog(failureMessage));
+      }, ...(ansiColorsLog(...failureMessage) as any));
       if (headless) await ctx.page.close();
       ctx.page.browser().disconnect();
       throw error;
@@ -87,18 +106,19 @@ const getTestName = () => {
   }
 };
 
-const indent = (input: string) =>
+const indent = (input: string, indentFirstLine = true) =>
   input
     .split('\n')
-    .map((l) => {
+    .map((line, i) => {
+      if (!indentFirstLine && i === 0) return line;
       // if there is an escape code at the beginning of the line
       // put the tab after the escape code
       // the reason for this is to prevent the indentation from getting messed up from wrapping
       // you can see this if you squish the devools window
-      const match = l.match(ansiRegex);
-      if (!match || match.index !== 0) return '  ' + l;
+      const match = line.match(ansiRegex);
+      if (!match || match.index !== 0) return '  ' + line;
       const insertPoint = match[0].length;
-      return l.slice(0, insertPoint) + '  ' + l.slice(insertPoint);
+      return line.slice(0, insertPoint) + '  ' + line.slice(insertPoint);
     })
     .join('\n');
 

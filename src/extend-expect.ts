@@ -1,3 +1,5 @@
+import { stripColors } from 'kolorist';
+import type { JSHandle } from 'puppeteer';
 import { deserialize } from './serialize';
 import { port } from './vite-server';
 
@@ -47,24 +49,71 @@ expect.extend(
           ),
           elementHandle,
         );
-        // @ts-expect-error it is used but for some reason ts doesn't recognize
+        // we have to evaluate the message right away
+        // because Jest does not accept a promise from the returned message property
         const message = await result
           .evaluateHandle((matcherResult) => matcherResult.message())
-          .then((m) => m.jsonValue());
-        const final = {
-          // @ts-ignore
-          ...(await result.jsonValue()),
-          message: () => runJestUtilsInNode(message, this),
+          .then((m) => m.jsonValue() as Promise<string>);
+        const deserializedMessage = runJestUtilsInNode(message, this as any);
+        const {
+          messageWithElementsRevived,
+          messageWithElementsStringified,
+        } = await elementHandle
+          .evaluateHandle(
+            // @ts-expect-error
+            new Function(
+              'el',
+              'message',
+              `return import("http://localhost:${port}/@test-mule/jest-dom")
+              .then(({ reviveElementsInString, printElement }) => {
+                const messageWithElementsRevived = reviveElementsInString(message)
+                const messageWithElementsStringified = messageWithElementsRevived
+                  .map(el => {
+                    if (el instanceof Element) return printElement(el)
+                    return el
+                  })
+                  .join('')
+                return { messageWithElementsRevived, messageWithElementsStringified }
+              })`,
+            ),
+            deserializedMessage,
+          )
+          .then(async (returnHandle) => {
+            const {
+              messageWithElementsRevived,
+              messageWithElementsStringified,
+            } = Object.fromEntries(await returnHandle.getProperties());
+            return {
+              messageWithElementsStringified: await messageWithElementsStringified.jsonValue(),
+              messageWithElementsRevived: await jsHandleToArray(
+                messageWithElementsRevived,
+              ),
+            };
+          });
+        return {
+          ...((await result.jsonValue()) as any),
+          message: () => messageWithElementsStringified,
+          messageForBrowser: messageWithElementsRevived,
         };
-
-        return final;
       };
       return [methodName, matcher];
     }),
   ),
 );
 
-// @ts-expect-error
+const jsHandleToArray = async (arrayHandle: JSHandle) => {
+  const properties = await arrayHandle.getProperties();
+  const arr = new Array(properties.size);
+  for (let i = 0; i < properties.size; i++) {
+    const valHandle = properties.get(String(i));
+    if (valHandle) {
+      // Change primitives to live values rather than JSHandles
+      const val = await valHandle.jsonValue();
+      arr[i] = typeof val === 'object' ? valHandle : val;
+    }
+  }
+  return arr;
+};
 const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
   // handling nested JEST_UTILS calls here is the complexity
   const jestUtilsCalls = [

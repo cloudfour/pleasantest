@@ -1,27 +1,39 @@
 import ansiRegex from 'ansi-regex';
 
-export const ansiColorsLog = (input: string) => {
+/**
+ * Converts ansi codes into CSS logs that are understood by browsers
+ * https://developer.mozilla.org/en-US/docs/Web/API/console#Styling_console_output
+ */
+export const ansiColorsLog = (...input: unknown[]) => {
   // CSS properties, so that nested styles works (in browsers %c will reset styles from any previous %c)
   const styleStack: Record<string, string> = {};
-  const styles: string[] = [];
-  const transformedStr = input.replace(ansiRegex(), (escapeCode) => {
-    // \u001b is unicode for <ESC>
-    const parsedEscapeCode = /\u001b\[([0-9]*)m/.exec(escapeCode);
-    if (!parsedEscapeCode) return ''; // unrecognized escape code, remove it
-    const escapeCodeNum = Number(parsedEscapeCode[1]); // capture group
-    const cssObj = ansiCodes[escapeCodeNum];
-    if (!cssObj) return '';
-    Object.assign(styleStack, cssObj);
-    const cssStr = Object.entries(styleStack)
-      .map(([key, val]) => (val === 'inherit' ? '' : `${key}: ${val};`))
-      .join('');
-    styles.push(cssStr);
-    return '%c';
-  });
-  return [transformedStr, ...styles];
+  const stylesAndSubstitutions: unknown[] = [];
+  let str = '';
+  for (const segment of input) {
+    if (typeof segment !== 'string') {
+      stylesAndSubstitutions.push(segment);
+      str += '%o'; // https://developer.mozilla.org/en-US/docs/Web/API/console#Using_string_substitutions
+      continue;
+    }
+    str += segment.replace(ansiRegex(), (escapeCode) => {
+      // \u001b is unicode for <ESC>
+      const parsedEscapeCode = /\u001b\[([0-9]*)m/.exec(escapeCode);
+      if (!parsedEscapeCode) return ''; // unrecognized escape code, remove it
+      const escapeCodeNum = Number(parsedEscapeCode[1]); // capture group
+      const cssObj = ansiCodes[escapeCodeNum];
+      if (!cssObj) return '';
+      Object.assign(styleStack, cssObj);
+      const cssStr = Object.entries(styleStack)
+        .map(([key, val]) => (val === 'inherit' ? '' : `${key}: ${val};`))
+        .join('');
+      stylesAndSubstitutions.push(cssStr);
+      return '%c';
+    });
+  }
+  return [str, ...stylesAndSubstitutions];
 };
 
-const colors = {
+export const colors = {
   gray: '#8e908c',
   red: '#c82829',
   green: '#718c00',

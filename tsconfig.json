@@ -11,6 +11,7 @@
     },
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "importsNotUsedAsValues": "error",
     "target": "ES2019",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["jest"],
