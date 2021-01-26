@@ -54,7 +54,11 @@ const stubPlugin = {
 const removeCloneNodePlugin = {
   name: 'remove-clone-node',
   async transform(code) {
-    return code.replace(/\.cloneNode\((?:false|true)\)/g, '');
+    return code.replace(/\.cloneNode\((?:false|true)\)/g, '').replace(
+      // for some reason toBeEmptyDOMElement and toBeEmpty log element.innerHTML
+      /this\.utils\.printReceived\(([a-zA-Z]*)\.innerHTML\)/,
+      'this.utils.printReceived($1)',
+    );
   },
 };
 
