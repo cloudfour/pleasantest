@@ -13,16 +13,16 @@ test(
   'findBy',
   withBrowser(async ({ screen, utils }) => {
     // This should work because findByText waits for up to 1s to see the element
-    setTimeout(() => utils.injectHTML(singleElementMarkup), 20);
+    setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
     await screen.findByText(/Hello/);
 
     await expect(
-      screen.findByText(/Hellooooo/, {}, { timeout: 20 }),
+      screen.findByText(/Hellooooo/, {}, { timeout: 5 }),
     ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
 
     await utils.injectHTML(multipleElementMarkup);
     await expect(
-      screen.findByText(/Hello/, {}, { timeout: 20 }),
+      screen.findByText(/Hello/, {}, { timeout: 5 }),
     ).rejects.toThrow('Found multiple elements with the text: /Hello/');
   }),
 );
@@ -63,16 +63,16 @@ test(
   'findAllBy',
   withBrowser(async ({ screen, utils }) => {
     // This should work because findAllByText waits for up to 1s to find any matching elements
-    setTimeout(() => utils.injectHTML(singleElementMarkup), 20);
+    setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
     expect(await screen.findAllByText(/Hello/)).toHaveLength(1);
 
     await expect(
-      screen.findAllByText(/Hellooooo/, {}, { timeout: 20 }),
+      screen.findAllByText(/Hellooooo/, {}, { timeout: 5 }),
     ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
 
     await utils.injectHTML(multipleElementMarkup);
     expect(
-      await screen.findAllByText(/Hello/, {}, { timeout: 20 }),
+      await screen.findAllByText(/Hello/, {}, { timeout: 5 }),
     ).toHaveLength(2);
   }),
 );
