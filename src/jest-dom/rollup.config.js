@@ -44,6 +44,20 @@ const stubPlugin = {
   },
 };
 
+/**
+ * When jest-dom logs messages it uses el.cloneNode() before it logs them
+ * Normally that would be fine, but for logging in the browser,
+ * it makes hovering over the element in devtools not work
+ * So we are removing the cloneNodes to fix hovering
+ * @type {import('rollup').Plugin}
+ */
+const removeCloneNodePlugin = {
+  name: 'remove-clone-node',
+  async transform(code) {
+    return code.replace(/\.cloneNode\((?:false|true)\)/g, '');
+  },
+};
+
 /** @type {import('rollup').RollupOptions} */
 const config = {
   input: ['src/jest-dom/index.ts'],
@@ -51,7 +65,8 @@ const config = {
     stubPlugin,
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
-    // terser({ ecma: 2019 }),
+    removeCloneNodePlugin,
+    terser({ ecma: 2019 }),
   ],
   external: ['css'],
   treeshake: { moduleSideEffects: 'no-external' },
