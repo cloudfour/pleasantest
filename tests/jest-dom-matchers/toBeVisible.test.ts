@@ -6,16 +6,17 @@ test(
     await utils.injectHTML(`<div>hello</div>`);
     const div = await screen.getByText(/hello/);
     await expect(div).toBeVisible();
-    // testing that the inverse throws a useful error message
+
+    // testing that the inverse throws a useful error message with the element correctly serialized
     await expect(expect(div).not.toBeVisible()).rejects.toThrow(
-      'Received element is visible',
+      /Received element is visible:[\w\W]*<div><\/div>/m,
     );
 
     await utils.injectCSS(`div { opacity: 0 }`);
     await expect(div).not.toBeVisible();
     // testing that the inverse throws a useful error message
     await expect(expect(div).toBeVisible()).rejects.toThrow(
-      'Received element is not visible',
+      /Received element is not visible:[\w\W]*<div><\/div>/m,
     );
   }),
 );

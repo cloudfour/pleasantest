@@ -33,7 +33,12 @@ const runUtilInNode = (name: string, args: any[]) => {
 export const jestContext: { utils: Partial<jest.MatcherUtils['utils']> } = {
   utils: {
     matcherHint: (...args) => runUtilInNode('matcherHint', args),
-    printReceived: (...args) => runUtilInNode('printReceived', args),
+    printReceived: (arg) => {
+      if (arg instanceof Element) {
+        return jestContext.utils.RECEIVED_COLOR!(addToElementCache(arg));
+      }
+      return runUtilInNode('printReceived', [arg]);
+    },
     RECEIVED_COLOR: ((...args: any[]) =>
       runUtilInNode('RECEIVED_COLOR', args)) as any,
     stringify: (arg) => {
