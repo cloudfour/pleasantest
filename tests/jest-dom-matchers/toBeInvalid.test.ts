@@ -24,11 +24,22 @@ test(
     await expect(invalidInput3).toBeInvalid();
     await expect(invalidInput4).toBeInvalid();
     await expect(invalidForm1).toBeInvalid();
-    await expect(expect(validInput1).toBeInvalid()).rejects.toThrow(
-      'element is not currently invalid',
-    );
-    await expect(expect(validForm1).toBeInvalid()).rejects.toThrow(
-      'element is not currently invalid',
-    );
+    await expect(expect(validInput1).toBeInvalid()).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "[2mexpect([22m[31melement[39m[2m).toBeInvalid()[22m
+
+            Received element is not currently invalid:
+              [31m
+            <input data-testid=\\"valid-input-1\\">[39m"
+          `);
+    await expect(expect(validForm1).toBeInvalid()).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "[2mexpect([22m[31melement[39m[2m).toBeInvalid()[22m
+
+            Received element is not currently invalid:
+              [31m<form data-testid=\\"valid-form-1\\">
+              [...]<input>
+            </form>[39m"
+          `);
   }),
 );
