@@ -72,6 +72,11 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
       ) {
         const messageForBrowser: unknown[] =
           error.matcherResult.messageForBrowser;
+        // Jest hangs when sending the error
+        // from the worker process up to the main process
+        // if the error has circular references in it
+        // (which it does if there are elementHandles)
+        delete error.matcherResult.messageForBrowser;
         failureMessage.push(
           ...messageForBrowser.map((segment: unknown, i) => {
             if (typeof segment !== 'string') return segment;
