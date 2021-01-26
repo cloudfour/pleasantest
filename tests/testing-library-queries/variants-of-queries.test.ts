@@ -25,6 +25,7 @@ test(
       screen.findByText(/Hello/, {}, { timeout: 5 }),
     ).rejects.toThrow('Found multiple elements with the text: /Hello/');
   }),
+  10000,
 );
 
 test(
@@ -75,6 +76,7 @@ test(
       await screen.findAllByText(/Hello/, {}, { timeout: 5 }),
     ).toHaveLength(2);
   }),
+  10000,
 );
 
 test(
