@@ -1,4 +1,5 @@
 import babel from '@rollup/plugin-babel';
+import * as path from 'path';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import { rollupPluginAriaQuery } from '../../rollup-plugin-aria-query';
@@ -12,8 +13,11 @@ const stubs = {
     export default prettyFormat
   `,
   [require.resolve('@testing-library/dom/dist/pretty-dom')]: `
+    import {addToElementCache} from ${JSON.stringify(
+      path.join(process.cwd(), 'src', 'serialize', 'index.ts'),
+    )}
     export const prettyDOM = (dom, maxLength, options) => {
-      return window.__putElementInStringMap(dom)
+      return addToElementCache(dom)
     }
   `,
 };
@@ -31,6 +35,20 @@ const stubPlugin = {
   },
 };
 
+/**
+ * Sometimes when testing-library logs messages it uses el.cloneNode() before it logs them
+ * Normally that would be fine, but for logging in the browser,
+ * it makes hovering over the element in devtools not work
+ * So we are removing the cloneNodes to fix hovering
+ * @type {import('rollup').Plugin}
+ */
+const removeCloneNodePlugin = {
+  name: 'remove-clone-node',
+  async transform(code) {
+    return code.replace(/\.cloneNode\((?:false|true)\)/g, '');
+  },
+};
+
 /** @type {import('rollup').RollupOptions} */
 const config = {
   input: ['src/pptr-testing-library-client/index.ts'],
@@ -39,7 +57,8 @@ const config = {
     stubPlugin,
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
-    terser({ ecma: 2019 }),
+    removeCloneNodePlugin,
+    // terser({ ecma: 2019 }),
   ],
   external: [],
   treeshake: { moduleSideEffects: 'no-external' },

@@ -1,5 +1,5 @@
-import type { JSHandle } from 'puppeteer';
 import { deserialize } from './serialize';
+import { jsHandleToArray } from './utils';
 import { port } from './vite-server';
 
 const methods = [
@@ -100,19 +100,6 @@ expect.extend(
   ),
 );
 
-const jsHandleToArray = async (arrayHandle: JSHandle) => {
-  const properties = await arrayHandle.getProperties();
-  const arr = new Array(properties.size);
-  for (let i = 0; i < properties.size; i++) {
-    const valHandle = properties.get(String(i));
-    if (valHandle) {
-      // Change primitives to live values rather than JSHandles
-      const val = await valHandle.jsonValue();
-      arr[i] = typeof val === 'object' ? valHandle : val;
-    }
-  }
-  return arr;
-};
 const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
   // handling nested JEST_UTILS calls here is the complexity
   const jestUtilsCalls = [
