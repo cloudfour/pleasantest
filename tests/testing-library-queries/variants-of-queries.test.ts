@@ -16,14 +16,28 @@ test(
     setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
     await screen.findByText(/Hello/);
 
-    await expect(
-      screen.findByText(/Hellooooo/, {}, { timeout: 5 }),
-    ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
+    await expect(screen.findByText(/Hellooooo/, {}, { timeout: 5 })).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the text: /Hellooooo/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+            Within: #document"
+          `);
 
     await utils.injectHTML(multipleElementMarkup);
-    await expect(
-      screen.findByText(/Hello/, {}, { timeout: 5 }),
-    ).rejects.toThrow('Found multiple elements with the text: /Hello/');
+    await expect(screen.findByText(/Hello/, {}, { timeout: 5 })).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the text: /Hello/
+
+            Here are the matching elements:
+
+            <h1>Hello</h1>
+
+            <h1>Hello</h1>
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
   }),
   10000,
 );
@@ -34,14 +48,28 @@ test(
     await utils.injectHTML(singleElementMarkup);
     await screen.getByText(/Hello/);
 
-    await expect(screen.getByText(/Hellooooo/)).rejects.toThrow(
-      'Unable to find an element with the text: /Hellooooo/',
-    );
+    await expect(screen.getByText(/Hellooooo/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the text: /Hellooooo/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+            Within: #document"
+          `);
 
     await utils.injectHTML(multipleElementMarkup);
-    await expect(screen.getByText(/Hello/)).rejects.toThrow(
-      'Found multiple elements with the text: /Hello/',
-    );
+    await expect(screen.getByText(/Hello/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the text: /Hello/
+
+            Here are the matching elements:
+
+            <h1>Hello</h1>
+
+            <h1>Hello</h1>
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
   }),
 );
 
@@ -54,9 +82,20 @@ test(
     expect(await screen.queryByText(/Hellooooo/)).toBeNull();
 
     await utils.injectHTML(multipleElementMarkup);
-    await expect(screen.queryByText(/Hello/)).rejects.toThrow(
-      'Found multiple elements with the text: /Hello/',
-    );
+    await expect(screen.queryByText(/Hello/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the text: /Hello/
+
+            Here are the matching elements:
+
+            <h1>Hello</h1>
+
+            <h1>Hello</h1>
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
   }),
 );
 
@@ -67,9 +106,12 @@ test(
     setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
     expect(await screen.findAllByText(/Hello/)).toHaveLength(1);
 
-    await expect(
-      screen.findAllByText(/Hellooooo/, {}, { timeout: 5 }),
-    ).rejects.toThrow('Unable to find an element with the text: /Hellooooo/');
+    await expect(screen.findAllByText(/Hellooooo/, {}, { timeout: 5 })).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the text: /Hellooooo/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+            Within: #document"
+          `);
 
     await utils.injectHTML(multipleElementMarkup);
     expect(
@@ -85,9 +127,12 @@ test(
     await utils.injectHTML(singleElementMarkup);
     expect(await screen.getAllByText(/Hello/)).toHaveLength(1);
 
-    await expect(screen.getAllByText(/Hellooooo/)).rejects.toThrow(
-      'Unable to find an element with the text: /Hellooooo/',
-    );
+    await expect(screen.getAllByText(/Hellooooo/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the text: /Hellooooo/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+            Within: #document"
+          `);
 
     await utils.injectHTML(multipleElementMarkup);
     expect(await screen.getAllByText(/Hello/)).toHaveLength(2);

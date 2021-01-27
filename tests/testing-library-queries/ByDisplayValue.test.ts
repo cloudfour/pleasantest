@@ -17,12 +17,28 @@ test(
     await screen.getByDisplayValue('Bar');
     await screen.getByDisplayValue('Apple');
     // too many
-    await expect(screen.getByDisplayValue(/Fo/)).rejects.toThrow(
-      'Found multiple elements',
-    );
+    await expect(screen.getByDisplayValue(/Fo/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the display value: /Fo/.
+
+            Here are the matching elements:
+
+
+            <input value=\\"Foo\\">
+
+
+            <input value=\\"Fo\\">
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
     // doesn't find any
-    await expect(screen.getByDisplayValue('Cheeseburger')).rejects.toThrow(
-      'Unable to find',
-    );
+    await expect(screen.getByDisplayValue('Cheeseburger')).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the display value: Cheeseburger.
+
+            Within: #document"
+          `);
   }),
 );
