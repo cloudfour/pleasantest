@@ -103,7 +103,7 @@ export const getQueriesForElement = (
             'argsString',
             'element',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
-              .then(async ({ reviveElementsInString, printElement, ...dtl }) => {
+              .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
                   if (value.__serialized === 'RegExp')
                     return new RegExp(value.source, value.flags)
@@ -112,14 +112,16 @@ export const getQueriesForElement = (
                 try {
                   return await dtl.${queryName}(element, ...deserializedArgs)
                 } catch (error) {
-                  // const formattedMessage = error.name === 'TestingLibraryElementError'
-                  //   ? [...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
-                  //   : [error]
-                  const message = error.message
+                  const message =
+                    error.message +
+                    (error.container
+                      ? '\\n\\nWithin: ' + addToElementCache(error.container)
+                      : '')
                   const messageWithElementsRevived = reviveElementsInString(message)
                   const messageWithElementsStringified = messageWithElementsRevived
                     .map(el => {
-                      if (el instanceof Element) return printElement(el)
+                      if (el instanceof Element || el instanceof Document)
+                        return printElement(el)
                       return el
                     })
                     .join('')

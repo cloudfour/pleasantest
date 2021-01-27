@@ -3,7 +3,11 @@ export * from '@testing-library/dom/dist/queries';
 // @ts-expect-error
 import { configure } from '@testing-library/dom/dist/config';
 import { addToElementCache } from '../serialize';
-export { reviveElementsInString, printElement } from '../serialize';
+export {
+  reviveElementsInString,
+  printElement,
+  addToElementCache,
+} from '../serialize';
 
 (configure as typeof import('@testing-library/dom').configure)({
   getElementError(message, container) {

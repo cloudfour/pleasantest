@@ -66,7 +66,8 @@ export const deserialize = (input: string) => {
   });
 };
 
-export const printElement = (el: Element, printChildren = true) => {
+export const printElement = (el: Element | Document, printChildren = true) => {
+  if (el instanceof Document) return '#document';
   let contents = '';
   if (printChildren && el.childNodes.length <= 3) {
     const singleLine =
