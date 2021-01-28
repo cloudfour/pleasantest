@@ -59,24 +59,24 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   return async () => {
     const ctx = await createTab({ testPath, headless });
     await Promise.resolve(testFn(ctx)).catch(async (error) => {
+      const messageForBrowser: undefined | unknown[] =
+        // this is how we attach the elements to the error from testing-library
+        error?.messageForBrowser ||
+        // this is how we attach the elements to the error from jest-dom
+        error?.matcherResult?.messageForBrowser;
+      // Jest hangs when sending the error
+      // from the worker process up to the main process
+      // if the error has circular references in it
+      // (which it does if there are elementHandles)
+      if (error.matcherResult) delete error.matcherResult.messageForBrowser;
+      if (error.messageForBrowser) delete error.messageForBrowser;
       if (headless) throw error;
       let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
       const testName = getTestName();
       if (testName) {
         failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
       }
-      const messageForBrowser: undefined | unknown[] =
-        // this is how we attach the elements to the error from testing-library
-        error?.messageForBrowser ||
-        // this is how we attach the elements to the error from jest-dom
-        error?.matcherResult?.messageForBrowser;
       if (messageForBrowser) {
-        // Jest hangs when sending the error
-        // from the worker process up to the main process
-        // if the error has circular references in it
-        // (which it does if there are elementHandles)
-        if (error.matcherResult) delete error.matcherResult.messageForBrowser;
-        if (error.messageForBrowser) delete error.messageForBrowser;
         failureMessage.push(
           ...messageForBrowser.map((segment: unknown, i) => {
             if (typeof segment !== 'string') return segment;
