@@ -27,11 +27,9 @@ test(
 
             Here are the matching elements:
 
+            <input id=\\"input1\\" />
 
-            <input id=\\"input1\\">
-
-
-            <input type=\\"checkbox\\">
+            <input type=\\"checkbox\\" />
 
             (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 

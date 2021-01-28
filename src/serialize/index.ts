@@ -66,23 +66,44 @@ export const deserialize = (input: string) => {
   });
 };
 
-export const printElement = (el: Element | Document, printChildren = true) => {
+export const printElement = (el: Element | Document, depth = 3) => {
   if (el instanceof Document) return '#document';
   let contents = '';
-  if (printChildren && el.childNodes.length <= 3) {
+  const attrs = [...el.attributes];
+  const splitAttrs = attrs.length > 2;
+  if (depth > 0 && el.childNodes.length <= 3) {
     const singleLine =
-      el.childNodes.length === 1 && el.childNodes[0] instanceof Text;
+      !splitAttrs &&
+      (el.childNodes.length === 0 ||
+        (el.childNodes.length === 1 && el.childNodes[0] instanceof Text));
     for (const child of el.childNodes) {
       if (child instanceof Element) {
         contents +=
-          '\n  ' + printElement(child, false).split('\n').join('  \n');
+          '\n  ' + printElement(child, depth - 1).replace(/\n/g, '\n  ');
       } else if (child instanceof Text) {
-        contents += (singleLine ? '' : '\n  ') + child.wholeText;
+        contents += (singleLine ? '' : '\n  ') + child.textContent;
       }
     }
     if (!singleLine) contents += '\n';
   } else {
     contents = '[...]';
   }
-  return el.outerHTML.replace(el.innerHTML, contents);
+  const tagName = el.tagName.toLowerCase();
+  const selfClosing = el.childNodes.length === 0;
+  return (
+    '<' +
+    tagName +
+    (attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' ') +
+    attrs
+      .map((attr) => {
+        // @ts-expect-error
+        if (attr.value === '' && typeof el[attr.name] === 'boolean')
+          return attr.name;
+        return attr.name + '="' + attr.value + '"';
+      })
+      .join(splitAttrs ? '\n  ' : ' ') +
+    (selfClosing ? (splitAttrs ? '\n' : ' ') + '/' : splitAttrs ? '\n' : '') +
+    '>' +
+    (selfClosing ? '' : contents + '</' + tagName + '>')
+  );
 };

@@ -17,11 +17,9 @@ test(
 
             Here are the matching elements:
 
+            <img alt=\\"Foo\\" />
 
-            <img alt=\\"Foo\\">
-
-
-            <img alt=\\"Foobar\\">
+            <img alt=\\"Foobar\\" />
 
             (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 

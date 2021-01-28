@@ -17,11 +17,9 @@ test(
 
             Here are the matching elements:
 
+            <input placeholder=\\"Foo\\" />
 
-            <input placeholder=\\"Foo\\">
-
-
-            <input placeholder=\\"Foobar\\">
+            <input placeholder=\\"Foobar\\" />
 
             (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 

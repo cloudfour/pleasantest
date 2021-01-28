@@ -39,8 +39,7 @@ test(
             "[2mexpect([22m[31melement[39m[2m).toBeRequired()[22m
 
             Received element is not required:
-              [31m
-            <input data-testid=\\"optional-input\\">[39m"
+              [31m<input data-testid=\\"optional-input\\" />[39m"
           `);
     await expect(unsportedType).not.toBeRequired();
     await expect(select).toBeRequired();

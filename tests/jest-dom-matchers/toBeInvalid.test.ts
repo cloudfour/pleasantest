@@ -29,8 +29,7 @@ test(
             "[2mexpect([22m[31melement[39m[2m).toBeInvalid()[22m
 
             Received element is not currently invalid:
-              [31m
-            <input data-testid=\\"valid-input-1\\">[39m"
+              [31m<input data-testid=\\"valid-input-1\\" />[39m"
           `);
     await expect(expect(validForm1).toBeInvalid()).rejects
       .toThrowErrorMatchingInlineSnapshot(`
@@ -38,7 +37,7 @@ test(
 
             Received element is not currently invalid:
               [31m<form data-testid=\\"valid-form-1\\">
-              [...]<input>
+              <input />
             </form>[39m"
           `);
   }),
