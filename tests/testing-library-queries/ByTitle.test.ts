@@ -1,19 +1,37 @@
-import { createTab } from 'test-mule';
+import { withBrowser } from 'test-mule';
 
-test('ByTitle', async () => {
-  const { screen, utils } = await createTab();
-  await utils.injectHTML(`
+test(
+  'ByTitle',
+  withBrowser(async ({ screen, utils }) => {
+    await utils.injectHTML(`
     <img title="Foo" />
     <img title="Foobar" />
     <img />
   `);
-  // finds one
-  await screen.getByTitle('Foobar');
-  // too many
-  await expect(screen.getByTitle(/Foo/)).rejects.toThrow(
-    'Found multiple elements',
-  );
-  expect(await screen.getAllByTitle(/Foo/)).toHaveLength(2);
-  // doesn't find any
-  await expect(screen.getByTitle('Baz')).rejects.toThrow('Unable to find');
-});
+    // finds one
+    await screen.getByTitle('Foobar');
+    // too many
+    await expect(screen.getByTitle(/Foo/)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the title: /Foo/.
+
+            Here are the matching elements:
+
+            <img title=\\"Foo\\" />
+
+            <img title=\\"Foobar\\" />
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
+    expect(await screen.getAllByTitle(/Foo/)).toHaveLength(2);
+    // doesn't find any
+    await expect(screen.getByTitle('Baz')).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an element with the title: Baz.
+
+            Within: #document"
+          `);
+  }),
+);

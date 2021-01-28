@@ -1,4 +1,6 @@
-import { port } from '.';
+import { deserialize } from './serialize';
+import { jsHandleToArray } from './utils';
+import { port } from './vite-server';
 
 const methods = [
   'toBeInTheDOM',
@@ -41,59 +43,90 @@ expect.extend(
             'element',
             `return import("http://localhost:${port}/@test-mule/jest-dom").then(jestDom => {
               const context = { ...(${ctxString}), ...jestDom.jestContext }
-              const result = jestDom.${methodName}.call(context, element)
-              if (result.pass === context.isNot) {
-                window.__testMuleDebug__ = true
-                const simplifiedMessage = result
-                  .message()
-                  .replace(/\\$\\$JEST_UTILS\\$\\$\\.([a-zA-Z_$]*)\\((.*?)\\)/g, '');
-                console.error('matcher failed:', simplifiedMessage.trim() + '\\n', element)
-              }
-              return result
+              return jestDom.${methodName}.call(context, element)
             })`,
           ),
-          // the __testMuleDebug__ thing is a flag that is set in the browser global when the test fails
-          // to keep the tab open (afterAll checks for the flag before it closes tabs)
           elementHandle,
         );
-        // @ts-expect-error it is used but for some reason ts doesn't recognize
+        // we have to evaluate the message right away
+        // because Jest does not accept a promise from the returned message property
         const message = await result
           .evaluateHandle((matcherResult) => matcherResult.message())
-          .then((m) => m.jsonValue());
-        const final = {
-          // @ts-ignore
-          ...(await result.jsonValue()),
-          message: () => deserialize(message, this),
+          .then((m) => m.jsonValue() as Promise<string>);
+        const deserializedMessage = runJestUtilsInNode(message, this as any);
+        const {
+          messageWithElementsRevived,
+          messageWithElementsStringified,
+        } = await elementHandle
+          .evaluateHandle(
+            // @ts-expect-error
+            new Function(
+              'el',
+              'message',
+              `return import("http://localhost:${port}/@test-mule/jest-dom")
+              .then(({ reviveElementsInString, printElement }) => {
+                const messageWithElementsRevived = reviveElementsInString(message)
+                const messageWithElementsStringified = messageWithElementsRevived
+                  .map(el => {
+                    if (el instanceof Element) return printElement(el)
+                    return el
+                  })
+                  .join('')
+                return { messageWithElementsRevived, messageWithElementsStringified }
+              })`,
+            ),
+            deserializedMessage,
+          )
+          .then(async (returnHandle) => {
+            const {
+              messageWithElementsRevived,
+              messageWithElementsStringified,
+            } = Object.fromEntries(await returnHandle.getProperties());
+            return {
+              messageWithElementsStringified: await messageWithElementsStringified.jsonValue(),
+              messageWithElementsRevived: await jsHandleToArray(
+                messageWithElementsRevived,
+              ),
+            };
+          });
+        return {
+          ...((await result.jsonValue()) as any),
+          message: () => messageWithElementsStringified,
+          messageForBrowser: messageWithElementsRevived,
         };
-
-        return final;
       };
       return [methodName, matcher];
     }),
   ),
 );
 
-// @ts-expect-error it is used but for some reason ts doesn't recognize
-const deserialize = (message: string, context: jest.MatcherContext) => {
-  return message.replace(
-    /\$\$JEST_UTILS\$\$\.([a-zA-Z_$]*)\((.*?)\)/g,
-    (_match, funcName, args) => {
+const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
+  // handling nested JEST_UTILS calls here is the complexity
+  const jestUtilsCalls = [
+    ...message.matchAll(/\$\$JEST_UTILS\$\$\.([a-zA-Z_$]*)\(/g),
+  ];
+  const closeParenRegex = /\)/g;
+  let jestUtilsCall;
+  while ((jestUtilsCall = jestUtilsCalls.pop())) {
+    const start = jestUtilsCall.index!;
+    const methodName = jestUtilsCall[1];
+    closeParenRegex.lastIndex = start;
+    const closeParenIndex = closeParenRegex.exec(message)?.index;
+    if (closeParenIndex !== undefined) {
+      const argsString = message.slice(
+        start + jestUtilsCall[0].length,
+        closeParenIndex,
+      );
+      const parsedArgs = deserialize(argsString);
       // @ts-expect-error
-      return context.utils[funcName](...JSON.parse(args, reviver));
-    },
-  );
-};
-
-function reviver(_key: string, value: unknown) {
-  // @ts-ignore
-  if (typeof value === 'object' && value.__serialized === 'HTMLElement') {
-    const wrapper = document.createElement('div');
-    // @ts-ignore
-    wrapper.innerHTML = value.outerHTML;
-    return wrapper.firstElementChild;
+      const res: string = context.utils[methodName](...parsedArgs);
+      const escaped = res.replace(/"/g, '\\"');
+      message =
+        message.slice(0, start) + escaped + message.slice(closeParenIndex + 1);
+    }
   }
-  return value;
-}
+  return message;
+};
 
 // These type definitions are incomplete, only including methods we've tested
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts

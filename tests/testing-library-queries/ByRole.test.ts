@@ -1,24 +1,64 @@
-import { createTab } from 'test-mule';
+import { withBrowser } from 'test-mule';
 
-test('ByRole', async () => {
-  const { screen, utils } = await createTab();
-  await utils.injectHTML(`
+test(
+  'ByRole',
+  withBrowser(async ({ screen, utils }) => {
+    await utils.injectHTML(`
     <div role="heading">hi</div>
     <div>hello</div>
     <div role="button">butt1</div>
     <div role="button">butt2</div>
   `);
 
-  // finds just one
-  await screen.getByRole('heading');
-  // alternate syntax
-  await screen.getByRole('button', { name: /butt2/ });
-  // doesn't find any
-  await expect(screen.getByRole('banner')).rejects.toThrow(
-    'Unable to find an accessible element with the role "banner"',
-  );
-  // finds too many
-  await expect(screen.getByRole('button')).rejects.toThrow(
-    'Found multiple elements with the role "button"',
-  );
-});
+    // finds just one
+    await screen.getByRole('heading');
+    // alternate syntax
+    await screen.getByRole('button', { name: /butt2/ });
+    // doesn't find any
+    await expect(screen.getByRole('banner')).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Unable to find an accessible element with the role \\"banner\\"
+
+            Here are the accessible roles:
+
+              document:
+
+              Name \\"\\":
+              <body>[...]</body>
+
+              --------------------------------------------------
+              heading:
+
+              Name \\"hi\\":
+              <div role=\\"heading\\">hi</div>
+
+              --------------------------------------------------
+              button:
+
+              Name \\"butt1\\":
+              <div role=\\"button\\">butt1</div>
+
+              Name \\"butt2\\":
+              <div role=\\"button\\">butt2</div>
+
+              --------------------------------------------------
+
+            Within: #document"
+          `);
+    // finds too many
+    await expect(screen.getByRole('button')).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Found multiple elements with the role \\"button\\"
+
+            Here are the matching elements:
+
+            <div role=\\"button\\">butt1</div>
+
+            <div role=\\"button\\">butt2</div>
+
+            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+
+            Within: #document"
+          `);
+  }),
+);

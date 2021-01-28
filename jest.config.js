@@ -1,5 +1,5 @@
 module.exports = {
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
   moduleNameMapper: {
     'test-mule': '<rootDir>/dist/cjs/index.cjs',
   },

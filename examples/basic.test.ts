@@ -1,19 +1,22 @@
-import { createTab } from 'test-mule';
+import { withBrowser } from 'test-mule';
 
-test('basic element visibility test', async () => {
-  const { screen, utils } = await createTab();
+test(
+  'basic element visibility test',
+  withBrowser(async ({ screen, utils }) => {
+    await utils.injectHTML('<button class="hidden">menu</button>');
+    // await utils.injectCSS('.hidden { display: none }');
+    await utils.loadCSS('./foo.css');
+    await utils.loadJS('./menu');
 
-  await utils.injectHTML('<button class="hidden">menu</button>');
-  // await utils.injectCSS('.hidden { display: none }');
-  await utils.loadCSS('./foo.css');
-  await utils.loadJS('./menu');
+    // await utils.runJS(`
+    //   import Menu from './menu'
+    //   new Menu('nav');
+    // `);
 
-  // await utils.runJS(`
-  //   import Menu from './menu'
-  //   new Menu('nav');
-  // `);
-
-  const menuButton = await screen.getByText(/menu/);
-  await expect(menuButton).not.toBeVisible();
-  // debug();
-});
+    const menuButton = await screen.getByText(/menu/);
+    // const menuButton = await screen.getByText(/menuuuu/);
+    await expect(menuButton).not.toBeVisible();
+    // await expect(menuButton).toBeVisible();
+    // debug();
+  }),
+);

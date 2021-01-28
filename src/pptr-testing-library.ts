@@ -1,5 +1,7 @@
-import { port } from '.';
+import { port } from './vite-server';
 import type { queries, BoundFunctions } from '@testing-library/dom';
+import { jsHandleToArray } from './utils';
+import type { JSHandle } from 'puppeteer';
 
 type ElementToElementHandle<Input> = Input extends Element
   ? import('puppeteer').ElementHandle
@@ -68,6 +70,12 @@ const queryNames = [
   'queryByTitle',
 ] as const;
 
+interface DTLError {
+  failed: true;
+  messageWithElementsRevived: unknown[];
+  messageWithElementsStringified: string;
+}
+
 export const getQueriesForElement = (
   page: import('puppeteer').Page,
   element?: import('puppeteer').ElementHandle,
@@ -86,14 +94,16 @@ export const getQueriesForElement = (
           }
           return value;
         });
-        const result = await page.evaluateHandle(
+        const result: JSHandle<
+          Element | Element[] | DTLError
+        > = await page.evaluateHandle(
           // using new Function to avoid babel transpiling the import
           // @ts-expect-error
           new Function(
             'argsString',
             'element',
             `return import("http://localhost:${port}/@test-mule/dom-testing-library")
-              .then(async dtl => {
+              .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
                   if (value.__serialized === 'RegExp')
                     return new RegExp(value.source, value.flags)
@@ -102,40 +112,43 @@ export const getQueriesForElement = (
                 try {
                   return await dtl.${queryName}(element, ...deserializedArgs)
                 } catch (error) {
-                  window.__testMuleDebug__ = true
-                  const formattedMessage = error.name === 'TestingLibraryElementError'
-                    ? ['query failed\\n', ...dtl.__deserialize(error.message), '\\n\\nwithin:', error.container]
-                    : [error]
-                  console.error(...formattedMessage)
-                  return {
-                    failed: true,
-                    message:
-                      formattedMessage
-                        .map((item, i) => {
-                          const space = i === 0 || /\\s$/.test(formattedMessage[i - 1]) ? '' : ' '
-                          if (item instanceof Element) return space + dtl.__elementToString(item)
-                          if (item instanceof Document) return space + "#document"
-                          return item
-                        })
-                        .join('')
-                  }
+                  const message =
+                    error.message +
+                    (error.container
+                      ? '\\n\\nWithin: ' + addToElementCache(error.container)
+                      : '')
+                  const messageWithElementsRevived = reviveElementsInString(message)
+                  const messageWithElementsStringified = messageWithElementsRevived
+                    .map(el => {
+                      if (el instanceof Element || el instanceof Document)
+                        return printElement(el)
+                      return el
+                    })
+                    .join('')
+                  return { failed: true, messageWithElementsRevived, messageWithElementsStringified }
                 }
-              })
-          `,
+              })`,
           ),
           serializedArgs,
-          element
-            ? element.asElement()
-            : await page.evaluateHandle(() => document),
+          element?.asElement() || (await page.evaluateHandle(() => document)),
         );
 
-        const failureMessage = await result.evaluate(
-          (r) => typeof r === 'object' && r !== null && r.failed && r.message,
+        const failed = await result.evaluate(
+          (r) => typeof r === 'object' && r !== null && (r as DTLError).failed,
         );
-        if (failureMessage) {
-          const error = new Error(failureMessage);
-          // manipulate the stack trace and remove this function
-          // That way jest will show a code frame from the user's code, not ours
+        if (failed) {
+          const resultProperties = Object.fromEntries(
+            await result.getProperties(),
+          );
+          const messageWithElementsStringified = (await resultProperties.messageWithElementsStringified.jsonValue()) as any;
+          const messageWithElementsRevived = await jsHandleToArray(
+            resultProperties.messageWithElementsRevived,
+          );
+          const error = new Error(messageWithElementsStringified);
+          // @ts-expect-error
+          error.messageForBrowser = messageWithElementsRevived;
+          // Manipulate the stack trace and remove this function
+          // That way Jest will show a code frame from the user's code, not ours
           // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
           if (Error.captureStackTrace) {
             Error.captureStackTrace(error, query);
@@ -146,7 +159,9 @@ export const getQueriesForElement = (
 
         // if it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {
-          const array = Array(await result.evaluate((r) => r.length));
+          const array = Array(
+            await result.evaluate((r) => (r as Element[]).length),
+          );
           const props = await result.getProperties();
           props.forEach((value, key) => {
             array[(key as any) as number] = value;
