@@ -13,8 +13,6 @@ import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
 
-/** Keeps track of all the browser contexts to can clean them up later */
-const browserContexts: puppeteer.BrowserContext[] = [];
 let serverPromise: Promise<vite.ViteDevServer>;
 
 type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
@@ -137,7 +135,6 @@ const createTab = async ({
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
-  browserContexts.push(browserContext);
   const page = await browserContext.newPage();
 
   page.on('console', (message) => {
