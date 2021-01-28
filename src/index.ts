@@ -17,9 +17,6 @@ const ansiRegex = _ansiRegex({ onlyFirst: true });
 const browserContexts: puppeteer.BrowserContext[] = [];
 let serverPromise: Promise<vite.ViteDevServer>;
 
-/** Pages that are in "debug mode" that the user will have to manually close */
-const debuggedPages = new Set();
-
 type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
 interface WithBrowserBase {
@@ -172,22 +169,16 @@ const createTab = async ({
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
-    await page.evaluateHandle(`import(${JSON.stringify(url)})`).catch((e) => {
-      debuggedPages.add(page);
-      throw e;
-    });
+    await page.evaluateHandle(`import(${JSON.stringify(url)})`);
   };
 
   const debug = () => {
     if (headless) {
       throw removeFuncFromStackTrace(
-        new Error(
-          'debug() can only be used in headed mode. Pass { headless: false } to createTab()',
-        ),
+        new Error('debug() can only be used in headed mode.'),
         debug,
       );
     }
-    debuggedPages.add(page);
     throw removeFuncFromStackTrace(new Error('[debug mode]'), debug);
   };
 

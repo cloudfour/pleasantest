@@ -15,10 +15,6 @@ test(
 
     const menuButton = await screen.getByText(/menu/);
     // const menuButton = await screen.getByText(/menuuuu/);
-    // expect({ blue: 'green', asdf: 'hi' }).toEqual({
-    //   blue: 'red',
-    //   asdf: expect.any(String),
-    // });
     await expect(menuButton).not.toBeVisible();
     // await expect(menuButton).toBeVisible();
     // debug();
