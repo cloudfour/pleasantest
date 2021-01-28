@@ -34,7 +34,7 @@ interface WithBrowser extends WithBrowserBase {
 
 export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   const thisFile = fileURLToPath(import.meta.url);
-  // Figure out the file that called createTab so that we can resolve paths correctly from there
+  // Figure out the file that called withBrowser so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
     (stackFrame) => {
       if (stackFrame.fileName) return stackFrame.fileName;
