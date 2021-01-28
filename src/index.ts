@@ -9,6 +9,7 @@ import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
 import { ansiColorsLog } from './ansi-colors-browser';
 import { createServer, port } from './vite-server';
 import _ansiRegex from 'ansi-regex';
+import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
 
@@ -35,6 +36,7 @@ interface WithBrowser extends WithBrowserBase {
 }
 
 export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
+  const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called createTab so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
     (stackFrame) => {
@@ -45,16 +47,14 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   const testFile = stack.find((stackItem) => {
     if (!stackItem) return false;
     // ignore if it is the current file
-    if (stackItem === __filename) return false;
+    if (stackItem === thisFile) return false;
     // ignore if it is an internal-to-node thing
     if (!stackItem.startsWith('/')) return false;
     // find the first item that is not the current file
     return true;
   });
 
-  const testPath = testFile
-    ? path.relative(process.cwd(), testFile)
-    : __filename;
+  const testPath = testFile ? path.relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
     const ctx = await createTab({ testPath, headless });
