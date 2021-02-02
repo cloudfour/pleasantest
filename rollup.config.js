@@ -55,8 +55,7 @@ function bundlePlugin() {
         ? `new URL('${relativePath}', import.meta.url).href`
         : `require('path').join(__dirname,'${relativePath}')`;
     },
-    resolveImportMeta(property, { moduleId, format }) {
-      console.log(moduleId);
+    resolveImportMeta(property, { format }) {
       if (property === 'url' && format === 'cjs') {
         return '`file://${__filename}`';
       }
