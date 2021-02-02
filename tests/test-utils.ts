@@ -34,5 +34,7 @@ export const printErrorFrames = async (error: Error) => {
         );
       }),
   );
-  return [error.message, ...frames].join('\n' + '-'.repeat(55) + '\n');
+  return [error.name + ': ' + error.message, ...frames].join(
+    '\n' + '-'.repeat(55) + '\n',
+  );
 };

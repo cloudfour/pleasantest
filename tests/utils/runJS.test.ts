@@ -99,7 +99,7 @@ test(
       .catch((error) => error);
 
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-      "errorFromTs
+      "Error: errorFromTs
       -------------------------------------------------------
       tests/utils/runJS.test.ts
 
@@ -115,7 +115,7 @@ test(
       .catch((error) => error);
 
     expect(await printErrorFrames(error2)).toMatchInlineSnapshot(`
-      "thisVariableDoesntExist is not defined
+      "ReferenceError: thisVariableDoesntExist is not defined
       -------------------------------------------------------
       tests/utils/runJS.test.ts
 
@@ -151,7 +151,7 @@ test(
     );
 
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-      "you have rendered the death component
+      "Error: you have rendered the death component
       -------------------------------------------------------
       tests/utils/external.tsx
 

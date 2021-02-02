@@ -253,10 +253,21 @@ const createTab = async ({
       fileName = localFileName;
       return '    at ' + fileName + ':' + line + ':' + column;
     });
-    const error = new Error(message);
+    const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
+    const specializedErrors = {
+      EvalError,
+      RangeError,
+      ReferenceError,
+      SyntaxError,
+      TypeError,
+      URIError,
+    } as any;
+    const ErrorConstructor = specializedErrors[errorName] || Error;
+    const error = new ErrorConstructor(message);
 
     error.stack =
-      'Error: ' +
+      errorName +
+      ': ' +
       message +
       '\n' +
       (await Promise.all(modifiedStack)).join('\n');
