@@ -75,12 +75,12 @@ const config = {
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
     removeCloneNodePlugin,
-    // terser({
-    //   ecma: 2019,
-    //   // Jest-dom uses function names for error messages
-    //   // https://github.com/testing-library/jest-dom/blob/v5.11.9/src/utils.js#L26
-    //   keep_fnames: /^to/,
-    // }),
+    terser({
+      ecma: 2019,
+      // Jest-dom uses function names for error messages
+      // https://github.com/testing-library/jest-dom/blob/v5.11.9/src/utils.js#L26
+      keep_fnames: /^to/,
+    }),
   ],
   external: ['css'],
   treeshake: { moduleSideEffects: 'no-external' },
