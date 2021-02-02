@@ -55,7 +55,7 @@ export const serialize = (
 
 export const deserialize = (input: string) => {
   return JSON.parse(input, (_key, value) => {
-    const serializedType = value.__objType;
+    const serializedType = typeof value === 'object' && value?.__objType;
     return (
       (serializedType &&
         handlers

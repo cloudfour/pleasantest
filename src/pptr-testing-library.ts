@@ -150,9 +150,7 @@ export const getQueriesForElement = (
           // Manipulate the stack trace and remove this function
           // That way Jest will show a code frame from the user's code, not ours
           // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          if (Error.captureStackTrace) {
-            Error.captureStackTrace(error, query);
-          }
+          Error.captureStackTrace?.(error, query);
 
           throw error;
         }

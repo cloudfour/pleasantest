@@ -6,14 +6,14 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
-    export function toHaveStyle () {
-      throw new Error('toHaveStyle is not implemented.')
-    }
+    export { toHaveStyle } from "${require.resolve(
+      './src/jest-dom/to-have-style',
+    )}"
   `,
-  [require.resolve('@testing-library/jest-dom/dist/to-have-form-values')]: `
-    export function toHaveFormValues () {
-      throw new Error('toHaveFormValues is not implemented.')
-    }
+  // No need for polyfill in real browser
+  'css.escape': `
+    const escape = (str) => CSS.escape(str)
+    export default escape
   `,
   'aria-query': `
     export const roles = {
@@ -29,6 +29,11 @@ const stubs = {
     }
   `,
   'lodash/isEqual': `export { isEqual as default } from 'smoldash'`,
+  'lodash/uniq': `
+    const uniq = (input) => Array.from(new Set(input))
+    export default uniq
+  `,
+  '@babel/runtime/helpers/extends': `export default Object.assign`,
 };
 
 /** @type {import('rollup').Plugin} */
@@ -70,7 +75,12 @@ const config = {
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
     removeCloneNodePlugin,
-    terser({ ecma: 2019 }),
+    terser({
+      ecma: 2019,
+      // Jest-dom uses function names for error messages
+      // https://github.com/testing-library/jest-dom/blob/v5.11.9/src/utils.js#L26
+      keep_fnames: /^to/,
+    }),
   ],
   external: ['css'],
   treeshake: { moduleSideEffects: 'no-external' },

@@ -265,9 +265,7 @@ const removeFuncFromStackTrace = (
   error: Error,
   fn: (...params: any[]) => any,
 ) => {
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(error, fn);
-  }
+  Error.captureStackTrace?.(error, fn);
   return error;
 };
 
