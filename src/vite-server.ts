@@ -66,9 +66,12 @@ export const createServer = async () => {
     name: 'test-mule-client-runtime',
     resolveId(id) {
       if (!id.startsWith('/@test-mule')) return null;
-      return id === '/@test-mule/jest-dom'
-        ? path.join(currentDir, '../jest-dom.js')
-        : path.join(currentDir, '../pptr-testing-library-client.js');
+      return path.join(
+        currentDir,
+        id === '/@test-mule/jest-dom'
+          ? '../jest-dom.js'
+          : '../pptr-testing-library-client.js',
+      );
     },
   });
 

@@ -76,12 +76,14 @@ interface DTLError {
   messageWithElementsStringified: string;
 }
 
+export interface BoundQueries extends BoundFunctions<AsyncDTLQueries> {}
+
 export const getQueriesForElement = (
   page: import('puppeteer').Page,
   element?: import('puppeteer').ElementHandle,
 ) => {
   // @ts-expect-error
-  const queries: BoundFunctions<AsyncDTLQueries> = Object.fromEntries(
+  const queries: BoundQueries = Object.fromEntries(
     queryNames.map((queryName: typeof queryNames[number]) => {
       const query = async (...args: any[]) => {
         const serializedArgs = JSON.stringify(args, (_key, value) => {

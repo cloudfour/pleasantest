@@ -27,7 +27,7 @@ const mainConfig = {
     nodeResolve({ extensions }),
     bundlePlugin(),
   ],
-  external: ['puppeteer', 'vite', 'pptr-testing-library'],
+  external: ['puppeteer', 'vite', 'pptr-testing-library', 'source-map'],
 };
 
 export default [mainConfig, jestDomConfig, pptrTestingLibraryConfig];
