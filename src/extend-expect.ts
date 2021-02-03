@@ -27,7 +27,7 @@ const methods = [
   'toBeChecked',
   'toBePartiallyChecked',
   'toHaveDescription',
-];
+] as const;
 
 const isJSHandle = (input: unknown): input is JSHandle => {
   if (typeof input !== 'object' || !input) return false;
@@ -43,6 +43,36 @@ expect.extend(
         elementHandle: import('puppeteer').ElementHandle,
         ...matcherArgs: unknown[]
       ) {
+        if (typeof elementHandle !== 'object' || !elementHandle?.asElement()) {
+          // special case: expect(null).not.toBeInTheDocument() should pass
+          if (methodName === 'toBeInTheDocument' && this.isNot) {
+            // this is actually passing but since it is isNot it has to return false
+            return { pass: false };
+          }
+          const message = [
+            this.utils.matcherHint(
+              `${this.isNot ? '.not' : ''}.${methodName}`,
+              'received',
+              '',
+            ),
+            '',
+            `${this.utils.RECEIVED_COLOR(
+              'received',
+            )} value must be an HTMLElement or an SVGElement.`,
+            this.utils.printWithType(
+              'Received',
+              elementHandle,
+              this.utils.printReceived,
+            ),
+          ].join('\n');
+          const error = new Error(message);
+
+          // Manipulate the stack trace and remove this function
+          // That way Jest will show a code frame from the user's code, not ours
+          // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
+          Error.captureStackTrace?.(error, matcher);
+          throw error;
+        }
         for (const arg of matcherArgs) {
           if (
             typeof arg === 'object' &&
