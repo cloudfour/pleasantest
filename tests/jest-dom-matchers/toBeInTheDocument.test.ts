@@ -24,5 +24,17 @@ test(
 
             [31melement could not be found in the document[39m"
           `);
+    const notInDoc = await screen.queryByText('not in the document');
+    expect(notInDoc).toBeNull();
+    // special case: expect(null).not.toBeInTheDocument() should pass
+    // even though notInDoc is null and not an ElementHandle
+    expect(notInDoc).not.toBeInTheDocument();
+    await expect(expect(notInDoc).toBeInTheDocument()).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "[2mexpect([22m[31mreceived[39m[2m).toBeInTheDocument()[22m
+
+            [31mreceived[39m value must be an HTMLElement or an SVGElement.
+            Received has value: [31mnull[39m"
+          `);
   }),
 );
