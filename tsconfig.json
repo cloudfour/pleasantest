@@ -16,7 +16,15 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["jest"],
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "examples/**/*.ts", "types.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "examples/**/*.ts",
+    "examples/**/*.tsx",
+    "types.d.ts"
+  ]
 }

@@ -1,7 +1,8 @@
 import type puppeteer from 'puppeteer';
 import type * as vite from 'vite';
 import * as path from 'path';
-import { getQueriesForElement } from './pptr-testing-library';
+import { promises as fs } from 'fs';
+import { BoundQueries, getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -13,15 +14,46 @@ import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
 
-let serverPromise: Promise<vite.ViteDevServer>;
+export interface TestMuleUtils {
+  /**
+   * Execute a JS code string in the browser.
+   * The code string inherits the syntax abilities of the file it is in,
+   * i.e. if your test file is a .tsx file, then the code string can include JSX and TS
+   * The code string can use (static or dynamic) ES6 imports to import other modules,
+   * including TS/JSX modules, and it supports resolving from node_modules,
+   * and relative paths from the test file.
+   * The code string supports top-level await to wait for a Promise to resolve
+   */
+  runJS(code: string): Promise<void>;
 
-type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+  /** Set the contents of a new style tag */
+  injectCSS(css: string): Promise<void>;
+
+  /** Set the contents of document.body */
+  injectHTML(html: string): Promise<void>;
+
+  /** Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file */
+  loadCSS(cssPath: string): Promise<void>;
+  /** Load a JS (or TS, JSX) file. Pass a path that will be resolved from your test file */
+  loadJS(jsPath: string): Promise<void>;
+}
+
+export interface TestContext {
+  /** DOM Testing Library queries that are bound to the document */
+  screen: BoundQueries;
+  utils: TestMuleUtils;
+  /** Returns DOM Testing Library queries that only search within a single element */
+  within(element: puppeteer.ElementHandle | null): BoundQueries;
+  page: puppeteer.Page;
+  /** Stops the test and leaves the browser open for debugging */
+  debug(): void;
+}
+
+let serverPromise: Promise<vite.ViteDevServer>;
 
 interface WithBrowserBase {
   (
-    testFn: (
-      ctx: Awaited<ReturnType<typeof createTab>>,
-    ) => void | Promise<void>,
+    testFn: (ctx: TestContext) => void | Promise<void>,
     opts?: { headless?: boolean },
   ): () => Promise<void>;
 }
@@ -131,7 +163,7 @@ const createTab = async ({
 }: {
   testPath: string;
   headless: boolean;
-}) => {
+}): Promise<TestContext> => {
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
@@ -157,19 +189,92 @@ const createTab = async ({
     }
   });
 
-  await serverPromise;
+  const server = await serverPromise;
 
   await page.goto(`http://localhost:${port}`);
 
-  const runJS = async (code: string) => {
+  const runJS: TestMuleUtils['runJS'] = async (code) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
-    await page.evaluateHandle(`import(${JSON.stringify(url)})`);
+    const evalResult = await page.evaluateHandle(
+      `import(${JSON.stringify(url)})
+          .then(m => {})
+          .catch(e =>
+            e instanceof Error
+              ? { message: e.message, stack: e.stack }
+              : e)`,
+    );
+    const res = (await evalResult.jsonValue()) as
+      | undefined
+      | { message: string; stack: string };
+    if (res === undefined) return;
+    if (typeof res !== 'object') throw res;
+    const { message, stack } = res;
+    const parsedStack = parseStackTrace(stack);
+    const modifiedStack = parsedStack.map(async (stackItem) => {
+      if (!stackItem.fileName) return stackItem.raw;
+      let fileName = stackItem.fileName;
+      let line = stackItem.line;
+      let column = stackItem.column;
+      if (!fileName.startsWith(`http://localhost:${port}`))
+        return stackItem.raw;
+      const url = new URL(fileName);
+      const localFileName = path.join(process.cwd(), url.pathname);
+      const transformResult = await server.transformRequest(
+        url.pathname + url.search,
+      );
+      const map = typeof transformResult === 'object' && transformResult?.map;
+      if (!map) return stackItem.raw;
+
+      const { SourceMapConsumer } = await import('source-map');
+      const consumer = await new SourceMapConsumer(map as any);
+      const sourceLocation = consumer.originalPositionFor({ line, column });
+      consumer.destroy();
+      if (sourceLocation.line === null || sourceLocation.column === null)
+        return stackItem.raw;
+
+      const inlineCode = url.searchParams.get('inline-code');
+      if (inlineCode) {
+        const fileSrc = await fs.readFile(localFileName, 'utf8');
+        const inlineStartIdx = fileSrc.indexOf(inlineCode);
+        if (inlineStartIdx === -1) return stackItem.raw;
+        const linesTillInlineCode = (
+          fileSrc.slice(0, inlineStartIdx).match(/\n/g) || []
+        ).length;
+        column = sourceLocation.column + 1;
+        line = sourceLocation.line + linesTillInlineCode;
+      } else {
+        column = sourceLocation.column + 1;
+        line = sourceLocation.line;
+      }
+
+      fileName = localFileName;
+      return '    at ' + fileName + ':' + line + ':' + column;
+    });
+    const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
+    const specializedErrors = {
+      EvalError,
+      RangeError,
+      ReferenceError,
+      SyntaxError,
+      TypeError,
+      URIError,
+    } as any;
+    const ErrorConstructor = specializedErrors[errorName] || Error;
+    const error = new ErrorConstructor(message);
+
+    error.stack =
+      errorName +
+      ': ' +
+      message +
+      '\n' +
+      (await Promise.all(modifiedStack)).join('\n');
+    throw error;
   };
 
-  const debug = () => {
+  const debug: TestContext['debug'] = () => {
     if (headless) {
       throw removeFuncFromStackTrace(
         new Error('debug() can only be used in headed mode.'),
@@ -179,15 +284,13 @@ const createTab = async ({
     throw removeFuncFromStackTrace(new Error('[debug mode]'), debug);
   };
 
-  /** Set the contents of document.body */
-  const injectHTML = async (html: string) => {
+  const injectHTML: TestMuleUtils['injectHTML'] = async (html) => {
     await page.evaluate((html) => {
       document.body.innerHTML = html;
     }, html);
   };
 
-  /** Set the contents of a new style tag */
-  const injectCSS = async (css: string) => {
+  const injectCSS: TestMuleUtils['injectCSS'] = async (css) => {
     await page.evaluate((css) => {
       const styleTag = document.createElement('style');
       styleTag.innerHTML = css;
@@ -195,9 +298,10 @@ const createTab = async ({
     }, css);
   };
 
-  /** Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file */
-  const loadCSS = async (cssPath: string) => {
-    const fullPath = path.join(path.dirname(testPath), cssPath);
+  const loadCSS: TestMuleUtils['loadCSS'] = async (cssPath) => {
+    const fullPath = cssPath.startsWith('.')
+      ? path.join(path.dirname(testPath), cssPath)
+      : cssPath;
     await page.evaluateHandle(
       `import(${JSON.stringify(
         `http://localhost:${port}/${fullPath}?import`,
@@ -205,8 +309,7 @@ const createTab = async ({
     );
   };
 
-  /** Load a JS (or TS, JSX) file. Pass a path that will be resolved from your test file */
-  const loadJS = async (jsPath: string) => {
+  const loadJS: TestMuleUtils['loadJS'] = async (jsPath) => {
     const fullPath = jsPath.startsWith('.')
       ? path.join(path.dirname(testPath), jsPath)
       : jsPath;
@@ -215,13 +318,20 @@ const createTab = async ({
     );
   };
 
-  const utils = { runJS, injectCSS, injectHTML, loadCSS, loadJS };
+  const utils: TestMuleUtils = {
+    runJS,
+    injectCSS,
+    injectHTML,
+    loadCSS,
+    loadJS,
+  };
 
   const screen = getQueriesForElement(page);
 
-  /** Returns DOM Testing Library queries that only search within a single element */
   // the | null is so you can pass directly the result of page.$() which returns null if not found
-  const within = (element: puppeteer.ElementHandle | null) => {
+  const within: TestContext['within'] = (
+    element: puppeteer.ElementHandle | null,
+  ) => {
     const type =
       element === null
         ? 'null'
