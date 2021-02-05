@@ -3,12 +3,18 @@ module.exports = (api) => {
 
   const isRollup = api.caller((c) => c && c.name === '@rollup/plugin-babel');
 
+  if (isTest)
+    return {
+      plugins: ['@babel/transform-modules-commonjs'],
+      presets: ['@babel/preset-typescript'],
+    };
+
   return {
     presets: [
       [
         '@babel/preset-env',
         {
-          targets: { node: isTest ? 'current' : '12' },
+          targets: { node: 'current' },
           loose: true,
         },
       ],

@@ -1,0 +1,24 @@
+<nav class="menu">
+  <h1 class="company-name">
+    <a href="/">{{ companyName }}</a>
+  </h1>
+
+  <ul>
+    {% for menuSection in menuSections %}
+      <li class="menu-link">
+        <a href="{{ menuSection.link }}">{{ menuSection.name }}</a>
+
+        <div class="menu-section-content" hidden>
+          <h2>
+            <a href="{{ menuSection.link }}">{{ menuSection.name }}</a>
+          </h2>
+          <p>{{ menuSection.description }}</p>
+        </div>
+      </li>
+    {% endfor %}
+
+    <li class="menu-link">
+      <a href="/login">Log In</a>
+    </li>
+  </ul>
+</nav>

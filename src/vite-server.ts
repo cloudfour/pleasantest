@@ -50,8 +50,8 @@ export const createServer = async () => {
 
   const indexHTMLPlugin = (): vite.Plugin => ({
     name: 'test-mule-index-html',
-    configureServer({ app }) {
-      app.use(async (req, res, next) => {
+    configureServer({ middlewares }) {
+      middlewares.use(async (req, res, next) => {
         if (req.url !== '/') return next();
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
@@ -98,12 +98,7 @@ export const createServer = async () => {
   });
 
   const server = await vite.createServer({
-    optimizeDeps: {
-      auto: false,
-      // not sure why this has to be excluded, since auto: false should disable entirely
-      // Without this, intermittently, vite tries to bundle pptr and fails
-      exclude: ['puppeteer'],
-    },
+    optimizeDeps: { entries: [] },
     server: { port, cors: true, hmr: false },
     plugins: [
       indexHTMLPlugin(),

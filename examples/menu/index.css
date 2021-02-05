@@ -1,0 +1,88 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --menu-height: 80px;
+
+  --off-white: #f6f5f5;
+  --light-blue: #d3e0ea;
+  --med-blue: #1687a7;
+  --dark-blue: #276678;
+}
+
+body {
+  background: var(--off-white);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--med-blue);
+}
+
+.company-name a {
+  text-decoration: none;
+  color: white;
+}
+
+.menu {
+  background: var(--dark-blue);
+  color: white;
+  height: var(--menu-height);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-gap: 20px;
+  padding: 20px;
+  align-items: center;
+}
+
+.menu ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: inherit;
+}
+
+.menu-link > :is(a, button) {
+  color: var(--light-blue);
+  font-weight: 500;
+  font-size: 16px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  background: transparent;
+  border: none;
+}
+
+.menu-link > :is(a, button):is(:hover, :focus) {
+  color: white;
+  cursor: pointer;
+}
+
+.menu-section-content:not([hidden]) {
+  display: grid;
+  grid-gap: 10px;
+}
+
+.menu-section-content {
+  position: absolute;
+  top: var(--menu-height);
+  left: 0;
+  right: 0;
+  background: #d3e0ea;
+  color: black;
+  padding: 15px;
+}
+
+.menu-section-content a {
+}
