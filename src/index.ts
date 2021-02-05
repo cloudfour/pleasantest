@@ -13,6 +13,9 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
+import { testMuleUser, TestMuleUser } from './user';
+import { assertElementHandle, removeFuncFromStackTrace } from './utils';
+export type { TestMuleUser };
 
 export interface TestMuleUtils {
   /**
@@ -47,6 +50,7 @@ export interface TestContext {
   page: puppeteer.Page;
   /** Stops the test and leaves the browser open for debugging */
   debug(): void;
+  user: TestMuleUser;
 }
 
 let serverPromise: Promise<vite.ViteDevServer>;
@@ -332,51 +336,11 @@ const createTab = async ({
   const within: TestContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
-    const type =
-      element === null
-        ? 'null'
-        : // @ts-expect-error this is doing manual type checking
-        typeof element === 'object' && Promise.resolve(element) === element // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
-        ? 'Promise'
-        : typeof element;
-    if (type === 'Promise') {
-      throw removeFuncFromStackTrace(
-        new Error(
-          `Must pass elementhandle to within(el), received ${type}. Did you forget await?`,
-        ),
-        within,
-      );
-    }
-    if (type !== 'object' || element === null || !element.asElement) {
-      throw removeFuncFromStackTrace(
-        new Error(`Must pass elementhandle to within(el), received ${type}`),
-        within,
-      );
-    }
-    // returns null if it is a JSHandle that does not point to an element
-    const el = element.asElement();
-    if (!el) {
-      throw new Error(
-        'Must pass elementhandle to within(el), received a JSHandle that did not point to an element',
-      );
-    }
+    assertElementHandle(element, within, 'within(el)', 'el');
     return getQueriesForElement(page, element);
   };
 
-  return { screen, debug, utils, page, within };
-};
-
-/**
- * Manipulate the stack trace and remove fn from it
- * That way jest will show a code frame from the user's code, not ours
- * https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
- */
-const removeFuncFromStackTrace = (
-  error: Error,
-  fn: (...params: any[]) => any,
-) => {
-  Error.captureStackTrace?.(error, fn);
-  return error;
+  return { screen, debug, utils, page, within, user: testMuleUser() };
 };
 
 afterAll(async () => {
