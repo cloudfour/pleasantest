@@ -11,6 +11,10 @@
   --dark-blue: #276678;
 }
 
+svg {
+  fill: currentColor;
+}
+
 body {
   background: var(--off-white);
   margin: 0;
@@ -41,7 +45,7 @@ a {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-gap: 20px;
-  padding: 20px;
+  padding: 0 20px;
   align-items: center;
 }
 
@@ -52,6 +56,38 @@ a {
   display: grid;
   grid-auto-flow: column;
   grid-gap: inherit;
+}
+
+.mobile-show-menu {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  padding: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .menu ul {
+    position: absolute;
+    top: var(--menu-height);
+    height: var(--menu-height);
+    background: inherit;
+    border-top: 1px solid white;
+    left: 0px;
+    right: 0px;
+    padding: 20px;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .menu ul:not(.expanded) {
+    display: none;
+  }
+
+  .mobile-show-menu {
+    display: block;
+  }
 }
 
 .menu-link > :is(a, button) {
@@ -82,7 +118,4 @@ a {
   background: #d3e0ea;
   color: black;
   padding: 15px;
-}
-
-.menu-section-content a {
 }

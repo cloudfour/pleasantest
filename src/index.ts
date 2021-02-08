@@ -1,4 +1,4 @@
-import type puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer';
 import type * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
@@ -55,18 +55,35 @@ export interface TestContext {
 
 let serverPromise: Promise<vite.ViteDevServer>;
 
-interface WithBrowserBase {
-  (
-    testFn: (ctx: TestContext) => void | Promise<void>,
-    opts?: { headless?: boolean },
-  ): () => Promise<void>;
+export interface WithBrowserOpts {
+  headless?: boolean;
+  device?: puppeteer.devices.Device;
 }
 
-interface WithBrowser extends WithBrowserBase {
-  headed: WithBrowserBase;
+interface TestFn {
+  (ctx: TestContext): void | Promise<void>;
 }
 
-export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
+interface WithBrowserFn {
+  (testFn: TestFn): () => Promise<void>;
+}
+
+interface WithBrowser extends WithBrowserFn {
+  headed: WithBrowserFn;
+  configure(opts: WithBrowserOpts): WithBrowserFn;
+}
+
+// withBrowser(() => {})
+// withBrowser.headed(() => {})
+// withBrowser.configure({ device: ... })(() => {})
+
+export const withBrowser: WithBrowser = (testFn) => withBrowserFn(testFn, {});
+
+withBrowser.headed = (testFn) => withBrowserFn(testFn, { headless: false });
+
+withBrowser.configure = (options) => (testFn) => withBrowserFn(testFn, options);
+
+const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
@@ -88,7 +105,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   const testPath = testFile ? path.relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const ctx = await createTab({ testPath, headless });
+    const ctx = await createTab({ testPath, options });
     await Promise.resolve(testFn(ctx)).catch(async (error) => {
       const messageForBrowser: undefined | unknown[] =
         // this is how we attach the elements to the error from testing-library
@@ -101,7 +118,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
       // (which it does if there are elementHandles)
       if (error.matcherResult) delete error.matcherResult.messageForBrowser;
       if (error.messageForBrowser) delete error.messageForBrowser;
-      if (headless) throw error;
+      if (options.headless) throw error;
       let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
       const testName = getTestName();
       if (testName) {
@@ -124,7 +141,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
       await ctx.page.evaluate((...colorErr) => {
         console.log(...colorErr);
       }, ...(ansiColorsLog(...failureMessage) as any));
-      if (headless) await ctx.page.close();
+      if (options.headless) await ctx.page.close();
       ctx.page.browser().disconnect();
       throw error;
     });
@@ -158,20 +175,37 @@ const indent = (input: string, indentFirstLine = true) =>
     })
     .join('\n');
 
-withBrowser.headed = (fn, opts) =>
-  withBrowser(fn, { ...opts, headless: false });
-
 const createTab = async ({
   testPath,
-  headless,
+  options: { headless = true, device },
 }: {
   testPath: string;
-  headless: boolean;
+  options: WithBrowserOpts;
 }): Promise<TestContext> => {
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   const page = await browserContext.newPage();
+
+  if (device) {
+    if (!headless) {
+      const session = await page.target().createCDPSession();
+      const { windowId } = (await session.send(
+        'Browser.getWindowForTarget',
+      )) as any;
+      await session.send('Browser.setWindowBounds', {
+        windowId,
+        bounds: {
+          // allow space for devtools
+          // start-disowned-browser.ts sets the devtools preferences with default width
+          width: device.viewport.width + 450,
+          height: device.viewport.height + 79, // allow space for toolbar
+        },
+      });
+      await session.detach();
+    }
+    await page.emulate(device);
+  }
 
   page.on('console', (message) => {
     const text = message.text();
@@ -349,3 +383,5 @@ afterAll(async () => {
     await server.close();
   }
 });
+
+export const devices = puppeteer.devices;

@@ -23,7 +23,7 @@ export const testMuleUser = () => {
           Math.floor(clickElRect.x + clickElRect.width / 2),
           Math.floor(clickElRect.y + clickElRect.height / 2),
         );
-        if (coveringEl === clickEl) return;
+        if (coveringEl === clickEl || clickEl.contains(coveringEl)) return;
         // TODO: try to find other points on the element that are clickable,
         // in case the covering element does not cover the whole click-target element
         const messagePart1 =

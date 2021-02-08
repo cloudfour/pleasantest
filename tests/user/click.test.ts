@@ -96,3 +96,22 @@ test(
     await expect(second).toBeInTheDocument();
   }),
 );
+
+test(
+  'user.click works fine for child elements that "cover" the parent',
+  withBrowser(async ({ utils, user, screen }) => {
+    // The text in the button "covers" the button,
+    // but the button should still be clickable
+    await utils.injectHTML(`
+      <button>
+        <div>this is some text in the button</div>
+      </button>
+    `);
+
+    const button = await screen.getByRole('button', {
+      name: /this is some text/i,
+    });
+
+    await user.click(button);
+  }),
+);

@@ -1,17 +1,25 @@
 interface Menu {
   hide(): void;
   show(): void;
-  element: HTMLElement;
+  element: Element;
 }
 
 export const init = () => {
-  const menuItems = [...document.querySelectorAll<HTMLElement>('.menu-link')];
+  const menu = document.querySelector('.menu')!;
+  const navList = document.querySelector('.menu ul') as HTMLElement;
+  const menuItems = document.querySelectorAll('.menu-link');
+  const mobileToggleNavButton = document.querySelector(
+    '.mobile-show-menu',
+  ) as HTMLElement;
+
+  /** Mobile nav: whether the menu is shown */
+  let shown = false;
 
   let activeMenu: Menu | null = null;
 
   // Upgrade the <a> elements to <button> elements which will open the menu
 
-  const menus = menuItems.map((menuItem) => {
+  menuItems.forEach((menuItem) => {
     const link = menuItem.querySelector(':scope > a');
     const menuContent = menuItem.querySelector(
       ':scope > .menu-section-content',
@@ -46,14 +54,35 @@ export const init = () => {
   });
 
   document.addEventListener('click', (e) => {
-    // click outside menu
+    // Click outside menu closes menu
+    // Closes both the outer menu (on small screens) and the sub-menus
     if (
-      activeMenu &&
+      (activeMenu || shown) &&
       e.target instanceof Node &&
-      !activeMenu.element.contains(e.target)
+      !menu.contains(e.target)
     ) {
       e.preventDefault();
-      activeMenu.hide();
+      hideMenu();
+      activeMenu?.hide();
     }
+  });
+
+  const toggleText = mobileToggleNavButton.querySelector('title')!;
+  const hideMenu = () => {
+    navList.classList.remove('expanded');
+    toggleText.textContent = 'Show menu';
+    mobileToggleNavButton.style.transform = '';
+    shown = false;
+  };
+  const showMenu = () => {
+    navList.classList.add('expanded');
+    toggleText.textContent = 'Hide menu';
+    mobileToggleNavButton.style.transform = `rotate(180deg)`;
+    shown = true;
+  };
+
+  mobileToggleNavButton?.addEventListener('click', () => {
+    if (shown) hideMenu();
+    else showMenu();
   });
 };
