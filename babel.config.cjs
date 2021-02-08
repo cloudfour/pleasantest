@@ -14,7 +14,7 @@ module.exports = (api) => {
       [
         '@babel/preset-env',
         {
-          targets: { node: 'current' },
+          targets: { node: 12 },
           loose: true,
         },
       ],
