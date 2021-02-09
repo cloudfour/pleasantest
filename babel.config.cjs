@@ -5,7 +5,12 @@ module.exports = (api) => {
 
   if (isTest)
     return {
-      plugins: ['@babel/transform-modules-commonjs'],
+      plugins: [
+        '@babel/transform-modules-commonjs',
+        // TODO: remove when node 12 is dropped
+        '@babel/plugin-proposal-optional-chaining',
+      ],
+      // not using preset-env here because it slows down the tests a lot
       presets: ['@babel/preset-typescript'],
     };
 
