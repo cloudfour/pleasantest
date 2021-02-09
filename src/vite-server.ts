@@ -34,6 +34,7 @@ export const createServer = async () => {
         const parsedParams = new URLSearchParams(qs);
         const inlineCode = parsedParams.get('inline-code');
         if (!inlineCode) return null;
+        // Puts it into a hash so esbuild doesn't trip over it
         return `.${idWithoutQuery}#inline-code=${encodeURIComponent(
           inlineCode,
         )}`;
