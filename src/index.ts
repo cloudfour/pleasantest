@@ -45,15 +45,14 @@ export interface TestContext {
   /** Returns DOM Testing Library queries that only search within a single element */
   within(element: puppeteer.ElementHandle | null): BoundQueries;
   page: puppeteer.Page;
-  /** Stops the test and leaves the browser open for debugging */
-  debug(): void;
 }
 
 let serverPromise: Promise<vite.ViteDevServer>;
 
 interface WithBrowserBase {
   (
-    testFn: (ctx: TestContext) => void | Promise<void>,
+    /** The test function to execute. Return false to leave the browser open even if the test passes */
+    testFn: (ctx: TestContext) => boolean | void | Promise<boolean | void>,
     opts?: { headless?: boolean },
   ): () => Promise<void>;
 }
@@ -85,47 +84,58 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
 
   return async () => {
     const ctx = await createTab({ testPath, headless });
-    await Promise.resolve(testFn(ctx)).catch(async (error) => {
-      const messageForBrowser: undefined | unknown[] =
-        // this is how we attach the elements to the error from testing-library
-        error?.messageForBrowser ||
-        // this is how we attach the elements to the error from jest-dom
-        error?.matcherResult?.messageForBrowser;
-      // Jest hangs when sending the error
-      // from the worker process up to the main process
-      // if the error has circular references in it
-      // (which it does if there are elementHandles)
-      if (error.matcherResult) delete error.matcherResult.messageForBrowser;
-      if (error.messageForBrowser) delete error.messageForBrowser;
-      if (headless) throw error;
-      let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
-      const testName = getTestName();
-      if (testName) {
-        failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
-      }
-      if (messageForBrowser) {
-        failureMessage.push(
-          ...messageForBrowser.map((segment: unknown, i) => {
-            if (typeof segment !== 'string') return segment;
-            if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
-              return indent(segment, false);
-            }
-            return indent(segment);
-          }),
-        );
-      } else {
-        failureMessage.push(indent(error.message));
-      }
+    let leaveBrowserOpen = false;
+    await Promise.resolve(testFn(ctx))
+      .then((result) => {
+        // if user does "return false" leave browser open
+        if (result === false && !headless) leaveBrowserOpen = true;
+      })
+      .catch(async (error) => {
+        const messageForBrowser: undefined | unknown[] =
+          // this is how we attach the elements to the error from testing-library
+          error?.messageForBrowser ||
+          // this is how we attach the elements to the error from jest-dom
+          error?.matcherResult?.messageForBrowser;
+        // Jest hangs when sending the error
+        // from the worker process up to the main process
+        // if the error has circular references in it
+        // (which it does if there are elementHandles)
+        if (error.matcherResult) delete error.matcherResult.messageForBrowser;
+        delete error.messageForBrowser;
+        if (!headless) {
+          let failureMessage: unknown[] = [
+            bold(white(bgRed(' FAIL '))) + '\n\n',
+          ];
+          const testName = getTestName();
+          if (testName) {
+            failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
+          }
+          if (messageForBrowser) {
+            failureMessage.push(
+              ...messageForBrowser.map((segment: unknown, i) => {
+                if (typeof segment !== 'string') return segment;
+                if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
+                  return indent(segment, false);
+                }
+                return indent(segment);
+              }),
+            );
+          } else {
+            failureMessage.push(indent(error.message));
+          }
 
-      await ctx.page.evaluate((...colorErr) => {
-        console.log(...colorErr);
-      }, ...(ansiColorsLog(...failureMessage) as any));
-      if (headless) await ctx.page.close();
-      ctx.page.browser().disconnect();
-      throw error;
-    });
-    // close since test passed
-    await ctx.page.close();
+          await ctx.page.evaluate((...colorErr) => {
+            console.log(...colorErr);
+          }, ...(ansiColorsLog(...failureMessage) as any));
+        }
+        if (headless) await ctx.page.close();
+        ctx.page.browser().disconnect();
+        throw error;
+      });
+    if (!leaveBrowserOpen) {
+      // close since test passed
+      await ctx.page.close();
+    }
     ctx.page.browser().disconnect();
   };
 };
@@ -274,16 +284,6 @@ const createTab = async ({
     throw error;
   };
 
-  const debug: TestContext['debug'] = () => {
-    if (headless) {
-      throw removeFuncFromStackTrace(
-        new Error('debug() can only be used in headed mode.'),
-        debug,
-      );
-    }
-    throw removeFuncFromStackTrace(new Error('[debug mode]'), debug);
-  };
-
   const injectHTML: TestMuleUtils['injectHTML'] = async (html) => {
     await page.evaluate((html) => {
       document.body.innerHTML = html;
@@ -363,7 +363,7 @@ const createTab = async ({
     return getQueriesForElement(page, element);
   };
 
-  return { screen, debug, utils, page, within };
+  return { screen, utils, page, within };
 };
 
 /**
