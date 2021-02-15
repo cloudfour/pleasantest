@@ -146,10 +146,6 @@ test(
       )
       .catch((error) => error);
 
-    expect(error).toMatchInlineSnapshot(
-      `[Error: you have rendered the death component]`,
-    );
-
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
       "Error: you have rendered the death component
       -------------------------------------------------------
