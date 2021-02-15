@@ -1,4 +1,4 @@
-import type puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer';
 import type * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
@@ -13,6 +13,9 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
+import { testMuleUser, TestMuleUser } from './user';
+import { assertElementHandle } from './utils';
+export type { TestMuleUser };
 
 export interface TestMuleUtils {
   /**
@@ -45,23 +48,40 @@ export interface TestContext {
   /** Returns DOM Testing Library queries that only search within a single element */
   within(element: puppeteer.ElementHandle | null): BoundQueries;
   page: puppeteer.Page;
+  user: TestMuleUser;
 }
 
 let serverPromise: Promise<vite.ViteDevServer>;
 
-interface WithBrowserBase {
-  (
-    /** The test function to execute. Return false to leave the browser open even if the test passes */
-    testFn: (ctx: TestContext) => boolean | void | Promise<boolean | void>,
-    opts?: { headless?: boolean },
-  ): () => Promise<void>;
+export interface WithBrowserOpts {
+  headless?: boolean;
+  device?: puppeteer.devices.Device;
 }
 
-interface WithBrowser extends WithBrowserBase {
-  headed: WithBrowserBase;
+interface TestFn {
+  (ctx: TestContext): boolean | void | Promise<boolean | void>;
 }
 
-export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
+interface WithBrowserFn {
+  (testFn: TestFn): () => Promise<void>;
+}
+
+interface WithBrowser extends WithBrowserFn {
+  headed: WithBrowserFn;
+  configure(opts: WithBrowserOpts): WithBrowserFn;
+}
+
+// withBrowser(() => {})
+// withBrowser.headed(() => {})
+// withBrowser.configure({ device: ... })(() => {})
+
+export const withBrowser: WithBrowser = (testFn) => withBrowserFn(testFn, {});
+
+withBrowser.headed = (testFn) => withBrowserFn(testFn, { headless: false });
+
+withBrowser.configure = (options) => (testFn) => withBrowserFn(testFn, options);
+
+const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
@@ -83,12 +103,12 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
   const testPath = testFile ? path.relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const ctx = await createTab({ testPath, headless });
+    const ctx = await createTab({ testPath, options });
     let leaveBrowserOpen = false;
     await Promise.resolve(testFn(ctx))
       .then((result) => {
         // if user does "return false" leave browser open
-        if (result === false && !headless) leaveBrowserOpen = true;
+        if (result === false && !options.headless) leaveBrowserOpen = true;
       })
       .catch(async (error) => {
         const messageForBrowser: undefined | unknown[] =
@@ -102,7 +122,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
         // (which it does if there are elementHandles)
         if (error.matcherResult) delete error.matcherResult.messageForBrowser;
         delete error.messageForBrowser;
-        if (!headless) {
+        if (!options.headless) {
           let failureMessage: unknown[] = [
             bold(white(bgRed(' FAIL '))) + '\n\n',
           ];
@@ -128,7 +148,7 @@ export const withBrowser: WithBrowser = (testFn, { headless = true } = {}) => {
             console.log(...colorErr);
           }, ...(ansiColorsLog(...failureMessage) as any));
         }
-        if (headless) await ctx.page.close();
+        if (options.headless) await ctx.page.close();
         ctx.page.browser().disconnect();
         throw error;
       });
@@ -162,20 +182,37 @@ const indent = (input: string, indentFirstLine = true) =>
     })
     .join('\n');
 
-withBrowser.headed = (fn, opts) =>
-  withBrowser(fn, { ...opts, headless: false });
-
 const createTab = async ({
   testPath,
-  headless,
+  options: { headless = true, device },
 }: {
   testPath: string;
-  headless: boolean;
+  options: WithBrowserOpts;
 }): Promise<TestContext> => {
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   const page = await browserContext.newPage();
+
+  if (device) {
+    if (!headless) {
+      const session = await page.target().createCDPSession();
+      const { windowId } = (await session.send(
+        'Browser.getWindowForTarget',
+      )) as any;
+      await session.send('Browser.setWindowBounds', {
+        windowId,
+        bounds: {
+          // allow space for devtools
+          // start-disowned-browser.ts sets the devtools preferences with default width
+          width: device.viewport.width + 450,
+          height: device.viewport.height + 79, // allow space for toolbar
+        },
+      });
+      await session.detach();
+    }
+    await page.emulate(device);
+  }
 
   page.on('console', (message) => {
     const text = message.text();
@@ -330,51 +367,11 @@ const createTab = async ({
   const within: TestContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
-    const type =
-      element === null
-        ? 'null'
-        : // @ts-expect-error this is doing manual type checking
-        typeof element === 'object' && Promise.resolve(element) === element // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
-        ? 'Promise'
-        : typeof element;
-    if (type === 'Promise') {
-      throw removeFuncFromStackTrace(
-        new Error(
-          `Must pass elementhandle to within(el), received ${type}. Did you forget await?`,
-        ),
-        within,
-      );
-    }
-    if (type !== 'object' || element === null || !element.asElement) {
-      throw removeFuncFromStackTrace(
-        new Error(`Must pass elementhandle to within(el), received ${type}`),
-        within,
-      );
-    }
-    // returns null if it is a JSHandle that does not point to an element
-    const el = element.asElement();
-    if (!el) {
-      throw new Error(
-        'Must pass elementhandle to within(el), received a JSHandle that did not point to an element',
-      );
-    }
+    assertElementHandle(element, within, 'within(el)', 'el');
     return getQueriesForElement(page, element);
   };
 
-  return { screen, utils, page, within };
-};
-
-/**
- * Manipulate the stack trace and remove fn from it
- * That way jest will show a code frame from the user's code, not ours
- * https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
- */
-const removeFuncFromStackTrace = (
-  error: Error,
-  fn: (...params: any[]) => any,
-) => {
-  Error.captureStackTrace?.(error, fn);
-  return error;
+  return { screen, utils, page, within, user: testMuleUser() };
 };
 
 afterAll(async () => {
@@ -383,3 +380,5 @@ afterAll(async () => {
     await server.close();
   }
 });
+
+export const devices = puppeteer.devices;

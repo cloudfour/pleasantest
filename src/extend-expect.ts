@@ -115,7 +115,7 @@ Received ${this.utils.printReceived(arg)}`,
           ...matcherArgs.map((arg) => (isJSHandle(arg) ? arg : serialize(arg))),
         );
 
-        // Whether the matcher threw (different from the matcher failing)
+        // Whether the matcher threw (this is different from the matcher failing)
         // The matcher failing means that it returned a result for Jest to throw
         // But a matcher throwing means that the input was invalid or something
         const thrownError = await result.evaluate((result) => result.thrown);
