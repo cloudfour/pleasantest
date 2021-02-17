@@ -21,11 +21,11 @@ export interface TestMuleUtils {
   /**
    * Execute a JS code string in the browser.
    * The code string inherits the syntax abilities of the file it is in,
-   * i.e. if your test file is a .tsx file, then the code string can include JSX and TS
+   * i.e. if your test file is a .tsx file, then the code string can include JSX and TS.
    * The code string can use (static or dynamic) ES6 imports to import other modules,
    * including TS/JSX modules, and it supports resolving from node_modules,
    * and relative paths from the test file.
-   * The code string supports top-level await to wait for a Promise to resolve
+   * The code string supports top-level await to wait for a Promise to resolve.
    */
   runJS(code: string): Promise<void>;
 
@@ -35,13 +35,13 @@ export interface TestMuleUtils {
   /** Set the contents of document.body */
   injectHTML(html: string): Promise<void>;
 
-  /** Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file */
+  /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. */
   loadCSS(cssPath: string): Promise<void>;
-  /** Load a JS (or TS, JSX) file. Pass a path that will be resolved from your test file */
+  /** Load a JS (or TS, JSX) file into the browser. Pass a path that will be resolved from your test file. */
   loadJS(jsPath: string): Promise<void>;
 }
 
-export interface TestContext {
+export interface TestMuleContext {
   /** DOM Testing Library queries that are bound to the document */
   screen: BoundQueries;
   utils: TestMuleUtils;
@@ -59,7 +59,7 @@ export interface WithBrowserOpts {
 }
 
 interface TestFn {
-  (ctx: TestContext): boolean | void | Promise<boolean | void>;
+  (ctx: TestMuleContext): boolean | void | Promise<boolean | void>;
 }
 
 interface WithBrowserFn {
@@ -188,7 +188,7 @@ const createTab = async ({
 }: {
   testPath: string;
   options: WithBrowserOpts;
-}): Promise<TestContext> => {
+}): Promise<TestMuleContext> => {
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
@@ -364,7 +364,7 @@ const createTab = async ({
   const screen = getQueriesForElement(page);
 
   // the | null is so you can pass directly the result of page.$() which returns null if not found
-  const within: TestContext['within'] = (
+  const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
     assertElementHandle(element, within, 'within(el)', 'el');
