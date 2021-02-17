@@ -2,6 +2,8 @@
 
 Test Mule is a library that allows you to use real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106). It is built on [Puppeteer](https://github.com/puppeteer/puppeteer), [Testing Library](https://testing-library.com), and [jest-dom](https://github.com/testing-library/jest-dom).
 
+This exists because there is not an existing solution for browser testing that uses a real browser, supports Testing Library out of the box, and integrates with Jest and non-browser tests.
+
 ## Usage
 
 ### Getting Started
@@ -113,7 +115,7 @@ test(
     // ... Whatever code you had before to load your content
 
     // You can import CSS (or Sass, Less, etc.) files
-    await utils.loadCSS('./something.sass');
+    await utils.loadCSS('./something.css');
   }),
 );
 ```
@@ -132,7 +134,7 @@ import { withBrowser } from 'test-mule';
 test(
   'selecting elements example',
   withBrowser(async ({ utils, screen }) => {
-    // ... Whatever code you had before to load your content and styles
+    await utils.injectHTML('<button>Log In</button>');
 
     const loginButton = await screen.getByText(/log in/i);
   }),
@@ -151,7 +153,7 @@ import { withBrowser } from 'test-mule';
 test(
   'making assertions example',
   withBrowser(async ({ utils, screen }) => {
-    // ... Whatever code you had before to load your content and styles
+    await utils.injectHTML('<button>Log In</button>');
 
     const loginButton = await screen.getByText(/log in/i);
 
@@ -171,7 +173,7 @@ If the User API is missing a method that you need, you can instead use [methods 
 test(
   'performing actions example',
   withBrowser(async ({ utils, screen, user }) => {
-    // ... Whatever code you had before to load your content and styles
+    await utils.injectHTML('<button>Log In</button>');
 
     const loginButton = await screen.getByText(/log in/i);
 
@@ -181,8 +183,8 @@ test(
     // Click using the User API
     await user.click(loginButton);
 
-    // User API does not support `.type` yet, so we perform the action directly on the ElementHandle instead:
-    await searchBox.type('Some text to type');
+    // User API does not support `.hover` yet, so we perform the action directly on the ElementHandle instead:
+    await loginButton.hover();
   }),
 );
 ```
@@ -349,7 +351,7 @@ import { withBrowser } from 'test-mule';
 test(
   'loadCSS example',
   withBrowser(async ({ utils }) => {
-    await utils.loadCSS('./button.sass');
+    await utils.loadCSS('./button.css');
   }),
 );
 ```
