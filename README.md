@@ -6,7 +6,7 @@ Test Mule integrates with Jest tests. If you haven't set up Jest yet, [here is J
 
 ## Usage
 
-The `withBrowser` wrapper tells Test Mule to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
+The [`withBrowser` wrapper](#withbrowser) tells Test Mule to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -61,7 +61,7 @@ test(
 
 #### `TestMuleContext.within(element: ElementHandle)`
 
-The `TestMuleContext` object exposes the `within` property, which is similar to [`screen`](#screen), but instead of the queries being pre-bound to the document, they are pre-bound to whichever element you pass to it. [Here's Testing Library's docs on `within`](https://testing-library.com/docs/dom-testing-library/api-within). Like `screen`, it returns an object with all of the pre-bound Testing Library queries.
+The `TestMuleContext` object exposes the `within` property, which is similar to [`screen`](#testmulecontextscreen), but instead of the queries being pre-bound to the document, they are pre-bound to whichever element you pass to it. [Here's Testing Library's docs on `within`](https://testing-library.com/docs/dom-testing-library/api-within). Like `screen`, it returns an object with all of the pre-bound Testing Library queries.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -147,7 +147,7 @@ test(
   'runJS example',
   withBrowser(async ({ utils }) => {
     await utils.runJS(`
-      // `./other-file` is resolved from the test file that called `runJS`
+      // ./other-file is resolved from the test file that called `runJS`
       import { render } from './other-file'
       // top-level await is supported
       await render()
@@ -256,5 +256,5 @@ test(
 
 Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globals to your tests (like `document` and `window`). This is helpful to write tests for browser code, for example using [DOM Testing Library](https://testing-library.com/docs/dom-testing-library/intro/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro), or something similar. However, there are some downsides to this approach because jsdom is not a real browser:
 
-- jsdom does not implement a rendering engine. It does not render visual content. That means that in many cases, your tests do not resemble the way users use your software.
+- jsdom does not implement a rendering engine. It does not render visual content. Because of this, your tests may pass, even when your code is broken, and your tests may fail even when your code is correct.
 - jsdom is [missing many browser API's](https://github.com/jsdom/jsdom#unimplemented-parts-of-the-web-platform). If your code uses API's unsupported by jsdom, you'd have to patch them in. Since Test Mule uses a real browser, any API's that Chrome supports can be used.
