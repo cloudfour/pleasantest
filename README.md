@@ -2,9 +2,11 @@
 
 Test Mule is a library that allows you to use real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106). It is built on [Puppeteer](https://github.com/puppeteer/puppeteer), [Testing Library](https://testing-library.com), and [jest-dom](https://github.com/testing-library/jest-dom).
 
-Test Mule integrates with Jest tests. If you haven't set up Jest yet, [here is Jest's getting started guide](https://jestjs.io/docs/en/getting-started).
-
 ## Usage
+
+### Getting Started
+
+Test Mule integrates with Jest tests. If you haven't set up Jest yet, [here is Jest's getting started guide](https://jestjs.io/docs/en/getting-started).
 
 The [`withBrowser` wrapper](#withbrowser) tells Test Mule to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
 
@@ -15,6 +17,172 @@ test(
   'test name',
   withBrowser(async () => {
     // Your test code here
+  }),
+);
+```
+
+### Loading Content
+
+#### Option 1: Navigating to a real page
+
+You can start a web server for your code (separately from Jest) and navigate to the site. This is similar to how [Cypress](https://www.cypress.io) works.
+
+You can navigate using Puppeteer's `page.goto` method. [The `page` object comes from `TestMuleContext`](#testmulecontextpage). which is a parameter to the `withBrowser` callback:
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'navigating to real site',
+  withBrowser(async ({ page }) => {
+    await page.goto('http://localhost:3000');
+  }),
+);
+```
+
+#### Option 2: Injecting HTML content
+
+If you have the HTML content available as a string, you can use that as well, using [`utils.injectHTML`](#testmuleutilsinjecthtmlhtml-string-promisevoid):
+
+```js
+import { withBrowser } from 'test-mule';
+
+const htmlString = `
+  <h1>This is the HTML content</h1>
+`;
+
+test(
+  'injected html',
+  withBrowser(async ({ utils }) => {
+    await utils.injectHTML(htmlString);
+  }),
+);
+```
+
+You could also load the HTML string from another file, for example if you are using [handlebars](https://handlebarsjs.com):
+
+```js
+import { withBrowser } from 'test-mule';
+import fs from 'fs';
+import Handlebars from 'handlebars';
+
+const template = Handlebars.compile(fs.readFileSync('./content.hbs', 'utf8'));
+const htmlString = template({ dataForTemplate: 'something' });
+
+test(
+  'injected html from external file',
+  withBrowser(async ({ utils }) => {
+    await utils.injectHTML(htmlString);
+  }),
+);
+```
+
+#### Option 3: Rendering using a client-side framework
+
+If your app is client-side rendered, that use case is supported too! You can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to tell Test Mule how to render your app:
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'client side framework rendering',
+  withBrowser(async ({ utils }) => {
+    await utils.runJS(`
+      // ./app could be a `.js`, `.ts`, or `.tsx` file
+      import { App } from './app'
+      import ReactDOM from 'react-dom'
+
+      ReactDOM.render(<App />, document.body)
+    `);
+  }),
+);
+```
+
+### Loading Styles
+
+If you loaded your content by navigating to a real page, you shouldn't have to worry about this; your CSS should already be loaded. Also, if you rendered your content using a client-side framework and you import your CSS (or Sass, Less, etc.) into your JS (i.e. `import './something.css'`), then it should also just work.
+
+Otherwise, you need to manually tell Test Mule to load your CSS, using [`utils.loadCSS`](#testmuleutilsloadcsscsspath-string-promisevoid)
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'loading css with utils.loadCSS',
+  withBrowser(async ({ utils }) => {
+    // ... Whatever code you had before to load your content
+
+    // You can import CSS (or Sass, Less, etc.) files
+    await utils.loadCSS('./something.sass');
+  }),
+);
+```
+
+### Selecting Rendered Elements
+
+You can use [Testing Library queries](https://testing-library.com/docs/queries/about#overview) to find elements on the page. The goal is to select elements in a way similar to how a user would; for example by selecting based on a button's text rather than its class name.
+
+The Testing Library queries are exposed through the [`screen` property](https://github.com/cloudfour/test-mule/blob/readme/README.md#testmulecontextscreen) in the test context parameter.
+
+**You must `await` the result of the query. This is necessary to accomodate for the asynchronous communication with the browser.**
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'selecting elements example',
+  withBrowser(async ({ utils, screen }) => {
+    // ... Whatever code you had before to load your content and styles
+
+    const loginButton = await screen.getByText(/log in/i);
+  }),
+);
+```
+
+### Making Assertions
+
+You can use [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to make assertions against the state of the document.
+
+**You must `await` assertions. This is necessary to accomodate for the asynchronous communication with the browser.**
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'making assertions example',
+  withBrowser(async ({ utils, screen }) => {
+    // ... Whatever code you had before to load your content and styles
+
+    const loginButton = await screen.getByText(/log in/i);
+
+    await expect(loginButton).toBeVisible();
+    await expect(loginButton).not.toBeDisabled();
+  }),
+);
+```
+
+### Performing Actions
+
+You can use the [User API](#user-api-testmuleuser) to perform actions in the browser.
+
+If the User API is missing a method that you need, you can instead use [methods on `ElementHandle`s directly](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-elementhandle)
+
+```js
+test(
+  'performing actions example',
+  withBrowser(async ({ utils, screen, user }) => {
+    // ... Whatever code you had before to load your content and styles
+
+    const loginButton = await screen.getByText(/log in/i);
+
+    await expect(loginButton).toBeVisible();
+    await expect(loginButton).not.toBeDisabled();
+
+    // Click using the User API
+    await user.click(loginButton);
+
+    // User API does not support `.type` yet, so we perform the action directly on the ElementHandle instead:
+    await searchBox.type('Some text to type');
   }),
 );
 ```
@@ -136,7 +304,7 @@ The utilities API provides shortcuts for loading and running code in the browser
 
 #### `TestMuleUtils.runJS(code: string): Promise<void>`
 
-Execute a JS code string in the browser. The code string inherits the syntax abilities of the file it is in, i.e. if your test file is a .tsx file, then the code string can include JSX and TS. The code string can use (static or dynamic) ES6 imports to import other modules, including TS/JSX modules, and it supports resolving from `node_modules`, and relative paths from the test file. The code string supports top-level await to wait for a Promise to resolve. Since the code in the string is only a string, you cannot access variables that are defined in the Node.js scope. It is proably a bad idea to use interpolation in the code string, only static strings should be used, so that the source location detection works when an error is thrown.
+Execute a JS code string in the browser. The code string inherits the syntax abilities of the file it is in, i.e. if your test file is a `.tsx` file, then the code string can include JSX and TS. The code string can use (static or dynamic) ES6 imports to import other modules, including TS/JSX modules, and it supports resolving from `node_modules`, and relative paths from the test file. The code string supports top-level await to wait for a Promise to resolve. Since the code in the string is only a string, you cannot access variables that are defined in the Node.js scope. It is proably a bad idea to use interpolation in the code string, only static strings should be used, so that the source location detection works when an error is thrown.
 
 The code that is allowed in `runJS` is designed to work similarly to the [TC39 Module Blocks Proposal](https://github.com/tc39/proposal-js-module-blocks), and eventually we hope to be able to switch to that official syntax.
 
@@ -224,7 +392,7 @@ test(
 
 ### [`jest-dom`](https://github.com/testing-library/jest-dom) Matchers
 
-Test Mule adds `jest-dom`'s matchers to Jest's `expect` global. They are slightly modified from the original matchers, they are wrapped to execute in the browser, and return a Promise.
+Test Mule adds [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to Jest's `expect` global. They are slightly modified from the original matchers, they are wrapped to execute in the browser, and return a Promise.
 
 **Don't forget to `await` matchers! This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.**
 
