@@ -44,7 +44,7 @@ test(
 
 #### `TestMuleContext.screen`
 
-The `TestMuleContext` object exposes the `screen` property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Test Mule compared to Testing Library: in Test Mule, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-elementhandle)'s from Puppeteer.
+The `TestMuleContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Test Mule compared to Testing Library: in Test Mule, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-elementhandle)'s from Puppeteer.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -69,6 +69,7 @@ import { withBrowser } from 'test-mule';
 test(
   'test name',
   withBrowser(async ({ within, screen }) => {
+    //                 ^^^^^^
     const containerElement = await screen
       .getByText(/hello/i)
       .then((helloElement) => helloElement.parentElement);
@@ -109,7 +110,7 @@ test(
 
 ### User API: `TestMuleUser`
 
-The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `TestMuleContext`](#testmulecontext-user-testmuleuser).
+The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `TestMuleContext`](#testmulecontextuser-testmuleuser).
 
 > **Warning**: The User API is in progress. It should be safe to use the existing methods, but keep in mind that more methods will be added in the future, and more checks will be performed for existing methods as well.
 
@@ -131,7 +132,7 @@ test(
 
 ### Utilities API: `TestMuleUtils`
 
-The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#TestMuleContext-page).
+The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontext-page). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
 
 #### `TestMuleUtils.runJS(code: string): Promise<void>`
 
