@@ -4,6 +4,23 @@ Test Mule is a library that allows you to use real browsers in your Jest tests. 
 
 This exists because there is not an existing solution for browser testing that uses a real browser, supports [Testing Library](https://testing-library.com) out of the box, and integrates with Jest and non-browser tests.
 
+- [Usage](#usage)
+  - [Getting Started](#getting-started)
+  - [Loading Content](#loading-content)
+  - [Loading Styles](#loading-styles)
+  - [Selecting Rendered Elements](#selecting-rendered-elements)
+  - [Making Assertions](#making-assertions)
+  - [Performing Actions](#performing-actions)
+- [Full Example](#full-example)
+- [API](#api)
+  - [`withBrowser`](#withbrowser)
+  - [`TestMuleContext`](#testmulecontext-object-passed-into-test-function-wrapped-by-withbrowser)
+  - [User API: `TestMuleUser`](#user-api-testmuleuser)
+  - [Utilities API: `TestMuleUtils`](#utilities-api-testmuleutils)
+  - [`jest-dom` Matchers](#jest-dom-matchers)
+- [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
+- [Limitations](#limitations)
+
 ## Usage
 
 ### Getting Started
@@ -413,7 +430,7 @@ test(
 );
 ```
 
-## Comparisons with other testing tools/Why does this exist?
+## Comparisons with other testing tools
 
 ### [Cypress](https://www.cypress.io/)
 
