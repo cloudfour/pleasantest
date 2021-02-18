@@ -2,7 +2,7 @@
 
 Test Mule is a library that allows you to use real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106). It is built on [Puppeteer](https://github.com/puppeteer/puppeteer), [Testing Library](https://testing-library.com), and [jest-dom](https://github.com/testing-library/jest-dom).
 
-This exists because there is not an existing solution for browser testing that uses a real browser, supports Testing Library out of the box, and integrates with Jest and non-browser tests.
+This exists because there is not an existing solution for browser testing that uses a real browser, supports [Testing Library](https://testing-library.com) out of the box, and integrates with Jest and non-browser tests.
 
 ## Usage
 
@@ -415,16 +415,56 @@ test(
 
 ## Comparisons with other testing tools/Why does this exist?
 
-### Cypress
+### [Cypress](https://www.cypress.io/)
+
+Cypress is an browser testing tool that specializes in end-to-end tests.
 
 - Cypress is not integrated with Jest.
+- Cypress is not well-suited for testing individual components of an application, it specializes in end-to-end tests. Note: this will change as [Component Testing](https://docs.cypress.io/guides/component-testing/introduction.html#Getting-Started) support stabilizes.
 - Cypress uses different assertion syntax from Jest. If you are using Cypress for browser tests, and Jest for non-browser tests, it can be difficult to remember both the Chai assertions and the Jest assertions.
 - Cypress's chaining syntax increases the barrier to entry over using native JS promises with `async`/`await`. In many ways Cypress implements a "Cypress way" of doing things that is different from the intuitive way for people who are familiar with JavaScript.
-- Cypress does not have first-class support for Testing Library (though there is a [plugin](https://github.com/testing-library/cypress-testing-library)).
+- Cypress does not have first-class support for [Testing Library](https://testing-library.com) (though there is a [plugin](https://github.com/testing-library/cypress-testing-library)).
+- Cypress [does not support having multi-tab tests](https://docs.cypress.io/guides/references/trade-offs.html#Multiple-tabs).
 
-### jsdom in Jest
+### [jsdom](https://github.com/jsdom/jsdom) + Jest
 
 Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globals to your tests (like `document` and `window`). This is helpful to write tests for browser code, for example using [DOM Testing Library](https://testing-library.com/docs/dom-testing-library/intro/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro), or something similar. However, there are some downsides to this approach because jsdom is not a real browser:
 
 - jsdom does not implement a rendering engine. It does not render visual content. Because of this, your tests may pass, even when your code is broken, and your tests may fail even when your code is correct.
 - jsdom is [missing many browser API's](https://github.com/jsdom/jsdom#unimplemented-parts-of-the-web-platform). If your code uses API's unsupported by jsdom, you'd have to patch them in. Since Test Mule uses a real browser, any API's that Chrome supports can be used.
+- jsdom does not support [navigation](https://github.com/jsdom/jsdom#unimplemented-parts-of-the-web-platform) or multi-tab tests.
+- It is harder to debug since you do not have access to browser devtools to inspect the DOM.
+
+### [pptr-testing-library](https://github.com/testing-library/pptr-testing-library) + Jest
+
+`pptr-testing-library` makes versions of the [Testing Library](https://testing-library.com) queries that work with Puppeteer's [ElementHandle](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle)s, similarly to how Test Mule does.
+
+- It does not make the [jest-dom](https://github.com/testing-library/jest-dom) assertions work with Puppeteer ElementHandles.
+- It does not manage the browser for you. You must manually set up and tear down the browser.
+- It does not produce error messages as nicely as Test Mule does.
+- In general, it is a good solution to a small piece of the puzzle, but it is not a complete solution like Test Mule is.
+
+### [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer) + Jest
+
+`jest-puppeteer` is a [Jest environment](https://jestjs.io/docs/en/configuration#testenvironment-string) that manages launching browsers via puppeteer in Jest tests.
+
+- It does not support [Testing Library](https://testing-library.com) or [jest-dom](https://github.com/testing-library/jest-dom) (but Testing Library support could be added via [pptr-testing-library](https://github.com/testing-library/pptr-testing-library)).
+- Lacking maintenance
+
+### [Playwright test runner](https://github.com/microsoft/playwright-test)
+
+`@playwright/test` is a test runner from the Playwright team that is designed to run browser tests.
+
+- It does not support [Testing Library](https://testing-library.com) or [jest-dom](https://github.com/testing-library/jest-dom).
+- Since it is its own test runner, it does not integrate with Jest, so you still have to run your non-browser tests separately. Fortunately, the test syntax is almost the same as Jest, and it uses Jest's assertion library.
+- There is [no watch mode yet](https://github.com/microsoft/playwright-test/issues/33).
+
+## Limitations
+
+### Temporary Limitations
+
+- **Browser Support**: We only support Chromium for now. We have also tested connecting with Edge and that test was successful, but we do not yet expose an API for that. We will also support Firefox in the near future, since Puppeteer supports it. We have prototyped with integrating Firefox with Test Mule and we have seen that it works. We will not support Safari/Webkit [until Puppeteer supports it](https://github.com/puppeteer/puppeteer/issues/5984). We will not support Internet Explorer.
+
+### Permanent Limitations
+
+- **No Synchronous DOM Access**: Because Jest runs your tests, Test Mule will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Test Mule tests.
