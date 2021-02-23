@@ -64,24 +64,22 @@ interface TestFn {
 
 interface WithBrowserFn {
   (testFn: TestFn): () => Promise<void>;
+  (options: WithBrowserOpts, testFn: TestFn): () => Promise<void>;
 }
 
 interface WithBrowser extends WithBrowserFn {
   headed: WithBrowserFn;
-  configure(opts: WithBrowserOpts): WithBrowserFn;
 }
 
+// Call signatures of withBrowser:
 // withBrowser(() => {})
+// withBrowser({ ... }, () => {})
 // withBrowser.headed(() => {})
-// withBrowser.configure({ device: ... })(() => {})
+// withBrowser.headed({ ... }, () => {})
 
-export const withBrowser: WithBrowser = (testFn) => withBrowserFn(testFn, {});
-
-withBrowser.headed = (testFn) => withBrowserFn(testFn, { headless: false });
-
-withBrowser.configure = (options) => (testFn) => withBrowserFn(testFn, options);
-
-const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
+export const withBrowser: WithBrowser = (...args: any[]) => {
+  const testFn: TestFn = args.length === 1 ? args[0] : args[1];
+  const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
@@ -156,6 +154,12 @@ const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
     if (!leaveBrowserOpen) await ctx.page.close();
     ctx.page.browser().disconnect();
   };
+};
+
+withBrowser.headed = (...args: any[]) => {
+  const testFn: TestFn = args.length === 1 ? args[0] : args[1];
+  const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
+  return withBrowser({ ...options, headless: false }, testFn);
 };
 
 const getTestName = () => {

@@ -130,69 +130,67 @@ test(
 
 test(
   'Renders toggle-able menu on small screens',
-  withBrowser.configure({ device: iPhone })(
-    async ({ screen, utils, user, page }) => {
-      await renderMenu({ utils, data, initJS: false });
+  withBrowser({ device: iPhone }, async ({ screen, utils, user, page }) => {
+    await renderMenu({ utils, data, initJS: false });
 
-      // Menu content should be hidden
-      await expect(await screen.getByText(aboutText)).not.toBeVisible();
+    // Menu content should be hidden
+    await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
-      // Menu buttons should be hidden (into the menu)
-      const abouts = await screen.queryAllByText(/about/i);
-      await Promise.all(abouts.map((about) => expect(about).not.toBeVisible()));
+    // Menu buttons should be hidden (into the menu)
+    const abouts = await screen.queryAllByText(/about/i);
+    await Promise.all(abouts.map((about) => expect(about).not.toBeVisible()));
 
-      const toggleMenuBtn = await screen.getByRole('button', {
-        name: /show menu/i,
-      });
+    const toggleMenuBtn = await screen.getByRole('button', {
+      name: /show menu/i,
+    });
 
-      await utils.runJS(`
-        import { init } from '.'
-        init()
-      `);
+    await utils.runJS(`
+      import { init } from '.'
+      init()
+    `);
 
-      // Open menu
-      await user.click(toggleMenuBtn);
+    // Open menu
+    await user.click(toggleMenuBtn);
 
-      // The sub-menu buttons should be visible
-      const aboutBtn = await screen.getByRole('button', { name: /about/i });
-      await screen.getByRole('button', {
-        name: /products/i,
-      });
+    // The sub-menu buttons should be visible
+    const aboutBtn = await screen.getByRole('button', { name: /about/i });
+    await screen.getByRole('button', {
+      name: /products/i,
+    });
 
-      // Accessible text should have changed in toggle button icon
-      expect(await toggleMenuBtn.evaluate((el) => el.textContent)).toMatch(
-        /hide menu/i,
-      );
+    // Accessible text should have changed in toggle button icon
+    expect(await toggleMenuBtn.evaluate((el) => el.textContent)).toMatch(
+      /hide menu/i,
+    );
 
-      await expect(await screen.getByText(aboutText)).not.toBeVisible();
+    await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
-      // First click: opens about menu
-      await user.click(aboutBtn);
-      await expect(await screen.getByText(aboutText)).toBeVisible();
+    // First click: opens about menu
+    await user.click(aboutBtn);
+    await expect(await screen.getByText(aboutText)).toBeVisible();
 
-      // Second click: closes about menu
-      await user.click(aboutBtn);
-      await expect(await screen.getByText(aboutText)).not.toBeVisible();
+    // Second click: closes about menu
+    await user.click(aboutBtn);
+    await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
-      // Open about menu again
-      await user.click(aboutBtn);
-      await expect(await screen.getByText(aboutText)).toBeVisible();
+    // Open about menu again
+    await user.click(aboutBtn);
+    await expect(await screen.getByText(aboutText)).toBeVisible();
 
-      // Close the _outer_ menu, which should also close the about menu
-      await user.click(toggleMenuBtn);
-      await expect(await screen.getByText(aboutText)).not.toBeVisible();
+    // Close the _outer_ menu, which should also close the about menu
+    await user.click(toggleMenuBtn);
+    await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
-      // Accessible text should have changed in toggle button icon
-      expect(await toggleMenuBtn.evaluate((el) => el.textContent)).toMatch(
-        /show menu/i,
-      );
+    // Accessible text should have changed in toggle button icon
+    expect(await toggleMenuBtn.evaluate((el) => el.textContent)).toMatch(
+      /show menu/i,
+    );
 
-      // Open outer menu again
-      await user.click(toggleMenuBtn);
+    // Open outer menu again
+    await user.click(toggleMenuBtn);
 
-      // Click near the bottom of the screen (outside the menu), and the menu should close
-      await page.mouse.click(page.viewport().width / 2, page.viewport().height);
-      await expect(aboutBtn).not.toBeVisible();
-    },
-  ),
+    // Click near the bottom of the screen (outside the menu), and the menu should close
+    await page.mouse.click(page.viewport().width / 2, page.viewport().height);
+    await expect(aboutBtn).not.toBeVisible();
+  }),
 );

@@ -11,6 +11,7 @@ This exists because there is not an existing solution for browser testing that u
   - [Selecting Rendered Elements](#selecting-rendered-elements)
   - [Making Assertions](#making-assertions)
   - [Performing Actions](#performing-actions)
+  - [Troubleshooting/Debugging a Failing Test](#troubleshooting-debugging-a-failing-test)
 - [Full Example](#full-example)
 - [API](#api)
   - [`withBrowser`](#withbrowser)
@@ -158,6 +159,22 @@ test(
 );
 ```
 
+Sometimes, you may want to traverse the DOM tree to find parent, sibling, or descendant elements. Test Mule communicates asynchronously with the browser, so you do not have synchronous access to the DOM tree. You can use [`ElementHandle.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-elementhandleevaluatepagefunction-args) to run code in the browser using an `ElementHandle` returned from a query:
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'DOM traversal with ElementHandle.evaluate',
+  withBrowser(async ({ utils, screen }) => {
+    const button = await screen.getByText(/search/i);
+    // Because the evaluate callback function runs in the browser,
+    // it does not have access to variables from the scope it is defined in.
+    const container = await button.evaluate((buttonEl) => buttonEl.parentNode);
+  }),
+);
+```
+
 ### Making Assertions
 
 You can use [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to make assertions against the state of the document.
@@ -206,6 +223,37 @@ test(
 );
 ```
 
+### Troubleshooting/Debugging a Failing Test
+
+1. Switch to headed mode to open a visible browser and see what is going on. You can use the DOM inspector, network tab, console, and anything else that might help you figure out what is wrong.
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'test name',
+  withBrowser.headed(async () => {
+    // Your test code here
+  }),
+);
+```
+
+2. Log queried elements in the headed browser.
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'test name',
+  withBrowser.headed(async ({ screen, page }) => {
+    const button = screen.getByText(/login/i);
+    // Maybe the query returned an element that I didn't expect
+    // We can log the element that was returned by the query, in the browser:
+    await button.evaluate((el) => console.log(el));
+  }),
+);
+```
+
 ## Full Example
 
 There is a menu example in the [examples folder](./examples/menu/index.test.ts)
@@ -214,7 +262,7 @@ There is a menu example in the [examples folder](./examples/menu/index.test.ts)
 
 ### `withBrowser`
 
-Use `withBrowser` to wrap any test that needs access to a browser:
+Use `withBrowser` to wrap any test function that needs access to a browser:
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -226,6 +274,49 @@ test(
   }),
 );
 ```
+
+Call Signatures:
+
+- `withBrowser(testFn: (context: TestMuleContext) => Promise<void>)`
+- `withBrowser(opts: WithBrowserOpts, testFn: (context: TestMuleContext) => Promise<void>)`
+- `withBrowser.headed(testFn: (context: TestMuleContext) => Promise<void>)`
+- `withBrowser.headed(opts: WithBrowserOpts, testFn: (context: TestMuleContext) => Promise<void>)`
+
+`WithBrowserOpts`:
+
+- `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
+- `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-pageemulateoptions).
+
+By default, `withBrowser` will launch a headless Chromium browser. You can tell it to instead launch a headed (visible) browser by chaining `.headed`:
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'test name',
+  withBrowser.headed(async () => {
+    // Your test code here
+  }),
+);
+```
+
+The browser will close after the test finishes, if the test passed. You can force the browser to stay open by making the test fail by throwing something.
+
+You can also emulate a device viewport and user agent, by passing the `device` property to the options object in `withBrowser`:
+
+```js
+import { withBrowser, devices } from 'test-mule';
+const iPhone = devices['iPhone 11'];
+
+test(
+  'test name',
+  withBrowser({ device: iPhone }, async () => {
+    // Your test code here
+  }),
+);
+```
+
+The `devices` import from `test-mule` is re-exported from Puppeteer, you can see the full list of available devices [here](https://github.com/puppeteer/puppeteer/blob/v7.1.0/src/common/DeviceDescriptors.ts)
 
 ### `TestMuleContext` Object (passed into test function wrapped by `withBrowser`)
 
@@ -473,7 +564,7 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 `@playwright/test` is a test runner from the Playwright team that is designed to run browser tests.
 
 - It does not support [Testing Library](https://testing-library.com) or [jest-dom](https://github.com/testing-library/jest-dom).
-- Since it is its own test runner, it does not integrate with Jest, so you still have to run your non-browser tests separately. Fortunately, the test syntax is almost the same as Jest, and it uses Jest's assertion library.
+- Since it is its own test runner, it does not integrate with Jest, so you still have to run your non-browser tests separately. Fortunately, the test syntax is almost the same as Jest, and it uses Jest's `expect` as its library.
 - There is [no watch mode yet](https://github.com/microsoft/playwright-test/issues/33).
 
 ## Limitations
@@ -481,6 +572,7 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 ### Temporary Limitations
 
 - **Browser Support**: We only support Chromium for now. We have also tested connecting with Edge and that test was successful, but we do not yet expose an API for that. We will also support Firefox in the near future, since Puppeteer supports it. We have prototyped with integrating Firefox with Test Mule and we have seen that it works. We will not support Safari/Webkit [until Puppeteer supports it](https://github.com/puppeteer/puppeteer/issues/5984). We will not support Internet Explorer.
+- **Visual Regression Testing**: Test Mule does not have an integrated approach for screenshot diffing/visual regression testing. For now, you can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action), which should work fine. Eventually, we may have an integrated approach.
 
 ### Permanent Limitations
 
