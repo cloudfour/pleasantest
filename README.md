@@ -18,7 +18,7 @@ Test Mule is driven by these goals:
   - [Selecting Rendered Elements](#selecting-rendered-elements)
   - [Making Assertions](#making-assertions)
   - [Performing Actions](#performing-actions)
-  - [Troubleshooting/Debugging a Failing Test](#troubleshooting-debugging-a-failing-test)
+  - [Troubleshooting/Debugging a Failing Test](#troubleshootingdebugging-a-failing-test)
 - [Full Example](#full-example)
 - [API](#api)
   - [`withBrowser`](#withbrowser)
@@ -417,7 +417,7 @@ test(
 
 ### Utilities API: `TestMuleUtils`
 
-The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontext-page). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
+The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontextpage). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
 
 #### `TestMuleUtils.runJS(code: string): Promise<void>`
 
