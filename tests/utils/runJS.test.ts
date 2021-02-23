@@ -1,5 +1,5 @@
 import { withBrowser } from 'test-mule';
-import type { TestContext, TestMuleUtils } from 'test-mule';
+import type { TestMuleContext, TestMuleUtils } from 'test-mule';
 import { printErrorFrames } from '../test-utils';
 
 const createHeading = async ({
@@ -7,7 +7,7 @@ const createHeading = async ({
   screen,
 }: {
   utils: TestMuleUtils;
-  screen: TestContext['screen'];
+  screen: TestMuleContext['screen'];
 }) => {
   await utils.injectHTML(`
     <h1>I'm a heading</h1>

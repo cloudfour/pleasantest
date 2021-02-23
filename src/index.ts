@@ -21,11 +21,11 @@ export interface TestMuleUtils {
   /**
    * Execute a JS code string in the browser.
    * The code string inherits the syntax abilities of the file it is in,
-   * i.e. if your test file is a .tsx file, then the code string can include JSX and TS
+   * i.e. if your test file is a .tsx file, then the code string can include JSX and TS.
    * The code string can use (static or dynamic) ES6 imports to import other modules,
    * including TS/JSX modules, and it supports resolving from node_modules,
    * and relative paths from the test file.
-   * The code string supports top-level await to wait for a Promise to resolve
+   * The code string supports top-level await to wait for a Promise to resolve.
    */
   runJS(code: string): Promise<void>;
 
@@ -35,13 +35,13 @@ export interface TestMuleUtils {
   /** Set the contents of document.body */
   injectHTML(html: string): Promise<void>;
 
-  /** Load a CSS (or sass, less, etc.) file. Pass a path that will be resolved from your test file */
+  /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. */
   loadCSS(cssPath: string): Promise<void>;
-  /** Load a JS (or TS, JSX) file. Pass a path that will be resolved from your test file */
+  /** Load a JS (or TS, JSX) file into the browser. Pass a path that will be resolved from your test file. */
   loadJS(jsPath: string): Promise<void>;
 }
 
-export interface TestContext {
+export interface TestMuleContext {
   /** DOM Testing Library queries that are bound to the document */
   screen: BoundQueries;
   utils: TestMuleUtils;
@@ -59,29 +59,27 @@ export interface WithBrowserOpts {
 }
 
 interface TestFn {
-  (ctx: TestContext): boolean | void | Promise<boolean | void>;
+  (ctx: TestMuleContext): boolean | void | Promise<boolean | void>;
 }
 
 interface WithBrowserFn {
   (testFn: TestFn): () => Promise<void>;
+  (options: WithBrowserOpts, testFn: TestFn): () => Promise<void>;
 }
 
 interface WithBrowser extends WithBrowserFn {
   headed: WithBrowserFn;
-  configure(opts: WithBrowserOpts): WithBrowserFn;
 }
 
+// Call signatures of withBrowser:
 // withBrowser(() => {})
+// withBrowser({ ... }, () => {})
 // withBrowser.headed(() => {})
-// withBrowser.configure({ device: ... })(() => {})
+// withBrowser.headed({ ... }, () => {})
 
-export const withBrowser: WithBrowser = (testFn) => withBrowserFn(testFn, {});
-
-withBrowser.headed = (testFn) => withBrowserFn(testFn, { headless: false });
-
-withBrowser.configure = (options) => (testFn) => withBrowserFn(testFn, options);
-
-const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
+export const withBrowser: WithBrowser = (...args: any[]) => {
+  const testFn: TestFn = args.length === 1 ? args[0] : args[1];
+  const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
   const stack = parseStackTrace(new Error().stack as string).map(
@@ -104,58 +102,56 @@ const withBrowserFn = (testFn: TestFn, options: WithBrowserOpts) => {
 
   return async () => {
     const ctx = await createTab({ testPath, options });
-    let leaveBrowserOpen = false;
-    await Promise.resolve(testFn(ctx))
-      .then((result) => {
-        // if user does "return false" leave browser open
-        if (result === false && !options.headless) leaveBrowserOpen = true;
-      })
-      .catch(async (error) => {
-        const messageForBrowser: undefined | unknown[] =
-          // this is how we attach the elements to the error from testing-library
-          error?.messageForBrowser ||
-          // this is how we attach the elements to the error from jest-dom
-          error?.matcherResult?.messageForBrowser;
-        // Jest hangs when sending the error
-        // from the worker process up to the main process
-        // if the error has circular references in it
-        // (which it does if there are elementHandles)
-        if (error.matcherResult) delete error.matcherResult.messageForBrowser;
-        delete error.messageForBrowser;
-        if (!options.headless) {
-          let failureMessage: unknown[] = [
-            bold(white(bgRed(' FAIL '))) + '\n\n',
-          ];
-          const testName = getTestName();
-          if (testName) {
-            failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
-          }
-          if (messageForBrowser) {
-            failureMessage.push(
-              ...messageForBrowser.map((segment: unknown, i) => {
-                if (typeof segment !== 'string') return segment;
-                if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
-                  return indent(segment, false);
-                }
-                return indent(segment);
-              }),
-            );
-          } else {
-            failureMessage.push(indent(error.message));
-          }
-
-          await ctx.page.evaluate((...colorErr) => {
-            console.log(...colorErr);
-          }, ...(ansiColorsLog(...failureMessage) as any));
+    await Promise.resolve(testFn(ctx)).catch(async (error) => {
+      const messageForBrowser: undefined | unknown[] =
+        // this is how we attach the elements to the error from testing-library
+        error?.messageForBrowser ||
+        // this is how we attach the elements to the error from jest-dom
+        error?.matcherResult?.messageForBrowser;
+      // Jest hangs when sending the error
+      // from the worker process up to the main process
+      // if the error has circular references in it
+      // (which it does if there are elementHandles)
+      if (error.matcherResult) delete error.matcherResult.messageForBrowser;
+      delete error.messageForBrowser;
+      if (!options.headless) {
+        let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
+        const testName = getTestName();
+        if (testName) {
+          failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
         }
-        if (options.headless) await ctx.page.close();
-        ctx.page.browser().disconnect();
-        throw error;
-      });
+        if (messageForBrowser) {
+          failureMessage.push(
+            ...messageForBrowser.map((segment: unknown, i) => {
+              if (typeof segment !== 'string') return segment;
+              if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
+                return indent(segment, false);
+              }
+              return indent(segment);
+            }),
+          );
+        } else {
+          failureMessage.push(indent(error.message));
+        }
+
+        await ctx.page.evaluate((...colorErr) => {
+          console.log(...colorErr);
+        }, ...(ansiColorsLog(...failureMessage) as any));
+      }
+      if (options.headless) await ctx.page.close();
+      ctx.page.browser().disconnect();
+      throw error;
+    });
     // close since test passed
-    if (!leaveBrowserOpen) await ctx.page.close();
+    await ctx.page.close();
     ctx.page.browser().disconnect();
   };
+};
+
+withBrowser.headed = (...args: any[]) => {
+  const testFn: TestFn = args.length === 1 ? args[0] : args[1];
+  const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
+  return withBrowser({ ...options, headless: false }, testFn);
 };
 
 const getTestName = () => {
@@ -188,7 +184,7 @@ const createTab = async ({
 }: {
   testPath: string;
   options: WithBrowserOpts;
-}): Promise<TestContext> => {
+}): Promise<TestMuleContext> => {
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
@@ -364,7 +360,7 @@ const createTab = async ({
   const screen = getQueriesForElement(page);
 
   // the | null is so you can pass directly the result of page.$() which returns null if not found
-  const within: TestContext['within'] = (
+  const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
     assertElementHandle(element, within, 'within(el)', 'el');

@@ -26,6 +26,9 @@
     "liquidjs": "^9.22.1",
     "preact": "^10.5.12",
     "prettier": "^2.2.1",
+    "remark-cli": "^9.0.0",
+    "remark-lint-no-dead-urls": "^1.1.0",
+    "remark-validate-links": "^10.0.2",
     "rollup": "^2.38.5",
     "rollup-plugin-prettier": "^2.1.0",
     "rollup-plugin-terser": "^7.0.2",
@@ -56,7 +59,13 @@
     "build:watch": "rollup -c rollup.config.js --watch",
     "type": "tsc",
     "type:watch": "tsc --watch",
-    "lint": "prettier --write .",
-    "check-lint": "prettier --check ."
+    "lint": "prettier --write . && remark . --frail",
+    "check-lint": "prettier --check . && remark . --frail"
+  },
+  "remarkConfig": {
+    "plugins": [
+      "remark-validate-links",
+      "remark-lint-no-dead-urls"
+    ]
   }
 }
