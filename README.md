@@ -571,8 +571,9 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 
 ### Temporary Limitations
 
-- **Browser Support**: We only support Chromium for now. We have also tested connecting with Edge and that test was successful, but we do not yet expose an API for that. We will also support Firefox in the near future, since Puppeteer supports it. We have prototyped with integrating Firefox with Test Mule and we have seen that it works. We will not support Safari/Webkit [until Puppeteer supports it](https://github.com/puppeteer/puppeteer/issues/5984). We will not support Internet Explorer.
-- **Visual Regression Testing**: Test Mule does not have an integrated approach for screenshot diffing/visual regression testing. For now, you can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action), which should work fine. Eventually, we may have an integrated approach.
+- **Browser Support**: We only support Chromium for now. We have also tested connecting with Edge and that test was successful, but we do not yet expose an API for that. We will also support Firefox in the near future, since Puppeteer supports it. We have prototyped with integrating Firefox with Test Mule and we have seen that it works. We will not support Safari/Webkit [until Puppeteer supports it](https://github.com/puppeteer/puppeteer/issues/5984). We will not support Internet Explorer. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/32))
+- **Visual Regression Testing**: Test Mule does not have an integrated approach for screenshot diffing/visual regression testing. For now, you can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action), which should work fine. Eventually, we may have an integrated approach. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/33))
+- **Tied to Jest**: For now, Test Mule is designed to work with Jest, and not other test runners like Mocha or Ava. You could _probably_ make it work by loading Jest's `expect` into the other test runners, but this workflow has not been tested. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/34))
 
 ### Permanent Limitations
 
