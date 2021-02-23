@@ -102,56 +102,48 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
 
   return async () => {
     const ctx = await createTab({ testPath, options });
-    let leaveBrowserOpen = false;
-    await Promise.resolve(testFn(ctx))
-      .then((result) => {
-        // if user does "return false" leave browser open
-        if (result === false && !options.headless) leaveBrowserOpen = true;
-      })
-      .catch(async (error) => {
-        const messageForBrowser: undefined | unknown[] =
-          // this is how we attach the elements to the error from testing-library
-          error?.messageForBrowser ||
-          // this is how we attach the elements to the error from jest-dom
-          error?.matcherResult?.messageForBrowser;
-        // Jest hangs when sending the error
-        // from the worker process up to the main process
-        // if the error has circular references in it
-        // (which it does if there are elementHandles)
-        if (error.matcherResult) delete error.matcherResult.messageForBrowser;
-        delete error.messageForBrowser;
-        if (!options.headless) {
-          let failureMessage: unknown[] = [
-            bold(white(bgRed(' FAIL '))) + '\n\n',
-          ];
-          const testName = getTestName();
-          if (testName) {
-            failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
-          }
-          if (messageForBrowser) {
-            failureMessage.push(
-              ...messageForBrowser.map((segment: unknown, i) => {
-                if (typeof segment !== 'string') return segment;
-                if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
-                  return indent(segment, false);
-                }
-                return indent(segment);
-              }),
-            );
-          } else {
-            failureMessage.push(indent(error.message));
-          }
-
-          await ctx.page.evaluate((...colorErr) => {
-            console.log(...colorErr);
-          }, ...(ansiColorsLog(...failureMessage) as any));
+    await Promise.resolve(testFn(ctx)).catch(async (error) => {
+      const messageForBrowser: undefined | unknown[] =
+        // this is how we attach the elements to the error from testing-library
+        error?.messageForBrowser ||
+        // this is how we attach the elements to the error from jest-dom
+        error?.matcherResult?.messageForBrowser;
+      // Jest hangs when sending the error
+      // from the worker process up to the main process
+      // if the error has circular references in it
+      // (which it does if there are elementHandles)
+      if (error.matcherResult) delete error.matcherResult.messageForBrowser;
+      delete error.messageForBrowser;
+      if (!options.headless) {
+        let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
+        const testName = getTestName();
+        if (testName) {
+          failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
         }
-        if (options.headless) await ctx.page.close();
-        ctx.page.browser().disconnect();
-        throw error;
-      });
+        if (messageForBrowser) {
+          failureMessage.push(
+            ...messageForBrowser.map((segment: unknown, i) => {
+              if (typeof segment !== 'string') return segment;
+              if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
+                return indent(segment, false);
+              }
+              return indent(segment);
+            }),
+          );
+        } else {
+          failureMessage.push(indent(error.message));
+        }
+
+        await ctx.page.evaluate((...colorErr) => {
+          console.log(...colorErr);
+        }, ...(ansiColorsLog(...failureMessage) as any));
+      }
+      if (options.headless) await ctx.page.close();
+      ctx.page.browser().disconnect();
+      throw error;
+    });
     // close since test passed
-    if (!leaveBrowserOpen) await ctx.page.close();
+    await ctx.page.close();
     ctx.page.browser().disconnect();
   };
 };
