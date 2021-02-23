@@ -43,19 +43,23 @@ test(
 
 ### Loading Content
 
-#### Option 1: Navigating to a real page
+#### Option 1: Rendering using a client-side framework
 
-You can start a web server for your code (separately from Jest) and navigate to the site. This is similar to how [Cypress](https://www.cypress.io) works.
-
-You can navigate using Puppeteer's `page.goto` method. [The `page` object comes from `TestMuleContext`](#testmulecontextpage). which is a parameter to the `withBrowser` callback:
+If your app is client-side rendered, that use case is supported too! You can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to tell Test Mule how to render your app:
 
 ```js
 import { withBrowser } from 'test-mule';
 
 test(
-  'navigating to real site',
-  withBrowser(async ({ page }) => {
-    await page.goto('http://localhost:3000');
+  'client side framework rendering',
+  withBrowser(async ({ utils }) => {
+    await utils.runJS(`
+      // ./app could be a .js, .jsx .ts, or .tsx file
+      import { App } from './app'
+      import { render } from 'react-dom'
+
+      render(<App />, document.body)
+    `);
   }),
 );
 ```
@@ -97,23 +101,19 @@ test(
 );
 ```
 
-#### Option 3: Rendering using a client-side framework
+#### Option 3: Navigating to a real page
 
-If your app is client-side rendered, that use case is supported too! You can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to tell Test Mule how to render your app:
+You can start a web server for your code (separately from Jest) and navigate to the site. This is similar to how [Cypress](https://www.cypress.io) works.
+
+You can navigate using Puppeteer's `page.goto` method. [The `page` object comes from `TestMuleContext`](#testmulecontextpage). which is a parameter to the `withBrowser` callback:
 
 ```js
 import { withBrowser } from 'test-mule';
 
 test(
-  'client side framework rendering',
-  withBrowser(async ({ utils }) => {
-    await utils.runJS(`
-      // ./app could be a `.js`, `.ts`, or `.tsx` file
-      import { App } from './app'
-      import ReactDOM from 'react-dom'
-
-      ReactDOM.render(<App />, document.body)
-    `);
+  'navigating to real site',
+  withBrowser(async ({ page }) => {
+    await page.goto('http://localhost:3000');
   }),
 );
 ```
