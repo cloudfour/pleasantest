@@ -9,6 +9,8 @@ Test Mule is driven by these goals:
 - Build on top of existing [Testing Library](https://testing-library.com) tools.
 - Make the testing experience as fast and painless as possible.
 
+---
+
 - [Usage](#usage)
   - [Getting Started](#getting-started)
   - [Loading Content](#loading-content)
