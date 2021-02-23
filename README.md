@@ -149,7 +149,7 @@ test(
 
 You can use [Testing Library queries](https://testing-library.com/docs/queries/about#overview) to find elements on the page. The goal is to select elements in a way similar to how a user would; for example by selecting based on a button's text rather than its class name.
 
-The Testing Library queries are exposed through the [`screen` property](https://github.com/cloudfour/test-mule/blob/readme/README.md#testmulecontextscreen) in the test context parameter.
+The Testing Library queries are exposed through the [`screen` property](#testmulecontextscreen) in the test context parameter.
 
 **You must `await` the result of the query. This is necessary to accomodate for the asynchronous communication with the browser.**
 
