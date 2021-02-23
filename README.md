@@ -1,8 +1,13 @@
 # Test Mule
 
-Test Mule is a library that allows you to use real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106). It is built on [Puppeteer](https://github.com/puppeteer/puppeteer), [Testing Library](https://testing-library.com), and [jest-dom](https://github.com/testing-library/jest-dom).
+Test Mule is a library that allows you test web applications using real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
 
-This exists because there is not an existing solution for browser testing that uses a real browser, supports [Testing Library](https://testing-library.com) out of the box, and integrates with Jest and non-browser tests.
+Test Mule is driven by these goals:
+
+- Use a real browser so that the test environment is much closer to what a real user uses.
+- Integrate with existing tests - browser testing should not be a "separate thing" from other tests.
+- Build on top of existing [Testing Library](https://testing-library.com) tools.
+- Make the testing experience as fast and painless as possible.
 
 - [Usage](#usage)
   - [Getting Started](#getting-started)
