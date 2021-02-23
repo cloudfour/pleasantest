@@ -4,7 +4,7 @@ Test Mule is a library that allows you test web applications using real browsers
 
 Test Mule is driven by these goals:
 
-- Use a real browser so that the test environment is much closer to what a real user uses.
+- Use a real browser so that the test environment is the same as what a real user uses.
 - Integrate with existing tests - browser testing should not be a "separate thing" from other tests.
 - Build on top of existing [Testing Library](https://testing-library.com) tools.
 - Make the testing experience as fast and painless as possible.
