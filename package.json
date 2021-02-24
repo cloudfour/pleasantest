@@ -4,6 +4,9 @@
   "engines": {
     "node": "12 || 14"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@babel/preset-env": "^7.13.5",
