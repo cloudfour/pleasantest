@@ -2,7 +2,7 @@ import * as childProcess from 'child_process';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
-import puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 // @ts-expect-error
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 

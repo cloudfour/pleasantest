@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 import type * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
