@@ -1,6 +1,6 @@
 {
   "name": "test-mule",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "engines": {
     "node": "12 || 14"
   },
@@ -36,6 +36,7 @@
     "remark-lint-no-dead-urls": "^1.1.0",
     "remark-validate-links": "^10.0.2",
     "rollup": "^2.39.1",
+    "rollup-plugin-dts": "^2.0.1",
     "rollup-plugin-prettier": "^2.1.0",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.32.6",
@@ -57,6 +58,7 @@
     "require": "./dist/cjs/index.cjs",
     "import": "./dist/esm/index.mjs"
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "ci": "npm run type && npm run test && npm run lint",
     "test": "jest",

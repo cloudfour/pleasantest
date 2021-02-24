@@ -1,6 +1,7 @@
 import jestDomConfig from './src/jest-dom/rollup.config';
 import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config';
 
+import dts from 'rollup-plugin-dts';
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
@@ -30,7 +31,19 @@ const mainConfig = {
   external: ['puppeteer', 'vite', 'pptr-testing-library', 'source-map'],
 };
 
-export default [mainConfig, jestDomConfig, pptrTestingLibraryConfig];
+/** @type {import('rollup').RollupOptions} */
+const typesConfig = {
+  input: 'src/index.ts',
+  output: [{ file: 'dist/index.d.ts', format: 'es' }],
+  plugins: [dts()],
+};
+
+export default [
+  mainConfig,
+  jestDomConfig,
+  pptrTestingLibraryConfig,
+  typesConfig,
+];
 
 /**
  * Creates sub-bundles when you do `import fileName from "bundle:./path-here"
