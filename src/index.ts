@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
 import { testMuleUser, TestMuleUser } from './user';
-import { assertElementHandle } from './utils';
+import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 export type { TestMuleUser };
 
 export interface TestMuleUtils {
@@ -101,8 +101,17 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const testPath = testFile ? path.relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const ctx = await createTab({ testPath, options });
-    await Promise.resolve(testFn(ctx)).catch(async (error) => {
+    const { state, ...ctx } = await createTab({ testPath, options });
+    const cleanup = async (leaveOpen: boolean) => {
+      state.isTestFinished = true;
+      if (!leaveOpen || options.headless) {
+        await ctx.page.close();
+      }
+      ctx.page.browser().disconnect();
+    };
+    try {
+      await testFn(ctx);
+    } catch (error) {
       const messageForBrowser: undefined | unknown[] =
         // this is how we attach the elements to the error from testing-library
         error?.messageForBrowser ||
@@ -138,13 +147,10 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
           console.log(...colorErr);
         }, ...(ansiColorsLog(...failureMessage) as any));
       }
-      if (options.headless) await ctx.page.close();
-      ctx.page.browser().disconnect();
+      await cleanup(true);
       throw error;
-    });
-    // close since test passed
-    await ctx.page.close();
-    ctx.page.browser().disconnect();
+    }
+    await cleanup(false);
   };
 };
 
@@ -184,7 +190,9 @@ const createTab = async ({
 }: {
   testPath: string;
   options: WithBrowserOpts;
-}): Promise<TestMuleContext> => {
+}): Promise<TestMuleContext & { state: { isTestFinished: boolean } }> => {
+  /** Used to provide helpful warnings if things execute after the test finishes (usually means they forgot to await) */
+  const state = { isTestFinished: false };
   if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
@@ -234,22 +242,38 @@ const createTab = async ({
 
   await page.goto(`http://localhost:${port}`);
 
+  const safeEvaluate = async (
+    caller: (...params: any) => any,
+    ...args: Parameters<typeof page.evaluate>
+  ) => {
+    const forgotAwaitError = removeFuncFromStackTrace(
+      new Error(
+        `Cannot interact with browser using ${caller.name} after test finishes. Did you forget to await?`,
+      ),
+      caller,
+    );
+    return await page.evaluate(...args).catch((error) => {
+      if (state.isTestFinished && /target closed/i.test(error.message)) {
+        throw forgotAwaitError;
+      }
+      throw error;
+    });
+  };
+
   const runJS: TestMuleUtils['runJS'] = async (code) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
-    const evalResult = await page.evaluateHandle(
+    const res = (await safeEvaluate(
+      runJS,
       `import(${JSON.stringify(url)})
-          .then(m => {})
-          .catch(e =>
-            e instanceof Error
-              ? { message: e.message, stack: e.stack }
-              : e)`,
-    );
-    const res = (await evalResult.jsonValue()) as
-      | undefined
-      | { message: string; stack: string };
+        .then(m => {})
+        .catch(e =>
+          e instanceof Error
+            ? { message: e.message, stack: e.stack }
+            : e)`,
+    )) as undefined | { message: string; stack: string };
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
     const { message, stack } = res;
@@ -316,24 +340,33 @@ const createTab = async ({
   };
 
   const injectHTML: TestMuleUtils['injectHTML'] = async (html) => {
-    await page.evaluate((html) => {
-      document.body.innerHTML = html;
-    }, html);
+    await safeEvaluate(
+      injectHTML,
+      (html) => {
+        document.body.innerHTML = html;
+      },
+      html,
+    );
   };
 
   const injectCSS: TestMuleUtils['injectCSS'] = async (css) => {
-    await page.evaluate((css) => {
-      const styleTag = document.createElement('style');
-      styleTag.innerHTML = css;
-      document.head.append(styleTag);
-    }, css);
+    await safeEvaluate(
+      injectCSS,
+      (css) => {
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = css;
+        document.head.append(styleTag);
+      },
+      css,
+    );
   };
 
   const loadCSS: TestMuleUtils['loadCSS'] = async (cssPath) => {
     const fullPath = cssPath.startsWith('.')
       ? path.join(path.dirname(testPath), cssPath)
       : cssPath;
-    await page.evaluateHandle(
+    await safeEvaluate(
+      loadCSS,
       `import(${JSON.stringify(
         `http://localhost:${port}/${fullPath}?import`,
       )})`,
@@ -344,7 +377,8 @@ const createTab = async ({
     const fullPath = jsPath.startsWith('.')
       ? path.join(path.dirname(testPath), jsPath)
       : jsPath;
-    await page.evaluateHandle(
+    await safeEvaluate(
+      loadJS,
       `import(${JSON.stringify(`http://localhost:${port}/${fullPath}`)})`,
     );
   };
@@ -357,17 +391,17 @@ const createTab = async ({
     loadJS,
   };
 
-  const screen = getQueriesForElement(page);
+  const screen = getQueriesForElement(page, state);
 
   // the | null is so you can pass directly the result of page.$() which returns null if not found
   const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
     assertElementHandle(element, within, 'within(el)', 'el');
-    return getQueriesForElement(page, element);
+    return getQueriesForElement(page, state, element);
   };
 
-  return { screen, utils, page, within, user: testMuleUser() };
+  return { screen, utils, page, within, user: testMuleUser(state), state };
 };
 
 afterAll(async () => {

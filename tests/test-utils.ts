@@ -22,10 +22,12 @@ export const printErrorFrames = async (error: Error) => {
         ) {
           return stackFrame.raw;
         }
+        const relativePath = path.relative(process.cwd(), stackFrame.fileName);
+        if (relativePath.startsWith('dist/')) return relativePath;
         const file = await fs.readFile(stackFrame.fileName, 'utf8');
         const line = file.split('\n')[stackFrame.line - 1];
         return (
-          path.relative(process.cwd(), stackFrame.fileName) +
+          relativePath +
           '\n\n' +
           line +
           '\n' +

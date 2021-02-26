@@ -1,6 +1,6 @@
 import { port } from './vite-server';
 import type { queries, BoundFunctions } from '@testing-library/dom';
-import { jsHandleToArray } from './utils';
+import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
 import type { JSHandle } from 'puppeteer';
 
 type ElementToElementHandle<Input> = Input extends Element
@@ -80,6 +80,7 @@ export interface BoundQueries extends BoundFunctions<AsyncDTLQueries> {}
 
 export const getQueriesForElement = (
   page: import('puppeteer').Page,
+  state: { isTestFinished: boolean },
   element?: import('puppeteer').ElementHandle,
 ) => {
   // @ts-expect-error
@@ -96,15 +97,27 @@ export const getQueriesForElement = (
           }
           return value;
         });
-        const result: JSHandle<
-          Element | Element[] | DTLError
-        > = await page.evaluateHandle(
-          // using new Function to avoid babel transpiling the import
-          // @ts-expect-error
-          new Function(
-            'argsString',
-            'element',
-            `return import("http://localhost:${port}/@test-mule/dom-testing-library")
+        const forgotAwait = removeFuncFromStackTrace(
+          new Error(
+            `Cannot execute query ${queryName} after test finishes. Did you forget to await?`,
+          ),
+          query,
+        );
+        /** Handle error case for Target Closed error (forgot to await) */
+        const handleExecutionAfterTestFinished = (error: any) => {
+          if (/target closed/i.test(error.message) && state.isTestFinished) {
+            throw forgotAwait;
+          }
+          throw error;
+        };
+        const result: JSHandle<Element | Element[] | DTLError> = await page
+          .evaluateHandle(
+            // using new Function to avoid babel transpiling the import
+            // @ts-expect-error
+            new Function(
+              'argsString',
+              'element',
+              `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
                   if (value.__serialized === 'RegExp')
@@ -130,10 +143,14 @@ export const getQueriesForElement = (
                   return { failed: true, messageWithElementsRevived, messageWithElementsStringified }
                 }
               })`,
-          ),
-          serializedArgs,
-          element?.asElement() || (await page.evaluateHandle(() => document)),
-        );
+            ),
+            serializedArgs,
+            element?.asElement() ||
+              (await page
+                .evaluateHandle(() => document)
+                .catch(handleExecutionAfterTestFinished)),
+          )
+          .catch(handleExecutionAfterTestFinished);
 
         const failed = await result.evaluate(
           (r) => typeof r === 'object' && r !== null && (r as DTLError).failed,
