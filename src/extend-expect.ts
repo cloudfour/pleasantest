@@ -1,6 +1,6 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
 import { deserialize, serialize } from './serialize';
-import { jsHandleToArray } from './utils';
+import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
 import { port } from './vite-server';
 
 const methods = [
@@ -91,14 +91,30 @@ Received ${this.utils.printReceived(arg)}`,
             throw error;
           }
         }
+
+        const forgotAwait = removeFuncFromStackTrace(
+          new Error(
+            `Cannot execute assertion ${methodName} after test finishes. Did you forget to await?`,
+          ),
+          matcher,
+        );
+        /** Handle error case for Target Closed error (forgot to await) */
+        const handleExecutionAfterTestFinished = (error: any) => {
+          if (/target closed/i.test(error.message)) {
+            throw forgotAwait;
+          }
+          throw error;
+        };
+
         const ctxString = JSON.stringify(this); // contains stuff like isNot and promise
-        const result = await elementHandle.evaluateHandle(
-          // using new Function to avoid babel transpiling the import
-          // @ts-ignore
-          new Function(
-            'element',
-            '...matcherArgs',
-            `return import("http://localhost:${port}/@test-mule/jest-dom")
+        const result = await elementHandle
+          .evaluateHandle(
+            // using new Function to avoid babel transpiling the import
+            // @ts-ignore
+            new Function(
+              'element',
+              '...matcherArgs',
+              `return import("http://localhost:${port}/@test-mule/jest-dom")
               .then(({ jestContext, deserialize, ...jestDom }) => {
                 const context = { ...(${ctxString}), ...jestContext }
                 try {
@@ -110,10 +126,13 @@ Received ${this.utils.printReceived(arg)}`,
                   return { thrown: true, error }
                 }
               })`,
-          ),
-          elementHandle,
-          ...matcherArgs.map((arg) => (isJSHandle(arg) ? arg : serialize(arg))),
-        );
+            ),
+            elementHandle,
+            ...matcherArgs.map((arg) =>
+              isJSHandle(arg) ? arg : serialize(arg),
+            ),
+          )
+          .catch(handleExecutionAfterTestFinished);
 
         // Whether the matcher threw (this is different from the matcher failing)
         // The matcher failing means that it returned a result for Jest to throw
