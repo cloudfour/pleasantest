@@ -2,7 +2,7 @@
 'test-mule': minor
 ---
 
-Provide a helpful message if the user forgets to use `await`,
+Provide a helpful message if the user forgets to use `await`.
 
 For example, if a user forgets to use `await` in the jest-dom assertion:
 
