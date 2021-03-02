@@ -26,8 +26,9 @@ export interface TestMuleUtils {
    * including TS/JSX modules, and it supports resolving from node_modules,
    * and relative paths from the test file.
    * The code string supports top-level await to wait for a Promise to resolve.
+   * You can pass an array of variables to be passed into the browser as the 2nd parameter.
    */
-  runJS(code: string): Promise<void>;
+  runJS(code: string, args?: unknown[]): Promise<void>;
 
   /** Set the contents of a new style tag */
   injectCSS(css: string): Promise<void>;
@@ -260,19 +261,25 @@ const createTab = async ({
     });
   };
 
-  const runJS: TestMuleUtils['runJS'] = async (code) => {
+  const runJS: TestMuleUtils['runJS'] = async (code, args) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
     const res = (await safeEvaluate(
       runJS,
-      `import(${JSON.stringify(url)})
-        .then(m => {})
+      new Function(
+        '...args',
+        `return import(${JSON.stringify(url)})
+        .then(async m => {
+          if (m.default) await m.default(...args)
+        })
         .catch(e =>
           e instanceof Error
             ? { message: e.message, stack: e.stack }
             : e)`,
+      ) as () => any,
+      ...(Array.isArray(args) ? (args as any) : []),
     )) as undefined | { message: string; stack: string };
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
