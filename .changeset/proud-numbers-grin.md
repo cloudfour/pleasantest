@@ -2,7 +2,7 @@
 'test-mule': minor
 ---
 
-Add ability to pass variables to the browser in runJS:
+Now it is possible to pass variables to the browser in runJS:
 
 ```js
 import { withBrowser } from 'test-mule';
