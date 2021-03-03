@@ -39,24 +39,16 @@ test(
 
     await utils.runJS(
       `
-        export default (heading) => {
+        export default (heading, object) => {
           if (heading.outerHTML !== "<h1>I'm a heading</h1>") {
             throw new Error('element was not passed correctly')
           }
-        }
-      `,
-      [heading],
-    );
-
-    await utils.runJS(
-      `
-        export default (object) => {
           if (object.some.serializable.value !== false) {
             throw new Error('object was not passed correctly')
           }
         }
       `,
-      [{ some: { serializable: { value: false } } }],
+      [heading, { some: { serializable: { value: false } } }],
     );
   }),
 );
