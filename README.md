@@ -441,6 +441,27 @@ test(
 );
 ```
 
+To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'runJS example with argument',
+  withBrowser(async ({ utils, screen }) => {
+    // element is an ElementHandle (pointer to an element in the browser)
+    const element = await screen.getByText(/button/i);
+    // we can pass element into runJS and the default exported function can access it as an Element
+    await utils.runJS(
+      `
+        export default (element) => console.log(element);
+      `,
+      [element],
+    );
+  }),
+);
+```
+
 #### `TestMuleUtils.loadJS(jsPath: string): Promise<void>`
 
 Load a JS (or TS, JSX) file into the browser. Pass a path that will be resolved from your test file.

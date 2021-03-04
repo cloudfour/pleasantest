@@ -32,6 +32,27 @@ test(
   }),
 );
 
+test(
+  'allows passing ElementHandles and serializable values into browser',
+  withBrowser(async ({ utils, screen }) => {
+    const heading = await createHeading({ utils, screen });
+
+    await utils.runJS(
+      `
+        export default (heading, object) => {
+          if (heading.outerHTML !== "<h1>I'm a heading</h1>") {
+            throw new Error('element was not passed correctly')
+          }
+          if (object.some.serializable.value !== false) {
+            throw new Error('object was not passed correctly')
+          }
+        }
+      `,
+      [heading, { some: { serializable: { value: false } } }],
+    );
+  }),
+);
+
 describe('Waiting for Promises in executed code', () => {
   it(
     'should not wait for non-exported promises',
