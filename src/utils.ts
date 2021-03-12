@@ -61,7 +61,7 @@ ${varName} must be an ElementHandle\n\n`;
  */
 export const removeFuncFromStackTrace = (
   error: Error,
-  fn: (...params: any[]) => any,
+  fn: (...params: any) => any,
 ) => {
   Error.captureStackTrace?.(error, fn);
   return error;

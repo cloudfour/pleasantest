@@ -71,6 +71,8 @@ export const createServer = async () => {
         currentDir,
         id === '/@test-mule/jest-dom'
           ? '../jest-dom.js'
+          : id === '/@test-mule/user-util'
+          ? '../user-util.js'
           : '../pptr-testing-library-client.js',
       );
     },

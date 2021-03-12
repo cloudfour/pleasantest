@@ -69,11 +69,8 @@ test(
   'user.click throws an error that the element is being covered',
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page);
-
     await expect(user.click(first)).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "user.click(element)
-
-            Could not click element:
+            "Could not click element:
             <div id=\\"first\\">First Box</div>
 
             Element was covered by:

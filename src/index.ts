@@ -408,7 +408,14 @@ const createTab = async ({
     return getQueriesForElement(page, state, element);
   };
 
-  return { screen, utils, page, within, user: testMuleUser(state), state };
+  return {
+    screen,
+    utils,
+    page,
+    within,
+    user: testMuleUser(page, state),
+    state,
+  };
 };
 
 afterAll(async () => {

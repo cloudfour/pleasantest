@@ -415,6 +415,12 @@ test(
 );
 ```
 
+#### `TestMuleUser.type(TODOOO): Promise<void>`
+
+TODOOOOOO
+
+{selectall} is only supported for `input` and `textarea` elements, not elements that use `contenteditable`.
+
 ### Utilities API: `TestMuleUtils`
 
 The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontextpage). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
