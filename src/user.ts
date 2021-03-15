@@ -12,7 +12,7 @@ export interface TestMuleUser {
   type(
     element: ElementHandle | null,
     text: string,
-    options?: { delay?: number },
+    options?: { delay?: number; force?: boolean },
   ): Promise<void>;
 
   isAttached(element: ElementHandle | null): Promise<boolean>;
@@ -79,7 +79,7 @@ ${coveringEl}`;
     // - The names of the commands in curly brackets are mirroring the user-event command names
     //   *NOT* the Cypress names.
     //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
-    async type(el, text, { delay = 10 } = {}) {
+    async type(el, text, { delay = 10, force = false } = {}) {
       assertElementHandle(el, user.type);
 
       const forgotAwaitError = removeFuncFromStackTrace(
@@ -108,18 +108,19 @@ ${coveringEl}`;
       }
       await el
         .evaluateHandle(
-          runWithUtils((utils, el) => {
+          runWithUtils((utils, el, force: boolean) => {
             try {
-              // TODO before PR: Add force option
               utils.assertAttached(el);
-              utils.assertVisible(el);
+              if (!force) {
+                utils.assertVisible(el);
+              }
             } catch (e) {
               return e;
             }
 
             if (document.activeElement === el) {
               // No need to focus it, it is already focused
-              // We won't move the cursor to the end either because that could be unintuitive
+              // We won't move the cursor to the end either because that could be unexpected
             } else if (
               el instanceof HTMLInputElement ||
               el instanceof HTMLTextAreaElement
@@ -136,15 +137,16 @@ ${coveringEl}`;
               range.setStart(el.firstChild!, end);
               range.setEnd(el.firstChild!, end);
               // Move cursor to the end
-              const sel = el.ownerDocument.getSelection();
-              sel!.removeAllRanges();
-              sel!.addRange(range);
+              const sel = el.ownerDocument.getSelection()!;
+              sel.removeAllRanges();
+              sel.addRange(range);
             } else {
               return utils.error`Cannot type in element that is not typeable:
 ${el}
 Element must be an <input> or <textarea> or an element with the contenteditable attribute.`;
             }
           }),
+          force,
         )
         .then(throwBrowserError(user.type))
         .catch(handleForgotAwait);

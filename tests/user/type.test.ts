@@ -172,16 +172,15 @@ describe('actionability checks', () => {
     withBrowser(async ({ screen, user, utils }) => {
       await utils.injectHTML('<input />');
       const input = await screen.getByRole('textbox');
-      await utils.runJS(
-        `
-        export default (input) => {
-          input.remove()
-        }
-      `,
-        [input],
-      );
-
+      await input.evaluate((input) => input.remove());
       await expect(user.type(input, 'hello')).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot perform action on element that is not attached to the DOM:
+              <input />"
+            `);
+      // Puppeteer's .type silently fails/refuses to type in an unattached element
+      // So our .type won't type in an unattached element even with { force: true }
+      await expect(user.type(input, 'hello', { force: true })).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot perform action on element that is not attached to the DOM:
               <input />"
@@ -198,6 +197,14 @@ describe('actionability checks', () => {
               "Cannot perform action on element that is not visible (it is near zero opacity):
               <input style=\\"opacity: 0\\" />"
             `);
+    }),
+  );
+  test(
+    '{ force: true } overrides visibility check',
+    withBrowser(async ({ user, utils, screen }) => {
+      await utils.injectHTML(`<input style="opacity: 0" />`);
+      const input = await screen.getByRole('textbox');
+      await user.type(input, 'some text', { force: true });
     }),
   );
   test(
