@@ -191,20 +191,15 @@ describe('actionability checks', () => {
     'refuses to type in element that is not visible',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<input style="opacity: 0" />`);
-      const input = await screen.getByRole('textbox');
+      const input: InputHandle = await screen.getByRole('textbox');
       await expect(user.type(input, 'some text')).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot perform action on element that is not visible (it is near zero opacity):
               <input style=\\"opacity: 0\\" />"
             `);
-    }),
-  );
-  test(
-    '{ force: true } overrides visibility check',
-    withBrowser(async ({ user, utils, screen }) => {
-      await utils.injectHTML(`<input style="opacity: 0" />`);
-      const input = await screen.getByRole('textbox');
+      // with { force: true } it should skip the visibility check
       await user.type(input, 'some text', { force: true });
+      expect(await input.evaluate((input) => input.value)).toEqual('some text');
     }),
   );
   test(

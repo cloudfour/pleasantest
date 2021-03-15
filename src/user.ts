@@ -8,7 +8,10 @@ import { port } from './vite-server';
 
 export interface TestMuleUser {
   /** Clicks an element, if the element is visible and not covered by another element */
-  click(element: ElementHandle | null): Promise<void>;
+  click(
+    element: ElementHandle | null,
+    options?: { force?: boolean },
+  ): Promise<void>;
   type(
     element: ElementHandle | null,
     text: string,
@@ -27,7 +30,7 @@ export const testMuleUser = (
   state: { isTestFinished: boolean },
 ) => {
   const user: TestMuleUser = {
-    async click(el) {
+    async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
 
       const forgotAwaitError = removeFuncFromStackTrace(
@@ -43,9 +46,10 @@ export const testMuleUser = (
 
       await el
         .evaluateHandle(
-          runWithUtils((utils, clickEl) => {
+          runWithUtils((utils, clickEl, force: boolean) => {
             try {
               utils.assertAttached(clickEl);
+              if (!force) utils.assertVisible(clickEl);
             } catch (e) {
               return e;
             }
@@ -65,6 +69,7 @@ ${clickEl}
 Element was covered by:
 ${coveringEl}`;
           }),
+          force,
         )
         .then(throwBrowserError(user.click))
         .catch(handleForgotAwait);
@@ -111,9 +116,7 @@ ${coveringEl}`;
           runWithUtils((utils, el, force: boolean) => {
             try {
               utils.assertAttached(el);
-              if (!force) {
-                utils.assertVisible(el);
-              }
+              if (!force) utils.assertVisible(el);
             } catch (e) {
               return e;
             }
