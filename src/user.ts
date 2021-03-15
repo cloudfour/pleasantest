@@ -14,7 +14,13 @@ export interface TestMuleUser {
     text: string,
     options?: { delay?: number },
   ): Promise<void>;
+
+  isAttached(element: ElementHandle | null): Promise<boolean>;
+  isVisible(element: ElementHandle | null): Promise<boolean>;
 }
+
+const forgotAwaitMsg =
+  'Cannot interact with browser after test finishes. Did you forget to await?';
 
 export const testMuleUser = (
   page: Page,
@@ -22,25 +28,27 @@ export const testMuleUser = (
 ) => {
   const user: TestMuleUser = {
     async click(el) {
-      assertElementHandle(el, user.click, 'user.click(element)', 'element');
+      assertElementHandle(el, user.click);
 
       const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(
-          `Cannot interact with browser using user.click after test finishes. Did you forget to await?`,
-        ),
+        new Error(forgotAwaitMsg),
         user.click,
       );
 
       const handleForgotAwait = (error: Error) => {
-        if (state.isTestFinished && /target closed/i.test(error.message)) {
-          throw forgotAwaitError;
-        }
-        throw error;
+        throw state.isTestFinished && /target closed/i.test(error.message)
+          ? forgotAwaitError
+          : error;
       };
 
       await el
         .evaluateHandle(
           runWithUtils((utils, clickEl) => {
+            try {
+              utils.assertAttached(clickEl);
+            } catch (e) {
+              return e;
+            }
             const clickElRect = clickEl.getBoundingClientRect();
 
             // See if there is an element covering the center of the click target element
@@ -72,19 +80,16 @@ ${coveringEl}`;
     //   *NOT* the Cypress names.
     //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
     async type(el, text, { delay = 10 } = {}) {
-      assertElementHandle(el, user.type, 'user.type(element, text)', 'element');
+      assertElementHandle(el, user.type);
 
       const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(
-          `Cannot interact with browser using user.click after test finishes. Did you forget to await?`,
-        ),
+        new Error(forgotAwaitMsg),
         user.type,
       );
       const handleForgotAwait = (error: Error) => {
-        if (state.isTestFinished && /target closed/i.test(error.message)) {
-          throw forgotAwaitError;
-        }
-        throw error;
+        throw state.isTestFinished && /target closed/i.test(error.message)
+          ? forgotAwaitError
+          : error;
       };
 
       // Splits input into chunks
@@ -105,6 +110,7 @@ ${coveringEl}`;
         .evaluateHandle(
           runWithUtils((utils, el) => {
             try {
+              // TODO before PR: Add force option
               utils.assertAttached(el);
             } catch (e) {
               return e;
@@ -142,7 +148,6 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
         .then(throwBrowserError(user.type))
         .catch(handleForgotAwait);
 
-      // TODO before PR: catch if forgot await
       for (const chunk of chunks) {
         const key = typeCommandsMap[chunk];
         if (key) {
@@ -168,6 +173,58 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
         }
       }
     },
+
+    async isAttached(el) {
+      assertElementHandle(el, user.isAttached);
+
+      const forgotAwaitError = removeFuncFromStackTrace(
+        new Error(forgotAwaitMsg),
+        user.isAttached,
+      );
+
+      return await el
+        .evaluate(
+          runWithUtils((utils, clickEl) => {
+            try {
+              utils.assertAttached(clickEl);
+            } catch (e) {
+              return false;
+            }
+            return true;
+          }),
+        )
+        .catch((error: Error) => {
+          throw state.isTestFinished && /target closed/i.test(error.message)
+            ? forgotAwaitError
+            : error;
+        });
+    },
+
+    async isVisible(el) {
+      assertElementHandle(el, user.isVisible);
+
+      const forgotAwaitError = removeFuncFromStackTrace(
+        new Error(forgotAwaitMsg),
+        user.isVisible,
+      );
+
+      return await el
+        .evaluate(
+          runWithUtils((utils, clickEl) => {
+            try {
+              utils.assertVisible(clickEl);
+            } catch (e) {
+              return false;
+            }
+            return true;
+          }),
+        )
+        .catch((error: Error) => {
+          throw state.isTestFinished && /target closed/i.test(error.message)
+            ? forgotAwaitError
+            : error;
+        });
+    },
   };
   return user;
 };
@@ -186,9 +243,9 @@ const typeCommandsMap: Record<string, string> = {
   '{del}': 'Delete',
 };
 
-const runWithUtils = <Args extends any[]>(
-  fn: (userUtil: typeof import('./user-util'), ...args: Args) => unknown,
-): ((...args: Args) => Promise<void>) => {
+const runWithUtils = <Args extends any[], Return extends unknown>(
+  fn: (userUtil: typeof import('./user-util'), ...args: Args) => Return,
+): ((...args: Args) => Promise<Return>) => {
   return new Function(
     '...args',
     `return import("http://localhost:${port}/@test-mule/user-util")
@@ -206,6 +263,7 @@ const runWithUtils = <Args extends any[]>(
           .join('')
         return { error: { msgWithLiveEls, msgWithStringEls } }
       }
+      return result
     })`,
   ) as any;
 };

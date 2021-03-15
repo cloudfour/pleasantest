@@ -404,7 +404,7 @@ const createTab = async ({
   const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
-    assertElementHandle(element, within, 'within(el)', 'el');
+    assertElementHandle(element, within);
     return getQueriesForElement(page, state, element);
   };
 

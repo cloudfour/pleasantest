@@ -83,7 +83,7 @@ test('forgot await in user.click', (done) => {
     const button = await screen.getByText('Hi');
     user.click(button).catch(async (error) => {
       expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-        "Error: Cannot interact with browser using user.click after test finishes. Did you forget to await?
+        "Error: Cannot interact with browser after test finishes. Did you forget to await?
         -------------------------------------------------------
         tests/forgot-await.test.ts
 
@@ -103,11 +103,31 @@ test('forgot await in user.type', (done) => {
     const input = await screen.getByRole('textbox');
     user.type(input, 'hello').catch(async (error) => {
       expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-        "Error: Cannot interact with browser using user.click after test finishes. Did you forget to await?
+        "Error: Cannot interact with browser after test finishes. Did you forget to await?
         -------------------------------------------------------
         tests/forgot-await.test.ts
 
             user.type(input, 'hello').catch(async (error) => {
+                 ^
+        -------------------------------------------------------
+        dist/cjs/index.cjs"
+      `);
+      done();
+    });
+  })();
+});
+
+test('forgot await in actionability check (user.isAttached)', (done) => {
+  withBrowser(async ({ user, utils, screen }) => {
+    await utils.injectHTML('<input />');
+    const input = await screen.getByRole('textbox');
+    user.isAttached(input).catch(async (error) => {
+      expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+        "Error: Cannot interact with browser after test finishes. Did you forget to await?
+        -------------------------------------------------------
+        tests/forgot-await.test.ts
+
+            user.isAttached(input).catch(async (error) => {
                  ^
         -------------------------------------------------------
         dist/cjs/index.cjs"

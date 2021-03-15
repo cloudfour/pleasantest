@@ -188,7 +188,14 @@ describe('actionability checks', () => {
             `);
     }),
   );
-  test.todo('refuses to type in element that is not visible');
+  test(
+    'refuses to type in element that is not visible',
+    withBrowser(async ({ user, utils, screen }) => {
+      // TODOOOOOO
+      await utils.injectHTML(`<div>Hi</div>`);
+      const div = await screen.getByText('Hi');
+    }),
+  );
   test(
     'refuses to type in element that is not typeable',
     withBrowser(async ({ user, utils, screen }) => {

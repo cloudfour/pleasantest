@@ -51,7 +51,7 @@ const setupOverlappingElements = async (
 };
 
 test(
-  "puppeteer's .click clicks the covering element",
+  "puppeteer's .click clicks an overlapping element",
   withBrowser(async ({ utils, page }) => {
     const [first, second] = await setupOverlappingElements(utils, page);
 
@@ -66,7 +66,7 @@ test(
 );
 
 test(
-  'user.click throws an error that the element is being covered',
+  'throws an error that the element is being covered',
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page);
     await expect(user.click(first)).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -84,7 +84,7 @@ test(
 );
 
 test(
-  'user.click works fine for non-covered elements',
+  'works fine for non-covered elements',
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page, false);
 
@@ -95,7 +95,7 @@ test(
 );
 
 test(
-  'user.click works fine for child elements that "cover" the parent',
+  'works fine for child elements that "cover" the parent',
   withBrowser(async ({ utils, user, screen }) => {
     // The text in the button "covers" the button,
     // but the button should still be clickable
@@ -110,5 +110,35 @@ test(
     });
 
     await user.click(button);
+  }),
+);
+
+test(
+  'refuses to click detached element',
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML(`<button>hi</button>`);
+    const button = await screen.getByRole('button', { name: /hi/i });
+    // Remove element from the DOM but still keep a reference to it
+    await button.evaluate((b) => b.remove());
+    await expect(user.click(button)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Cannot perform action on element that is not attached to the DOM:
+            <button>hi</button>"
+          `);
+  }),
+);
+
+test(
+  'refuses to click non-visible element',
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML(`
+      <button style="opacity: 0">hi</button>
+    `);
+
+    const button = await screen.getByRole('button', { name: /hi/i });
+
+    await expect(
+      user.click(button),
+    ).rejects.toThrowErrorMatchingInlineSnapshot();
   }),
 );

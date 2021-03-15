@@ -7,6 +7,44 @@ ${el}`;
   }
 };
 
+// Element is visible if all:
+// - it is attached to the DOM
+// - it has a rendered size (its rendered width and height are not zero)
+// - Computed opacity (product of opacity of ancestors) is non-zero
+// - is not display: none or visibility: hidden
+export const assertVisible = (el: Element) => {
+  assertAttached(el);
+
+  // getComputedStyle allows inherited properties to be seen correctly
+  const style = getComputedStyle(el);
+
+  if (style.visibility === 'hidden') {
+    throw error`Cannot perform action on element that is not visible (it has visibility:hidden):
+${el}`;
+  }
+
+  // The opacity of a parent element affects the rendering of a child element,
+  // but the opacity property is not inherited, so this computes the rendered opacity
+  // by walking up the tree and multiply the opacities.
+  let opacity = Number(style.opacity);
+  let opacityEl: Element | null = el;
+  while (opacity && (opacityEl = opacityEl.parentElement)) {
+    opacity *= (getComputedStyle(opacityEl).opacity as any) as number;
+  }
+
+  if (opacity < 0.05) {
+    throw error`Cannot perform action on element that is not visible (it is near zero opacity):
+${el}`;
+  }
+
+  const rect = el.getBoundingClientRect();
+  // handles: rendered width is zero or rendered height is zero or display:none
+  if (rect.width * rect.height === 0) {
+    throw error`Cannot perform action on element that is not visible (it was not rendered or has a size of zero):
+${el}`;
+  }
+};
+
 // example usage:
 // error`something bad happened: ${el}`
 // returns { error: ['something bad happened', el]}
