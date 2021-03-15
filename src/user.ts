@@ -112,6 +112,7 @@ ${coveringEl}`;
             try {
               // TODO before PR: Add force option
               utils.assertAttached(el);
+              utils.assertVisible(el);
             } catch (e) {
               return e;
             }

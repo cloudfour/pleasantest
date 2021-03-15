@@ -25,7 +25,7 @@ ${el}`;
 
   // The opacity of a parent element affects the rendering of a child element,
   // but the opacity property is not inherited, so this computes the rendered opacity
-  // by walking up the tree and multiply the opacities.
+  // by walking up the tree and multiplying the opacities.
   let opacity = Number(style.opacity);
   let opacityEl: Element | null = el;
   while (opacity && (opacityEl = opacityEl.parentElement)) {
@@ -45,12 +45,12 @@ ${el}`;
   }
 };
 
-// example usage:
-// error`something bad happened: ${el}`
-// returns { error: ['something bad happened', el]}
 // this is used to generate the arrays that are used
 // to produce messages with live elements in the browser,
 // and stringified elements in node
+// example usage:
+// error`something bad happened: ${el}`
+// returns { error: ['something bad happened', el]}
 export const error = (
   literals: TemplateStringsArray,
   ...placeholders: Element[]

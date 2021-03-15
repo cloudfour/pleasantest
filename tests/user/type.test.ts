@@ -191,9 +191,13 @@ describe('actionability checks', () => {
   test(
     'refuses to type in element that is not visible',
     withBrowser(async ({ user, utils, screen }) => {
-      // TODOOOOOO
-      await utils.injectHTML(`<div>Hi</div>`);
-      const div = await screen.getByText('Hi');
+      await utils.injectHTML(`<input style="opacity: 0" />`);
+      const input = await screen.getByRole('textbox');
+      await expect(user.type(input, 'some text')).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot perform action on element that is not visible (it is near zero opacity):
+              <input style=\\"opacity: 0\\" />"
+            `);
     }),
   );
   test(
