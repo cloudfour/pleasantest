@@ -425,9 +425,11 @@ The user API allows you to perform actions on behalf of the user. If you have us
 
 #### `TestMuleUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
 
-Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-elementhandleclickoptions). The difference is that `TestMuleUser.click` checks that the target element is not covered before performing the click. Don't forget to `await`, since this returns a Promise!
+Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-elementhandleclickoptions). The difference is that `TestMuleUser.click` checks that the target element is an element that actually can be clicked before clicking it!
 
-**Actionability checks**: It refuses to click elements that are [not attached](#attached) or [not visible](#visible). You can override the visibility check by passing `{ force: true }`
+**Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
+
+Additionally, it refuses to click an element if there is another element covering it. `{ force: true }` overrides this behavior.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -446,9 +448,9 @@ test(
 
 Types text into an element, if the element is visible. The element must be an `<input>` or `<textarea>` or have `[contenteditable]`.
 
-If the element already has text in it, the additional text is appended to the existing text. **This is different from Puppeteer and Playwright's default .type behavior**
+If the element already has text in it, the additional text is appended to the existing text. **This is different from Puppeteer and Playwright's default .type behavior**.
 
-**Actionability checks**: It refuses to type into elements that are [not attached](#attached) or [not visible](#visible). You can override the visibility check by passing `{ force: true }`
+**Actionability checks**: It refuses to type into elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
 In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-pagekeyboard)
 

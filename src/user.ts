@@ -53,21 +53,24 @@ export const testMuleUser = (
             } catch (e) {
               return e;
             }
-            const clickElRect = clickEl.getBoundingClientRect();
+            if (!force) {
+              const clickElRect = clickEl.getBoundingClientRect();
 
-            // See if there is an element covering the center of the click target element
-            const coveringEl = document.elementFromPoint(
-              Math.floor(clickElRect.x + clickElRect.width / 2),
-              Math.floor(clickElRect.y + clickElRect.height / 2),
-            )!;
-            if (coveringEl === clickEl || clickEl.contains(coveringEl)) return;
-            // TODO: try to find other points on the element that are clickable,
-            // in case the covering element does not cover the whole click-target element
-            return utils.error`Could not click element:
+              // See if there is an element covering the center of the click target element
+              const coveringEl = document.elementFromPoint(
+                Math.floor(clickElRect.x + clickElRect.width / 2),
+                Math.floor(clickElRect.y + clickElRect.height / 2),
+              )!;
+              if (coveringEl === clickEl || clickEl.contains(coveringEl))
+                return;
+              // TODO: try to find other points on the element that are clickable,
+              // in case the covering element does not cover the whole click-target element
+              return utils.error`Could not click element:
 ${clickEl}
 
 Element was covered by:
 ${coveringEl}`;
+            }
           }),
           force,
         )

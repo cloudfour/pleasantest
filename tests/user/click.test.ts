@@ -84,6 +84,19 @@ test(
 );
 
 test(
+  '{ force: true } overrides covering check',
+  withBrowser(async ({ utils, page, user }) => {
+    const [first, second] = await setupOverlappingElements(utils, page);
+    await user.click(first, { force: true });
+
+    // With { force: true } it triggers the click, even though the element is covered,
+    // so the covered element gets clicked (Puppeteer's default behavior)
+    await expect(first).toBeInTheDocument();
+    await expect(second).not.toBeInTheDocument();
+  }),
+);
+
+test(
   'works fine for non-covered elements',
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page, false);
