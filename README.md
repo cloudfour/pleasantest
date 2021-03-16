@@ -19,6 +19,7 @@ Test Mule is driven by these goals:
   - [Making Assertions](#making-assertions)
   - [Performing Actions](#performing-actions)
   - [Troubleshooting/Debugging a Failing Test](#troubleshootingdebugging-a-failing-test)
+  - [Actionability](#actionability)
 - [Full Example](#full-example)
 - [API](#api)
   - [`withBrowser`](#withbrowser)
@@ -261,6 +262,29 @@ test(
 );
 ```
 
+### Actionability
+
+Test Mule performs actionability checks when interacting with the page using the [User API](#user-api-testmuleuser). This concept is closely modeled after [Cypress](https://docs.cypress.io/guides/core-concepts/interacting-with-elements.html#Actionability) and [Playwright's](https://playwright.dev/docs/actionability) implementations of actionability.
+
+The core concept behind actionability is that if a real user would not be able to perform an action in your page, you should not be able to perform the actions in your test either. For example, since a user cannot click on an invisible element, your test should not allow you to click on invisible elements.
+
+We are working on adding more actionability checks.
+
+Here are the actionability checks that are currently implemented. Different methods in the User API perform different actionability checks based on what makes sense. In the API documentation for the [User API](#user-api-testmuleuser), the actionability checks that each method performs are listed.
+
+#### Attached
+
+Ensures that the element is attached to the DOM, using [`Node.isConnected`](https://developer.mozilla.org/en-US/docs/Web/API/Node/isConnected). For example, if you use `document.createElement()`, the created element is not attached to the DOM until you use `ParentNode.append()` or similar.
+
+#### Visible
+
+Ensures that the element is visible to a user. Currently, the following checks are performed (more will likely be added):
+
+- Element is [Attached](#attached) to the DOM
+- Element does not have `display: none` or `visibility: hidden`
+- Element has a size (its [bounding box](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect) has a non-zero width and height)
+- Element's opacity is greater than 0.05 (opacity of parent elements are considered)
+
 ## Full Example
 
 There is a menu example in the [examples folder](./examples/menu/index.test.ts)
@@ -399,31 +423,69 @@ The user API allows you to perform actions on behalf of the user. If you have us
 
 > **Warning**: The User API is in progress. It should be safe to use the existing methods, but keep in mind that more methods will be added in the future, and more checks will be performed for existing methods as well.
 
-#### `TestMuleUser.click(element: ElementHandle): Promise<void>`
+#### `TestMuleUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
 
 Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-elementhandleclickoptions). The difference is that `TestMuleUser.click` checks that the target element is not covered before performing the click. Don't forget to `await`, since this returns a Promise!
+
+**Actionability checks**: It refuses to click elements that are [not attached](#attached) or [not visible](#visible). You can override the visibility check by passing `{ force: true }`
 
 ```js
 import { withBrowser } from 'test-mule';
 
 test(
   'click example',
-  withBrowser(async ({ user, screen }) => {
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML('<button>button text</button>');
     const button = await screen.getByRole('button', { name: /button text/i });
     await user.click(button);
   }),
 );
 ```
 
-#### `TestMuleUser.type(TODOOO): Promise<void>`
+#### `TestMuleUser.type(element: ElementHandle, text: string, options?: { force?: boolean }): Promise<void>`
 
-TODOOOOOO
+Types text into an element, if the element is visible. The element must be an `<input>` or `<textarea>` or have `[contenteditable]`.
 
-{selectall} is only supported for `input` and `textarea` elements, not elements that use `contenteditable`.
+If the element already has text in it, the additional text is appended to the existing text. **This is different from Puppeteer and Playwright's default .type behavior**
 
-#### `TestMuleUser.isVisible(TODOOOOOO): Promise<boolean>`
+**Actionability checks**: It refuses to type into elements that are [not attached](#attached) or [not visible](#visible). You can override the visibility check by passing `{ force: true }`
 
-TODOOOOOO
+In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-pagekeyboard)
+
+| Text string    | Key        | Notes                                                                                   |
+| -------------- | ---------- | --------------------------------------------------------------------------------------- |
+| `{enter}`      | Enter      |                                                                                         |
+| `{tab}`        | Tab        |                                                                                         |
+| `{backspace}`  | Backspace  |                                                                                         |
+| `{del}`        | Delete     |                                                                                         |
+| `{selectall}`  | N/A        | Selects all the text of the element. Does not work for elements using `contenteditable` |
+| `{arrowleft}`  | ArrowLeft  |                                                                                         |
+| `{arrowright}` | ArrowRight |                                                                                         |
+| `{arrowup}`    | ArrowUp    |                                                                                         |
+| `{arrowdown}`  | ArrowDown  |                                                                                         |
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'type example',
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML('<input />');
+    const button = await user.type(
+      button,
+      'this is some text..{backspace}{arrowleft} asdf',
+    );
+  }),
+);
+```
+
+#### `TestMuleUser.isAttached(element: ElementHandle): Promise<boolean>`
+
+Returns a Promise that resolves to whether the given element is [attached](#attached).
+
+#### `TestMuleUser.isVisible(element: ElementHandle): Promise<boolean>`
+
+Returns a Promise that resolves to whether the given element is [visible](#visible).
 
 ### Utilities API: `TestMuleUtils`
 
