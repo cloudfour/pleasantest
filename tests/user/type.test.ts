@@ -16,7 +16,7 @@ test(
     const heading = await screen.getByRole('heading');
     // 9 input events should have fired
     expect(await heading.evaluate((h) => Number(h.innerHTML))).toEqual(9);
-    expect(await input.evaluate((input) => input.value)).toEqual('hiiiiiiii');
+    await expect(input).toHaveValue('hiiiiiiii');
   }),
 );
 
@@ -26,7 +26,7 @@ test(
     await utils.injectHTML(`<input value="1234" />`);
     const input: InputHandle = await screen.getByRole('textbox');
     await user.type(input, '5678');
-    expect(await input.evaluate((input) => input.value)).toEqual('12345678');
+    await expect(input).toHaveValue('12345678');
   }),
 );
 
@@ -36,9 +36,7 @@ test(
     await utils.injectHTML(`<textarea>1234</textarea>`);
     const textarea: InputHandle = await screen.getByRole('textbox');
     await user.type(textarea, '5678');
-    expect(await textarea.evaluate((textarea) => textarea.value)).toEqual(
-      '12345678',
-    );
+    await expect(textarea).toHaveValue('12345678');
   }),
 );
 
@@ -73,7 +71,7 @@ describe('special character sequences', () => {
       await expect(form).toBeInTheDocument();
       // it shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{eNtEr}');
-      expect(await input.evaluate((i) => i.value)).toEqual('1234hello');
+      await expect(input).toHaveValue('1234hello');
       await expect(form).not.toBeInTheDocument();
     }),
   );
@@ -84,7 +82,7 @@ describe('special character sequences', () => {
       const input: InputHandle = await screen.getByRole('textbox');
       // it shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{ENteR}hello2');
-      expect(await input.evaluate((i) => i.value)).toEqual('1234hello\nhello2');
+      await expect(input).toHaveValue('1234hello\nhello2');
     }),
   );
   test(
@@ -93,7 +91,7 @@ describe('special character sequences', () => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
       const input: InputHandle = await screen.getByRole('textbox');
       await user.type(input, '56{arrowleft}insert');
-      expect(await input.evaluate((i) => i.value)).toEqual('12345insert6');
+      await expect(input).toHaveValue('12345insert6');
     }),
   );
   test(
@@ -112,8 +110,8 @@ describe('special character sequences', () => {
       const nameBox: InputHandle = await screen.getByLabelText(/name/i);
       const descriptionBox: InputHandle = await screen.getByLabelText(/desc/i);
       await user.type(nameBox, '1234{tab}5678');
-      expect(await nameBox.evaluate((i) => i.value)).toEqual('1234');
-      expect(await descriptionBox.evaluate((i) => i.value)).toEqual('5678');
+      await expect(nameBox).toHaveValue('1234');
+      await expect(descriptionBox).toHaveValue('5678');
     }),
   );
   test(
@@ -122,9 +120,9 @@ describe('special character sequences', () => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
       const input: InputHandle = await screen.getByRole('textbox');
       await user.type(input, '56{arrowleft}{backspace}');
-      expect(await input.evaluate((i) => i.value)).toEqual('12346');
+      await expect(input).toHaveValue('12346');
       await user.type(input, '{arrowleft}{arrowleft}{del}');
-      expect(await input.evaluate((i) => i.value)).toEqual('1246');
+      await expect(input).toHaveValue('1246');
     }),
   );
   test(
@@ -133,7 +131,7 @@ describe('special character sequences', () => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
       const input: InputHandle = await screen.getByRole('textbox');
       await user.type(input, '56{selectall}{backspace}abc');
-      expect(await input.evaluate((i) => i.value)).toEqual('abc');
+      await expect(input).toHaveValue('abc');
     }),
   );
   test(
@@ -199,7 +197,7 @@ describe('actionability checks', () => {
             `);
       // with { force: true } it should skip the visibility check
       await user.type(input, 'some text', { force: true });
-      expect(await input.evaluate((input) => input.value)).toEqual('some text');
+      await expect(input).toHaveValue('some text');
     }),
   );
   test(
