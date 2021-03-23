@@ -5,4 +5,7 @@ module.exports = {
   },
   testRunner: 'jest-circus/runner',
   watchPathIgnorePatterns: ['<rootDir>/src/'],
+  transform: {
+    '^.+\\.tsx?$': ['esbuild-jest', { sourcemap: true }],
+  },
 };
