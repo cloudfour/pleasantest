@@ -17,9 +17,6 @@ export interface TestMuleUser {
     text: string,
     options?: { delay?: number; force?: boolean },
   ): Promise<void>;
-
-  isAttached(element: ElementHandle | null): Promise<boolean>;
-  isVisible(element: ElementHandle | null): Promise<boolean>;
 }
 
 const forgotAwaitMsg =
@@ -181,58 +178,6 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
           await page.keyboard.type(chunk, { delay }).catch(handleForgotAwait);
         }
       }
-    },
-
-    async isAttached(el) {
-      assertElementHandle(el, user.isAttached);
-
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        user.isAttached,
-      );
-
-      return await el
-        .evaluate(
-          runWithUtils((utils, clickEl) => {
-            try {
-              utils.assertAttached(clickEl);
-            } catch (e) {
-              return false;
-            }
-            return true;
-          }),
-        )
-        .catch((error: Error) => {
-          throw state.isTestFinished && /target closed/i.test(error.message)
-            ? forgotAwaitError
-            : error;
-        });
-    },
-
-    async isVisible(el) {
-      assertElementHandle(el, user.isVisible);
-
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        user.isVisible,
-      );
-
-      return await el
-        .evaluate(
-          runWithUtils((utils, clickEl) => {
-            try {
-              utils.assertVisible(clickEl);
-            } catch (e) {
-              return false;
-            }
-            return true;
-          }),
-        )
-        .catch((error: Error) => {
-          throw state.isTestFinished && /target closed/i.test(error.message)
-            ? forgotAwaitError
-            : error;
-        });
     },
   };
   return user;

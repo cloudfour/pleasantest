@@ -426,3 +426,4 @@ afterAll(async () => {
 });
 
 export const devices = puppeteer.devices;
+export { port };

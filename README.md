@@ -481,14 +481,6 @@ test(
 );
 ```
 
-#### `TestMuleUser.isAttached(element: ElementHandle): Promise<boolean>`
-
-Returns a Promise that resolves to whether the given element is [attached](#attached).
-
-#### `TestMuleUser.isVisible(element: ElementHandle): Promise<boolean>`
-
-Returns a Promise that resolves to whether the given element is [visible](#visible).
-
 ### Utilities API: `TestMuleUtils`
 
 The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontextpage). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
