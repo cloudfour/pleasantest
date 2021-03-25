@@ -9,18 +9,18 @@ test(
     <label><input type="checkbox" /> Input2</label>
   `);
 
-    // finds just one
+    // Finds just one
     await screen.getByLabelText('Input1');
-    // alternate syntax
+    // Alternate syntax
     await screen.getByLabelText('Input2');
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByLabelText('Input3')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find a label with the text of: Input3
 
             Within: #document"
           `);
-    // finds too many
+    // Finds too many
     await expect(screen.getByLabelText(/Input/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the text of: /Input/

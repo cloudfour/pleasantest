@@ -32,7 +32,7 @@ const isAttached = (el: ElementHandle) =>
       try {
         utils.assertAttached(clickEl);
         return true;
-      } catch (e) {
+      } catch {
         return false;
       }
     }),
@@ -44,7 +44,7 @@ const isVisible = (el: ElementHandle) =>
       try {
         utils.assertVisible(clickEl);
         return true;
-      } catch (e) {
+      } catch {
         return false;
       }
     }),

@@ -10,11 +10,11 @@ test(
     <div role="button">butt2</div>
   `);
 
-    // finds just one
+    // Finds just one
     await screen.getByRole('heading');
-    // alternate syntax
+    // Alternate syntax
     await screen.getByRole('button', { name: /butt2/ });
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByRole('banner')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an accessible element with the role \\"banner\\"
@@ -45,7 +45,7 @@ test(
 
             Within: #document"
           `);
-    // finds too many
+    // Finds too many
     await expect(screen.getByRole('button')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the role \\"button\\"

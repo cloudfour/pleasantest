@@ -63,6 +63,7 @@ function bundlePlugin() {
       if (resolved) {
         resolved.id = `\0bundle:${resolved.id}`;
       }
+
       return resolved;
     },
     resolveFileUrl({ relativePath, format }) {
@@ -74,6 +75,7 @@ function bundlePlugin() {
       if (property === 'url' && format === 'cjs') {
         return '`file://${__filename}`';
       }
+
       return null;
     },
     async load(id) {

@@ -163,7 +163,7 @@ describe('actionability checks', () => {
               "Cannot perform action on element that is not visible (it is near zero opacity):
               <button style=\\"opacity: 0\\">hi</button>"
             `);
-      // with { force: true } it should skip the visibility check
+      // With { force: true } it should skip the visibility check
       await user.click(button, { force: true });
     }),
   );

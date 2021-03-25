@@ -8,9 +8,9 @@ test(
     <input placeholder="Foobar" />
     <input />
   `);
-    // finds one
+    // Finds one
     await screen.getByPlaceholderText('Foobar');
-    // too many
+    // Too many
     await expect(screen.getByPlaceholderText(/Foo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the placeholder text of: /Foo/
@@ -26,7 +26,7 @@ test(
             Within: #document"
           `);
     expect(await screen.getAllByPlaceholderText(/Foo/)).toHaveLength(2);
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByPlaceholderText('Baz')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an element with the placeholder text of: Baz

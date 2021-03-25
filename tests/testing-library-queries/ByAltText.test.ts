@@ -8,9 +8,9 @@ test(
     <img alt="Foobar" />
     <img />
   `);
-    // finds one
+    // Finds one
     await screen.getByAltText('Foobar');
-    // too many
+    // Too many
     await expect(screen.getByAltText(/Foo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the alt text: /Foo/
@@ -26,7 +26,7 @@ test(
             Within: #document"
           `);
     expect(await screen.getAllByAltText(/Foo/)).toHaveLength(2);
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByAltText('Baz')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an element with the alt text: Baz

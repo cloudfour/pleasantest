@@ -76,7 +76,7 @@ interface DTLError {
   messageWithElementsStringified: string;
 }
 
-export interface BoundQueries extends BoundFunctions<AsyncDTLQueries> {}
+export type BoundQueries = BoundFunctions<AsyncDTLQueries>;
 
 export const getQueriesForElement = (
   page: import('puppeteer').Page,
@@ -95,6 +95,7 @@ export const getQueriesForElement = (
               flags: value.flags,
             };
           }
+
           return value;
         });
         const forgotAwait = removeFuncFromStackTrace(
@@ -108,11 +109,13 @@ export const getQueriesForElement = (
           if (/target closed/i.test(error.message) && state.isTestFinished) {
             throw forgotAwait;
           }
+
           throw error;
         };
+
         const result: JSHandle<Element | Element[] | DTLError> = await page
           .evaluateHandle(
-            // using new Function to avoid babel transpiling the import
+            // Using new Function to avoid babel transpiling the import
             // @ts-expect-error
             new Function(
               'argsString',
@@ -169,29 +172,31 @@ export const getQueriesForElement = (
           // Manipulate the stack trace and remove this function
           // That way Jest will show a code frame from the user's code, not ours
           // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          Error.captureStackTrace?.(error, query);
+          Error.captureStackTrace(error, query);
 
           throw error;
         }
 
-        // if it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
+        // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {
-          const array = Array(
+          const array = new Array(
             await result.evaluate((r) => (r as Element[]).length),
           );
           const props = await result.getProperties();
-          props.forEach((value, key) => {
+          for (const [key, value] of props.entries()) {
             array[(key as any) as number] = value;
-          });
+          }
+
           return array;
         }
 
-        // if it is an element, return it
+        // If it is an element, return it
         if (result.asElement() !== null) return result;
 
-        // try to JSON-ify it (for example if it is null from queryBy*)
+        // Try to JSON-ify it (for example if it is null from queryBy*)
         return result.jsonValue();
       };
+
       return [queryName, query];
     }),
   );

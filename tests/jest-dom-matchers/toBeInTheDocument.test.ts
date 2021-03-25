@@ -26,7 +26,7 @@ test(
           `);
     const notInDoc = await screen.queryByText('not in the document');
     expect(notInDoc).toBeNull();
-    // special case: expect(null).not.toBeInTheDocument() should pass
+    // Special case: expect(null).not.toBeInTheDocument() should pass
     // even though notInDoc is null and not an ElementHandle
     expect(notInDoc).not.toBeInTheDocument();
     await expect(expect(notInDoc).toBeInTheDocument()).rejects

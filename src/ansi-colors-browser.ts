@@ -15,11 +15,12 @@ export const ansiColorsLog = (...input: unknown[]) => {
       str += '%o'; // https://developer.mozilla.org/en-US/docs/Web/API/console#Using_string_substitutions
       continue;
     }
+
     str += segment.replace(ansiRegex(), (escapeCode) => {
       // \u001b is unicode for <ESC>
-      const parsedEscapeCode = /\u001b\[([0-9]*)m/.exec(escapeCode);
-      if (!parsedEscapeCode) return ''; // unrecognized escape code, remove it
-      const escapeCodeNum = Number(parsedEscapeCode[1]); // capture group
+      const parsedEscapeCode = /\u001B\[(\d*)m/.exec(escapeCode);
+      if (!parsedEscapeCode) return ''; // Unrecognized escape code, remove it
+      const escapeCodeNum = Number(parsedEscapeCode[1]); // Capture group
       const cssObj = ansiCodes[escapeCodeNum];
       if (!cssObj) return '';
       Object.assign(styleStack, cssObj);
@@ -30,6 +31,7 @@ export const ansiColorsLog = (...input: unknown[]) => {
       return '%c';
     });
   }
+
   return [str, ...stylesAndSubstitutions];
 };
 
@@ -50,14 +52,14 @@ const fg = (color: string) => ({ color });
 const bg = (color: string) => ({ 'background-color': color });
 
 const ansiCodes: Record<number, Record<string, string>> = {
-  // styles
+  // Styles
 
   1: { 'font-weight': 'bold' },
   22: { 'font-weight': 'inherit' },
 
-  // foreground colors
+  // Foreground colors
 
-  39: fg('inherit'), // reset foreground
+  39: fg('inherit'), // Reset foreground
   30: fg(colors.black),
   31: fg(colors.red),
   32: fg(colors.green),
@@ -66,12 +68,12 @@ const ansiCodes: Record<number, Record<string, string>> = {
   35: fg(colors.magenta),
   36: fg(colors.cyan),
   37: fg(colors.white),
-  97: fg(colors.white), // this is the whiteBright color
+  97: fg(colors.white), // This is the whiteBright color
   90: fg(colors.gray),
 
-  // background colors
+  // Background colors
 
-  49: bg('inherit'), // reset background
+  49: bg('inherit'), // Reset background
   40: bg(colors.black),
   41: bg(colors.red),
   42: bg(colors.green),

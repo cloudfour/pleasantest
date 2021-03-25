@@ -19,12 +19,12 @@ export const init = () => {
 
   // Upgrade the <a> elements to <button> elements which will open the menu
 
-  menuItems.forEach((menuItem) => {
+  for (const menuItem of menuItems) {
     const link = menuItem.querySelector(':scope > a');
     const menuContent = menuItem.querySelector(
       ':scope > .menu-section-content',
     );
-    if (!link || !menuContent) return;
+    if (!link || !menuContent) continue;
     const buttonTag = document.createElement('button');
     buttonTag.textContent = link.textContent;
     link.replaceWith(buttonTag);
@@ -46,12 +46,14 @@ export const init = () => {
         activeMenu.hide();
         return;
       }
+
       if (activeMenu) {
         activeMenu.hide();
       }
+
       menu.show();
     });
-  });
+  }
 
   document.addEventListener('click', (e) => {
     // Click outside menu closes menu
@@ -74,6 +76,7 @@ export const init = () => {
     mobileToggleNavButton.style.transform = '';
     shown = false;
   };
+
   const showMenu = () => {
     navList.classList.add('expanded');
     toggleText.textContent = 'Hide menu';
@@ -81,7 +84,7 @@ export const init = () => {
     shown = true;
   };
 
-  mobileToggleNavButton?.addEventListener('click', () => {
+  mobileToggleNavButton.addEventListener('click', () => {
     if (shown) hideMenu();
     else showMenu();
   });

@@ -43,12 +43,13 @@ expect.extend(
         elementHandle: import('puppeteer').ElementHandle,
         ...matcherArgs: unknown[]
       ) {
-        if (typeof elementHandle !== 'object' || !elementHandle?.asElement()) {
-          // special case: expect(null).not.toBeInTheDocument() should pass
+        if (typeof elementHandle !== 'object' || !elementHandle.asElement()) {
+          // Special case: expect(null).not.toBeInTheDocument() should pass
           if (methodName === 'toBeInTheDocument' && this.isNot) {
-            // this is actually passing but since it is isNot it has to return false
+            // This is actually passing but since it is isNot it has to return false
             return { pass: false };
           }
+
           const message = [
             this.utils.matcherHint(
               `${this.isNot ? '.not' : ''}.${methodName}`,
@@ -70,9 +71,10 @@ expect.extend(
           // Manipulate the stack trace and remove this function
           // That way Jest will show a code frame from the user's code, not ours
           // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          Error.captureStackTrace?.(error, matcher);
+          Error.captureStackTrace(error, matcher);
           throw error;
         }
+
         for (const arg of matcherArgs) {
           if (
             typeof arg === 'object' &&
@@ -87,7 +89,7 @@ Received ${this.utils.printReceived(arg)}`,
             // Manipulate the stack trace and remove this function
             // That way Jest will show a code frame from the user's code, not ours
             // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-            Error.captureStackTrace?.(error, matcher);
+            Error.captureStackTrace(error, matcher);
             throw error;
           }
         }
@@ -103,13 +105,14 @@ Received ${this.utils.printReceived(arg)}`,
           if (/target closed/i.test(error.message)) {
             throw forgotAwait;
           }
+
           throw error;
         };
 
-        const ctxString = JSON.stringify(this); // contains stuff like isNot and promise
+        const ctxString = JSON.stringify(this); // Contains stuff like isNot and promise
         const result = await elementHandle
           .evaluateHandle(
-            // using new Function to avoid babel transpiling the import
+            // Using new Function to avoid babel transpiling the import
             // @ts-ignore
             new Function(
               'element',
@@ -139,7 +142,7 @@ Received ${this.utils.printReceived(arg)}`,
         // But a matcher throwing means that the input was invalid or something
         const thrownError = await result.evaluate((result) => result.thrown);
 
-        // we have to evaluate the message right away
+        // We have to evaluate the message right away
         // because Jest does not accept a promise from the returned message property
         const message = await result.evaluate(
           thrownError
@@ -190,26 +193,28 @@ Received ${this.utils.printReceived(arg)}`,
           // Manipulate the stack trace and remove this function
           // That way Jest will show a code frame from the user's code, not ours
           // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          Error.captureStackTrace?.(error, matcher);
+          Error.captureStackTrace(error, matcher);
           throw error;
         }
+
         return {
           ...((await result.jsonValue()) as any),
           message: () => messageWithElementsStringified,
           messageForBrowser: messageWithElementsRevived,
         };
       };
+
       return [methodName, matcher];
     }),
   ),
 );
 
 const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
-  // handling nested JEST_UTILS calls here is the complexity
+  // Handling nested JEST_UTILS calls here is the complexity
   // The while loop goes through them in reverse
   // so inner (nested) calls are evaluated before outer calls
   const jestUtilsCalls = [
-    ...message.matchAll(/\$JEST_UTILS\.([a-zA-Z_$]*)\$/g),
+    ...message.matchAll(/\$JEST_UTILS\.([$A-Z_a-z]*)\$/g),
   ];
   const closeRegex = /\$END_JEST_UTILS\$/g;
   let jestUtilsCall;
@@ -226,7 +231,7 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
       const parsedArgs = deserialize(argsString);
       // @ts-expect-error
       const res: string = context.utils[methodName](...parsedArgs);
-      // const escaped = res.replace(/"/g, '\\"').replace(/\u001b/g, '\\u001b');
+      // Const escaped = res.replace(/"/g, '\\"').replace(/\u001b/g, '\\u001b');
       const escaped = JSON.stringify(res).replace(/^"/, '').replace(/"$/, '');
       message =
         message.slice(0, start) +
@@ -234,9 +239,10 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
         message.slice(closeIndex + '$END_JEST_UTILS$'.length);
     }
   }
+
   return message
-    .replace(/\\u[a-fA-F0-9]{4}/g, (match) => JSON.parse('"' + match + '"'))
-    .replace(/\\./g, (match) => JSON.parse('"' + match + '"'));
+    .replace(/\\u[\dA-Fa-f]{4}/g, (match) => JSON.parse(`"${match}"`))
+    .replace(/\\./g, (match) => JSON.parse(`"${match}"`));
 };
 
 // These type definitions are incomplete, only including methods we've tested
@@ -364,9 +370,9 @@ declare global {
       toBeChecked(): Promise<R>;
 
       /**
-      * Check whether the given element is partially checked.
-      * It accepts an `input` of type `checkbox` and elements with a `role` of `checkbox` with `aria-checked="mixed"`, or input of type `checkbox` with `indeterminate` set to `true`
-
+       * Check whether the given element is partially checked.
+       * It accepts an `input` of type `checkbox` and elements with a `role` of `checkbox` with `aria-checked="mixed"`, or input of type `checkbox` with `indeterminate` set to `true`
+       
        * https://github.com/testing-library/jest-dom#tobepartiallychecked
        */
       toBePartiallyChecked(): Promise<R>;

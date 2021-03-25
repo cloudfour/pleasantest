@@ -15,7 +15,7 @@ ${el}`;
 export const assertVisible = (el: Element) => {
   assertAttached(el);
 
-  // getComputedStyle allows inherited properties to be seen correctly
+  // GetComputedStyle allows inherited properties to be seen correctly
   const style = getComputedStyle(el);
 
   if (style.visibility === 'hidden') {
@@ -38,14 +38,14 @@ ${el}`;
   }
 
   const rect = el.getBoundingClientRect();
-  // handles: rendered width is zero or rendered height is zero or display:none
+  // Handles: rendered width is zero or rendered height is zero or display:none
   if (rect.width * rect.height === 0) {
     throw error`Cannot perform action on element that is not visible (it was not rendered or has a size of zero):
 ${el}`;
   }
 };
 
-// this is used to generate the arrays that are used
+// This is used to generate the arrays that are used
 // to produce messages with live elements in the browser,
 // and stringified elements in node
 // example usage:

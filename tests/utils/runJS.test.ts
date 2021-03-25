@@ -68,7 +68,7 @@ describe('Waiting for Promises in executed code', () => {
           .then(() => heading.remove())
       `);
 
-      // since it didn't wait for the promise
+      // Since it didn't wait for the promise
       await expect(heading).toBeInTheDocument();
     }),
   );
@@ -97,7 +97,7 @@ test(
 
     await expect(heading).toBeInTheDocument();
 
-    // note: the snippet inherits the language support from the test file that includes it
+    // Note: the snippet inherits the language support from the test file that includes it
     // So since this file is a .ts file, the snippet supports TS syntax
     await utils.runJS(`
       type foo = 'stringliteraltype'
@@ -110,7 +110,7 @@ test(
 test(
   'throws error with real source-mapped location',
   withBrowser(async ({ utils }) => {
-    // note: the snippet inherits the language support from the test file that includes it
+    // Note: the snippet inherits the language support from the test file that includes it
     // So since this file is a .ts file, the snippet supports TS syntax
     const error = await utils
       .runJS(

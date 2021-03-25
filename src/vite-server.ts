@@ -26,7 +26,7 @@ export const createServer = async () => {
     const pluginName = 'test-mule-inline-module-plugin';
     return {
       name: pluginName,
-      // has to run resolveId before vite's other resolve handlers
+      // Has to run resolveId before vite's other resolve handlers
       enforce: 'pre',
       resolveId(id) {
         const [idWithoutQuery, qs] = id.split('?');
@@ -84,19 +84,16 @@ export const createServer = async () => {
       if (!id.endsWith('vite/dist/client/client.js')) return null;
       return code
         .replace(
-          // here is code sninppet we are removing:
+          // Here is code sninppet we are removing:
           // socket.addEventListener('close', () => {
           //   ...
           // }, 1000);});
-          /socket\.addEventListener\('close'[\w\W]*?, [0-9]*\);[\s\r]*}\);/,
+          /socket\.addEventListener\('close'[\W\w]*?, \d*\);\s*}\);/,
           '',
         )
-        .replace(/console\.log\(['"`]\[vite\] connecting...['"`]\)/, '')
-        .replace(/console\.log\(['"`]\[vite\] connected.['"`]\)/, '')
-        .replace(
-          /setInterval\(\(\) => socket\.send\('ping'\), [\d_a-zA-Z]+\)/,
-          '',
-        );
+        .replace(/console\.log\(["'`]\[vite] connecting...["'`]\)/, '')
+        .replace(/console\.log\(["'`]\[vite] connected.["'`]\)/, '')
+        .replace(/setInterval\(\(\) => socket\.send\('ping'\), \w+\)/, '');
     },
   });
 
@@ -114,7 +111,7 @@ export const createServer = async () => {
 
   await server.listen();
 
-  // if original port was not available, use whichever vite ended up choosing
+  // If original port was not available, use whichever vite ended up choosing
   port = server.config.server.port || port;
 
   return server;

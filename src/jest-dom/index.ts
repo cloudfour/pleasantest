@@ -1,12 +1,12 @@
 // @ts-expect-error
+import { addToElementCache, serialize } from '../serialize';
+import { equals as jestEquals } from 'expect/build/jasmineUtils';
 export * from '@testing-library/jest-dom/matchers';
 export {
   reviveElementsInString,
   printElement,
   deserialize,
 } from '../serialize';
-import { addToElementCache, serialize } from '../serialize';
-import { equals as jestEquals } from 'expect/build/jasmineUtils';
 
 const runUtilInNode = (name: string, args: any[]) => {
   // If there are nested calls to $JEST_UTILS$
@@ -18,7 +18,7 @@ const runUtilInNode = (name: string, args: any[]) => {
   const stringifiedArgs = serialize(args, (val) => {
     if (typeof val === 'string') {
       return val.replace(
-        /\$JEST_UTILS\.([a-zA-Z_$]*)\$([^)]*)\$END_JEST_UTILS\$/g,
+        /\$JEST_UTILS\.([$A-Z_a-z]*)\$([^)]*)\$END_JEST_UTILS\$/g,
         (_match, methodName, subArgs) => {
           return `$JEST_UTILS.${methodName}$${
             cachedSubArgs.push(subArgs) - 1
@@ -26,9 +26,10 @@ const runUtilInNode = (name: string, args: any[]) => {
         },
       );
     }
+
     return val;
   }).replace(
-    /\$JEST_UTILS\.([a-zA-Z_$]*)\$(.*?)\$END_JEST_UTILS\$/g,
+    /\$JEST_UTILS\.([$A-Z_a-z]*)\$(.*?)\$END_JEST_UTILS\$/g,
     (_match, methodName, subArgsIdx) => {
       return `$JEST_UTILS.${methodName}$${cachedSubArgs[subArgsIdx]}$END_JEST_UTILS$`;
     },
@@ -55,12 +56,14 @@ export const jestContext: RecursivePartial<jest.MatcherUtils> = {
       if (arg instanceof Element) {
         return jestContext.utils!.RECEIVED_COLOR!(addToElementCache(arg));
       }
+
       return runUtilInNode('printReceived', [arg]);
     },
     printExpected: (arg) => {
       if (arg instanceof Element) {
         return jestContext.utils!.EXPECTED_COLOR!(addToElementCache(arg));
       }
+
       return runUtilInNode('printExpected', [arg]);
     },
     RECEIVED_COLOR: ((...args: any[]) =>
@@ -71,6 +74,7 @@ export const jestContext: RecursivePartial<jest.MatcherUtils> = {
       if (arg instanceof Element) {
         return addToElementCache(arg);
       }
+
       return runUtilInNode('stringify', [arg]);
     },
   },

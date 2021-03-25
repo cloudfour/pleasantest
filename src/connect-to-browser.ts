@@ -12,6 +12,7 @@ const readConfig = async (configPath: string) => {
     const parsed = JSON.parse(config);
     if (typeof parsed === 'object') return parsed;
   } catch {}
+
   return {};
 };
 
@@ -35,6 +36,7 @@ const updateConfig = async (
   ) {
     return browserObj[headlessStr];
   }
+
   browserObj[headlessStr] = value;
   await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
 };
@@ -46,17 +48,17 @@ const connectToCachedBrowser = async (
   configPath: string,
   browser: 'chromium',
   headless: boolean,
-  timeLimit: number = 5000,
+  timeLimit = 5000,
 ) => {
   const config = await readConfig(configPath);
   const cachedWSEndpoint = config[browser]?.[headless ? 'headless' : 'headed'];
-  // in case another process is currently starting a browser, wait for that process
+  // In case another process is currently starting a browser, wait for that process
   // rather than starting a whole new one
   if (cachedWSEndpoint === 'starting' && timeLimit > 0) {
     return new Promise<
       puppeteer.Browser | { connected: false; previousValue: string }
     >((resolve) => {
-      // every 50ms check again (this is recursive)
+      // Every 50ms check again (this is recursive)
       setTimeout(
         () =>
           connectToCachedBrowser(
@@ -69,6 +71,7 @@ const connectToCachedBrowser = async (
       );
     });
   }
+
   if (cachedWSEndpoint) {
     return await puppeteer
       .connect({ browserWSEndpoint: cachedWSEndpoint })
@@ -76,6 +79,7 @@ const connectToCachedBrowser = async (
         () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
       );
   }
+
   return { connected: false, previousValue: cachedWSEndpoint } as const;
 };
 
@@ -118,6 +122,7 @@ export const connectToBrowser = async (
       throw new Error('unable to connect to brwoser');
     return connectedBrowser;
   }
+
   const subprocess = childProcess.fork(startDisownedBrowserPath, {
     detached: true,
     stdio: 'ignore',
@@ -137,14 +142,15 @@ export const connectToBrowser = async (
     'starting',
   );
   if (valueWrittenInMeantime) {
-    // another browser was started while this browser was starting
+    // Another browser was started while this browser was starting
     // so we are going to kill the current browser and connect to the other one instead
     subprocess.kill();
     return await puppeteer.connect({
       browserWSEndpoint: valueWrittenInMeantime,
     });
   }
-  // disconnect from the spawned process so it can keep running in the background
+
+  // Disconnect from the spawned process so it can keep running in the background
   subprocess.unref();
   subprocess.disconnect();
   return await puppeteer.connect({ browserWSEndpoint: wsEndpoint });

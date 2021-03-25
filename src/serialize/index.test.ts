@@ -73,14 +73,14 @@ describe('printElement', () => {
   });
   it('formats attributes on one line', () => {
     const outerEl = document.createElement('div');
-    outerEl.setAttribute('data-asdf', 'foo');
+    outerEl.dataset.asdf = 'foo';
     expect(printElement(outerEl)).toMatchInlineSnapshot(
       `"<div data-asdf=\\"foo\\" />"`,
     );
   });
   it('formats > 2 attributes on multiple lines', () => {
     const outerEl = document.createElement('div');
-    outerEl.setAttribute('data-asdf', 'foo');
+    outerEl.dataset.asdf = 'foo';
     outerEl.setAttribute('class', 'class');
     outerEl.setAttribute('style', 'background: green');
     expect(printElement(outerEl)).toMatchInlineSnapshot(`
@@ -94,7 +94,7 @@ describe('printElement', () => {
   it('splits children when attributes are split', () => {
     const outerEl = document.createElement('div');
     outerEl.innerHTML = 'content';
-    outerEl.setAttribute('data-asdf', 'foo');
+    outerEl.dataset.asdf = 'foo';
     outerEl.setAttribute('class', 'class');
     outerEl.setAttribute('style', 'background: green');
     expect(printElement(outerEl)).toMatchInlineSnapshot(`

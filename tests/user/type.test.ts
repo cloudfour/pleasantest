@@ -43,13 +43,13 @@ test(
 test(
   'appends to existing text (<div contenteditable />)',
   withBrowser(async ({ user, utils, screen }) => {
-    // directly on the contenteditable element
+    // Directly on the contenteditable element
     await utils.injectHTML(`<div contenteditable role="textbox">1234</div>`);
     const div: InputHandle = await screen.getByRole('textbox');
     await user.type(div, '5678');
     expect(await div.evaluate((div) => div.textContent)).toEqual('12345678');
 
-    // ancestor element is contenteditable
+    // Ancestor element is contenteditable
     await utils.injectHTML(`<div contenteditable><a href="hi">1234</a></div>`);
     const link = await screen.getByText('1234');
     await user.type(link, '5678');
@@ -69,7 +69,7 @@ describe('special character sequences', () => {
       const input: InputHandle = await screen.getByRole('textbox');
       const form: FormHandle = await screen.getByRole('form');
       await expect(form).toBeInTheDocument();
-      // it shouldn't care about the capitalization in the command sequences
+      // It shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{eNtEr}');
       await expect(input).toHaveValue('1234hello');
       await expect(form).not.toBeInTheDocument();
@@ -80,7 +80,7 @@ describe('special character sequences', () => {
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
       const input: InputHandle = await screen.getByRole('textbox');
-      // it shouldn't care about the capitalization in the command sequences
+      // It shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{ENteR}hello2');
       await expect(input).toHaveValue('1234hello\nhello2');
     }),
@@ -155,12 +155,12 @@ test(
   withBrowser(async ({ user, utils, screen }) => {
     await utils.injectHTML(`<textarea>1234</textarea>`);
     const input: InputHandle = await screen.getByRole('textbox');
-    let startTime = new Date().getTime();
+    let startTime = Date.now();
     await user.type(input, '123');
-    expect(new Date().getTime() - startTime).toBeLessThan(100);
-    startTime = new Date().getTime();
+    expect(Date.now() - startTime).toBeLessThan(100);
+    startTime = Date.now();
     await user.type(input, '123', { delay: 50 });
-    expect(new Date().getTime() - startTime).toBeGreaterThan(150);
+    expect(Date.now() - startTime).toBeGreaterThan(150);
   }),
 );
 
@@ -195,7 +195,7 @@ describe('actionability checks', () => {
               "Cannot perform action on element that is not visible (it is near zero opacity):
               <input style=\\"opacity: 0\\" />"
             `);
-      // with { force: true } it should skip the visibility check
+      // With { force: true } it should skip the visibility check
       await user.type(input, 'some text', { force: true });
       await expect(input).toHaveValue('some text');
     }),
