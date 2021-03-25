@@ -4,6 +4,7 @@ module.exports = {
     'test-mule': '<rootDir>/dist/cjs/index.cjs',
   },
   testRunner: 'jest-circus/runner',
+  watchPathIgnorePatterns: ['<rootDir>/src/'],
   transform: {
     '^.+\\.tsx?$': ['esbuild-jest', { sourcemap: true }],
   },

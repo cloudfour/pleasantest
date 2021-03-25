@@ -404,11 +404,18 @@ const createTab = async ({
   const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
-    assertElementHandle(element, within, 'within(el)', 'el');
+    assertElementHandle(element, within);
     return getQueriesForElement(page, state, element);
   };
 
-  return { screen, utils, page, within, user: testMuleUser(state), state };
+  return {
+    screen,
+    utils,
+    page,
+    within,
+    user: testMuleUser(page, state),
+    state,
+  };
 };
 
 afterAll(async () => {
@@ -419,3 +426,4 @@ afterAll(async () => {
 });
 
 export const devices = puppeteer.devices;
+export { port };
