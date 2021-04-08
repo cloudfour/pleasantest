@@ -1,6 +1,7 @@
-// @ts-expect-error
 import { addToElementCache, serialize } from '../serialize';
+// eslint-disable-next-line @cloudfour/node/no-extraneous-import
 import { equals as jestEquals } from 'expect/build/jasmineUtils';
+// @ts-expect-error types are not provided for this sub-path import
 export * from '@testing-library/jest-dom/matchers';
 export {
   reviveElementsInString,
@@ -37,8 +38,8 @@ const runUtilInNode = (name: string, args: any[]) => {
   return `$JEST_UTILS.${name}$${stringifiedArgs}$END_JEST_UTILS$`;
 };
 
-type RecursivePartial<T> = T extends object
-  ? T extends Function
+type RecursivePartial<T> = T extends Record<string, unknown>
+  ? T extends () => any
     ? T
     : {
         [K in keyof T]?: RecursivePartial<T[K]>;

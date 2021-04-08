@@ -18,6 +18,7 @@ export const ansiColorsLog = (...input: unknown[]) => {
 
     str += segment.replace(ansiRegex(), (escapeCode) => {
       // \u001b is unicode for <ESC>
+      // eslint-disable-next-line no-control-regex
       const parsedEscapeCode = /\u001B\[(\d*)m/.exec(escapeCode);
       if (!parsedEscapeCode) return ''; // Unrecognized escape code, remove it
       const escapeCodeNum = Number(parsedEscapeCode[1]); // Capture group
@@ -51,7 +52,7 @@ export const colors = {
 const fg = (color: string) => ({ color });
 const bg = (color: string) => ({ 'background-color': color });
 
-const ansiCodes: Record<number, Record<string, string>> = {
+const ansiCodes: Record<number, undefined | Record<string, string>> = {
   // Styles
 
   1: { 'font-weight': 'bold' },

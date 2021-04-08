@@ -52,7 +52,7 @@ export const createServer = async () => {
   const indexHTMLPlugin = (): vite.Plugin => ({
     name: 'test-mule-index-html',
     configureServer({ middlewares }) {
-      middlewares.use(async (req, res, next) => {
+      middlewares.use((req, res, next) => {
         if (req.url !== '/') return next();
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');

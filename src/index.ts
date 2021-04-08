@@ -54,7 +54,7 @@ export interface TestMuleContext {
   user: TestMuleUser;
 }
 
-let serverPromise: Promise<vite.ViteDevServer>;
+let serverPromise: Promise<vite.ViteDevServer> | undefined;
 
 export interface WithBrowserOpts {
   headless?: boolean;
@@ -85,10 +85,11 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
+  // eslint-disable-next-line @cloudfour/unicorn/error-message
   const stack = parseStackTrace(new Error().stack as string).map(
     (stackFrame) => {
       if (stackFrame.fileName) return stackFrame.fileName;
-      return /\s*at\s+([\w./\-]*)/.exec(stackFrame.raw)?.[1];
+      return /\s*at\s+([\w./-]*)/.exec(stackFrame.raw)?.[1];
     },
   );
   const testFile = stack.find((stackItem) => {
@@ -188,7 +189,7 @@ const indent = (input: string, indentFirstLine = true) =>
       // put the tab after the escape code
       // the reason for this is to prevent the indentation from getting messed up from wrapping
       // you can see this if you squish the devools window
-      const match = line.match(ansiRegex);
+      const match = ansiRegex.exec(line);
       if (!match || match.index !== 0) return `  ${line}`;
       const insertPoint = match[0].length;
       return `${line.slice(0, insertPoint)}  ${line.slice(insertPoint)}`;
@@ -264,7 +265,7 @@ const createTab = async ({
       ),
       caller,
     );
-    return await page.evaluate(...args).catch((error) => {
+    return page.evaluate(...args).catch((error) => {
       if (state.isTestFinished && /target closed/i.test(error.message)) {
         throw forgotAwaitError;
       }

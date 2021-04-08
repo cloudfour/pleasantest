@@ -7,6 +7,7 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
     export { toHaveStyle } from "${require.resolve(
+      // eslint-disable-next-line @cloudfour/node/no-missing-require
       './src/jest-dom/to-have-style',
     )}"
   `,

@@ -59,14 +59,14 @@ export const init = () => {
     // Click outside menu closes menu
     // Closes both the outer menu (on small screens) and the sub-menus
     if (
-      (activeMenu || shown) &&
-      e.target instanceof Node &&
-      !menu.contains(e.target)
-    ) {
-      e.preventDefault();
-      hideMenu();
-      activeMenu?.hide();
-    }
+      !(activeMenu || shown) ||
+      !(e.target instanceof Node) ||
+      menu.contains(e.target)
+    )
+      return;
+    e.preventDefault();
+    hideMenu();
+    activeMenu?.hide();
   });
 
   const toggleText = mobileToggleNavButton.querySelector('title')!;

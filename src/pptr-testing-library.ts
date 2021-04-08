@@ -83,7 +83,7 @@ export const getQueriesForElement = (
   state: { isTestFinished: boolean },
   element?: import('puppeteer').ElementHandle,
 ) => {
-  // @ts-expect-error
+  // @ts-expect-error TS doesn't understand the properties coming out of Object.fromEntries
   const queries: BoundQueries = Object.fromEntries(
     queryNames.map((queryName: typeof queryNames[number]) => {
       const query = async (...args: any[]) => {
@@ -113,10 +113,12 @@ export const getQueriesForElement = (
           throw error;
         };
 
-        const result: JSHandle<Element | Element[] | DTLError> = await page
+        const result: JSHandle<
+          Element | Element[] | DTLError | null
+        > = await page
           .evaluateHandle(
             // Using new Function to avoid babel transpiling the import
-            // @ts-expect-error
+            // @ts-expect-error pptr's types don't like new Function
             new Function(
               'argsString',
               'element',
@@ -167,7 +169,7 @@ export const getQueriesForElement = (
             resultProperties.messageWithElementsRevived,
           );
           const error = new Error(messageWithElementsStringified);
-          // @ts-expect-error
+          // @ts-expect-error messageForBrowser is a custom property that we add to Errors
           error.messageForBrowser = messageWithElementsRevived;
           // Manipulate the stack trace and remove this function
           // That way Jest will show a code frame from the user's code, not ours
@@ -179,9 +181,9 @@ export const getQueriesForElement = (
 
         // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
         if (await result.evaluate((r) => Array.isArray(r))) {
-          const array = new Array(
-            await result.evaluate((r) => (r as Element[]).length),
-          );
+          const array = Array.from({
+            length: await result.evaluate((r) => (r as Element[]).length),
+          });
           const props = await result.getProperties();
           for (const [key, value] of props.entries()) {
             array[(key as any) as number] = value;

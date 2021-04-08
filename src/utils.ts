@@ -2,7 +2,7 @@ import type { ElementHandle, JSHandle } from 'puppeteer';
 
 export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   const properties = await arrayHandle.getProperties();
-  const arr = new Array(properties.size);
+  const arr = Array.from({ length: properties.size });
   for (let i = 0; i < properties.size; i++) {
     const valHandle = properties.get(String(i));
     if (valHandle) {

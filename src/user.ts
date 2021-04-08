@@ -104,11 +104,14 @@ ${coveringEl}`;
       const chunks: string[] = [];
       while (text) {
         text = text.startsWith('{')
-          ? text.replace(
-              /^{[^{}]*}/,
-              (substr) => (chunks.push(substr.toLowerCase()), ''),
-            )
-          : text.replace(/^[^{]*/, (substr) => (chunks.push(substr), ''));
+          ? text.replace(/^{[^{}]*}/, (substr) => {
+              chunks.push(substr.toLowerCase());
+              return '';
+            })
+          : text.replace(/^[^{]*/, (substr) => {
+              chunks.push(substr);
+              return '';
+            });
       }
 
       await el
@@ -239,11 +242,12 @@ const throwBrowserError = (func: (...params: any) => any) => async (
       const errorProperties = Object.fromEntries(
         await errorProp.getProperties(),
       );
+      // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
       if (errorProperties.msgWithStringEls && errorProperties.msgWithLiveEls) {
         err = new Error(
           (await errorProperties.msgWithStringEls.jsonValue()) as any,
         );
-        // @ts-expect-error
+        // @ts-expect-error messageForBrowser is a custom thing
         err.messageForBrowser = await jsHandleToArray(
           errorProperties.msgWithLiveEls,
         );

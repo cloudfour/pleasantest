@@ -11,13 +11,14 @@ function getStyleDeclaration(document, css) {
     copy.style[property] = css[property];
     styles[property] = getComputedStyle(copy)[property] || css[property];
   }
+
   copy.remove();
   return styles;
 }
 
 function isSubset(styles, computedStyle) {
   return (
-    Boolean(Object.keys(styles).length) &&
+    Object.keys(styles).length > 0 &&
     Object.entries(styles).every(
       ([prop, value]) =>
         computedStyle[prop] === value ||

@@ -31,7 +31,7 @@ const methods = [
 
 const isJSHandle = (input: unknown): input is JSHandle => {
   if (typeof input !== 'object' || !input) return false;
-  // @ts-ignore
+  // @ts-expect-error checking for properties that don't necessarily exist
   return input.asElement && input.dispose && input.evaluate;
 };
 
@@ -40,10 +40,10 @@ expect.extend(
     methods.map((methodName) => {
       const matcher = async function (
         this: jest.MatcherUtils,
-        elementHandle: import('puppeteer').ElementHandle,
+        elementHandle: import('puppeteer').ElementHandle | null,
         ...matcherArgs: unknown[]
       ) {
-        if (typeof elementHandle !== 'object' || !elementHandle.asElement()) {
+        if (typeof elementHandle !== 'object' || !elementHandle?.asElement()) {
           // Special case: expect(null).not.toBeInTheDocument() should pass
           if (methodName === 'toBeInTheDocument' && this.isNot) {
             // This is actually passing but since it is isNot it has to return false
@@ -113,7 +113,7 @@ Received ${this.utils.printReceived(arg)}`,
         const result = await elementHandle
           .evaluateHandle(
             // Using new Function to avoid babel transpiling the import
-            // @ts-ignore
+            // @ts-expect-error pptr's types don't like new Function
             new Function(
               'element',
               '...matcherArgs',
@@ -155,7 +155,7 @@ Received ${this.utils.printReceived(arg)}`,
           messageWithElementsStringified,
         } = await elementHandle
           .evaluateHandle(
-            // @ts-expect-error
+            // @ts-expect-error pptr's types don't like new Function
             new Function(
               'el',
               'message',
@@ -187,7 +187,7 @@ Received ${this.utils.printReceived(arg)}`,
           });
         if (thrownError) {
           const error = new Error(messageWithElementsStringified as any);
-          // @ts-expect-error
+          // @ts-expect-error messageForBrowser is a property we added to Error
           error.messageForBrowser = messageWithElementsRevived;
 
           // Manipulate the stack trace and remove this function
@@ -229,7 +229,7 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
         closeIndex,
       );
       const parsedArgs = deserialize(argsString);
-      // @ts-expect-error
+      // @ts-expect-error TS doesn't know about the properties
       const res: string = context.utils[methodName](...parsedArgs);
       // Const escaped = res.replace(/"/g, '\\"').replace(/\u001b/g, '\\u001b');
       const escaped = JSON.stringify(res).replace(/^"/, '').replace(/"$/, '');
@@ -249,6 +249,7 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
 // You can copy-paste and change the return types to promises
 declare global {
+  // eslint-disable-next-line @cloudfour/typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
       /**

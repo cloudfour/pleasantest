@@ -7,14 +7,13 @@ export const rollupPluginAriaQuery = () => {
     },
     async load(source) {
       if (source !== 'aria-query') return null;
-      return await getAriaQueryCode();
+      return getAriaQueryCode();
     },
   };
 };
 
 const getAriaQueryCode = async () => {
   const q = await import('aria-query');
-  const code = '';
   return `export const roles = ${stringify(q.roles)};
 export const elementRoles = ${stringify(q.elementRoles)};`;
 };

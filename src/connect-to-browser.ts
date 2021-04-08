@@ -3,7 +3,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
 import * as puppeteer from 'puppeteer';
-// @ts-expect-error
+// @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 
 const readConfig = async (configPath: string) => {
@@ -16,9 +16,6 @@ const readConfig = async (configPath: string) => {
   return {};
 };
 
-/**
- * @param [previousValue] If the read value does not match this, skips updating and returns the newly read value
- */
 const updateConfig = async (
   configPath: string,
   browser: 'chromium',
@@ -41,9 +38,6 @@ const updateConfig = async (
   await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
 };
 
-/**
- * @param timeLimit The maximum amount of time to wait for a browesr to start from another process
- */
 const connectToCachedBrowser = async (
   configPath: string,
   browser: 'chromium',
@@ -73,7 +67,7 @@ const connectToCachedBrowser = async (
   }
 
   if (cachedWSEndpoint) {
-    return await puppeteer
+    return puppeteer
       .connect({ browserWSEndpoint: cachedWSEndpoint })
       .catch(
         () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
@@ -84,7 +78,7 @@ const connectToCachedBrowser = async (
 };
 
 const isBrowser = (input: unknown): input is puppeteer.Browser =>
-  // @ts-expect-error
+  // @ts-expect-error checking for properties on unknown object
   input && typeof input === 'object' && input.version;
 
 export const connectToBrowser = async (
@@ -129,7 +123,7 @@ export const connectToBrowser = async (
   });
   const wsEndpoint = await new Promise<string>((resolve) => {
     subprocess.send({ browser, headless });
-    subprocess.on('message', async (msg: any) => {
+    subprocess.on('message', (msg: any) => {
       if (!msg.browserWSEndpoint) return;
       resolve(msg.browserWSEndpoint);
     });
@@ -145,7 +139,7 @@ export const connectToBrowser = async (
     // Another browser was started while this browser was starting
     // so we are going to kill the current browser and connect to the other one instead
     subprocess.kill();
-    return await puppeteer.connect({
+    return puppeteer.connect({
       browserWSEndpoint: valueWrittenInMeantime,
     });
   }
@@ -153,5 +147,5 @@ export const connectToBrowser = async (
   // Disconnect from the spawned process so it can keep running in the background
   subprocess.unref();
   subprocess.disconnect();
-  return await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  return puppeteer.connect({ browserWSEndpoint: wsEndpoint });
 };

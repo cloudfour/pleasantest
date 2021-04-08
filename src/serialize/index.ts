@@ -1,4 +1,4 @@
-interface Handler<T, Serialized extends {}> {
+interface Handler<T, Serialized extends unknown> {
   name: string;
   toObj(input: T): Serialized;
   fromObj(input: Serialized): T;
@@ -85,7 +85,7 @@ export const printElement = (el: Element | Document, depth = 3) => {
           '\n  ',
         )}`;
       } else if (child instanceof Text) {
-        contents += (singleLine ? '' : '\n  ') + child.textContent;
+        contents += `${singleLine ? '' : '\n  '}${child.textContent}`;
       }
     }
 
@@ -100,8 +100,10 @@ export const printElement = (el: Element | Document, depth = 3) => {
     attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' '
   }${attrs
     .map((attr) => {
-      // @ts-expect-error
-      if (attr.value === '' && typeof el[attr.name] === 'boolean')
+      if (
+        attr.value === '' &&
+        typeof el[attr.name as keyof Element] === 'boolean'
+      )
         return attr.name;
       return `${attr.name}="${attr.value}"`;
     })

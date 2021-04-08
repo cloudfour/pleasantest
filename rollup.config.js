@@ -73,6 +73,7 @@ function bundlePlugin() {
     },
     resolveImportMeta(property, { format }) {
       if (property === 'url' && format === 'cjs') {
+        // eslint-disable-next-line no-template-curly-in-string
         return '`file://${__filename}`';
       }
 

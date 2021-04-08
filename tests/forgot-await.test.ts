@@ -1,3 +1,4 @@
+/* eslint-disable @cloudfour/typescript-eslint/require-await */
 import { withBrowser } from 'test-mule';
 import { printErrorFrames } from './test-utils';
 
