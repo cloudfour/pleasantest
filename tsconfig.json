@@ -19,7 +19,9 @@
     "allowJs": true,
     "checkJs": true,
     "allowUnreachableCode": false,
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "jsx": "preserve",
+    "jsxFactory": "h"
   },
   "include": [
     "src/**/*.ts",
