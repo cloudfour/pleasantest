@@ -9,16 +9,16 @@ test(
     <div data-testid="bar">hello</div>
   `);
 
-    // finds just one
+    // Finds just one
     await screen.getByTestId('foo');
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByTestId('woot')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an element by: [data-testid=\\"woot\\"]
 
             Within: #document"
           `);
-    // finds too many
+    // Finds too many
     await expect(screen.getByTestId('bar')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements by: [data-testid=\\"bar\\"]

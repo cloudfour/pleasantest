@@ -8,9 +8,9 @@ test(
     <img title="Foobar" />
     <img />
   `);
-    // finds one
+    // Finds one
     await screen.getByTitle('Foobar');
-    // too many
+    // Too many
     await expect(screen.getByTitle(/Foo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the title: /Foo/.
@@ -26,7 +26,7 @@ test(
             Within: #document"
           `);
     expect(await screen.getAllByTitle(/Foo/)).toHaveLength(2);
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByTitle('Baz')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an element with the title: Baz.

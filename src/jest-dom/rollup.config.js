@@ -7,6 +7,7 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
     export { toHaveStyle } from "${require.resolve(
+      // eslint-disable-next-line @cloudfour/node/no-missing-require
       './src/jest-dom/to-have-style',
     )}"
   `,
@@ -60,8 +61,8 @@ const removeCloneNodePlugin = {
   name: 'remove-clone-node',
   async transform(code) {
     return code.replace(/\.cloneNode\((?:false|true)\)/g, '').replace(
-      // for some reason toBeEmptyDOMElement and toBeEmpty log element.innerHTML
-      /this\.utils\.printReceived\(([a-zA-Z]*)\.innerHTML\)/,
+      // For some reason toBeEmptyDOMElement and toBeEmpty log element.innerHTML
+      /this\.utils\.printReceived\(([A-Za-z]*)\.innerHTML\)/,
       'this.utils.printReceived($1)',
     );
   },

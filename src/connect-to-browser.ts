@@ -3,7 +3,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import envPaths from 'env-paths';
 import * as puppeteer from 'puppeteer';
-// @ts-expect-error
+// @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 
 const readConfig = async (configPath: string) => {
@@ -12,12 +12,10 @@ const readConfig = async (configPath: string) => {
     const parsed = JSON.parse(config);
     if (typeof parsed === 'object') return parsed;
   } catch {}
+
   return {};
 };
 
-/**
- * @param [previousValue] If the read value does not match this, skips updating and returns the newly read value
- */
 const updateConfig = async (
   configPath: string,
   browser: 'chromium',
@@ -35,28 +33,26 @@ const updateConfig = async (
   ) {
     return browserObj[headlessStr];
   }
+
   browserObj[headlessStr] = value;
   await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
 };
 
-/**
- * @param timeLimit The maximum amount of time to wait for a browesr to start from another process
- */
 const connectToCachedBrowser = async (
   configPath: string,
   browser: 'chromium',
   headless: boolean,
-  timeLimit: number = 5000,
+  timeLimit = 5000,
 ) => {
   const config = await readConfig(configPath);
   const cachedWSEndpoint = config[browser]?.[headless ? 'headless' : 'headed'];
-  // in case another process is currently starting a browser, wait for that process
+  // In case another process is currently starting a browser, wait for that process
   // rather than starting a whole new one
   if (cachedWSEndpoint === 'starting' && timeLimit > 0) {
     return new Promise<
       puppeteer.Browser | { connected: false; previousValue: string }
     >((resolve) => {
-      // every 50ms check again (this is recursive)
+      // Every 50ms check again (this is recursive)
       setTimeout(
         () =>
           connectToCachedBrowser(
@@ -69,18 +65,20 @@ const connectToCachedBrowser = async (
       );
     });
   }
+
   if (cachedWSEndpoint) {
-    return await puppeteer
+    return puppeteer
       .connect({ browserWSEndpoint: cachedWSEndpoint })
       .catch(
         () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
       );
   }
+
   return { connected: false, previousValue: cachedWSEndpoint } as const;
 };
 
 const isBrowser = (input: unknown): input is puppeteer.Browser =>
-  // @ts-expect-error
+  // @ts-expect-error checking for properties on unknown object
   input && typeof input === 'object' && input.version;
 
 export const connectToBrowser = async (
@@ -118,13 +116,14 @@ export const connectToBrowser = async (
       throw new Error('unable to connect to brwoser');
     return connectedBrowser;
   }
+
   const subprocess = childProcess.fork(startDisownedBrowserPath, {
     detached: true,
     stdio: 'ignore',
   });
   const wsEndpoint = await new Promise<string>((resolve) => {
     subprocess.send({ browser, headless });
-    subprocess.on('message', async (msg: any) => {
+    subprocess.on('message', (msg: any) => {
       if (!msg.browserWSEndpoint) return;
       resolve(msg.browserWSEndpoint);
     });
@@ -137,15 +136,16 @@ export const connectToBrowser = async (
     'starting',
   );
   if (valueWrittenInMeantime) {
-    // another browser was started while this browser was starting
+    // Another browser was started while this browser was starting
     // so we are going to kill the current browser and connect to the other one instead
     subprocess.kill();
-    return await puppeteer.connect({
+    return puppeteer.connect({
       browserWSEndpoint: valueWrittenInMeantime,
     });
   }
-  // disconnect from the spawned process so it can keep running in the background
+
+  // Disconnect from the spawned process so it can keep running in the background
   subprocess.unref();
   subprocess.disconnect();
-  return await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  return puppeteer.connect({ browserWSEndpoint: wsEndpoint });
 };

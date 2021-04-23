@@ -22,21 +22,17 @@ export const printErrorFrames = async (error: Error) => {
         ) {
           return stackFrame.raw;
         }
+
         const relativePath = path.relative(process.cwd(), stackFrame.fileName);
         if (relativePath.startsWith('dist/')) return relativePath;
         const file = await fs.readFile(stackFrame.fileName, 'utf8');
         const line = file.split('\n')[stackFrame.line - 1];
-        return (
-          relativePath +
-          '\n\n' +
-          line +
-          '\n' +
-          ' '.repeat(stackFrame.column - 1) +
-          '^'
-        );
+        return `${relativePath}\n\n${line}\n${' '.repeat(
+          stackFrame.column - 1,
+        )}^`;
       }),
   );
-  return [error.name + ': ' + error.message, ...frames].join(
-    '\n' + '-'.repeat(55) + '\n',
+  return [`${error.name}: ${error.message}`, ...frames].join(
+    `\n${'-'.repeat(55)}\n`,
   );
 };

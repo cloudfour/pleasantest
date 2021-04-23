@@ -32,7 +32,6 @@ process.on('message', async ({ browser, headless }) => {
   const browserInstance = await puppeteer.launch({
     headless,
     devtools: !headless,
-    // devtools: false,
     ignoreDefaultArgs: [
       // Don't pop up "Chrome is being controlled by automated software"
       '--enable-automation',
@@ -47,9 +46,10 @@ process.on('message', async ({ browser, headless }) => {
     userDataDir,
   });
   const allPages = await browserInstance.pages();
-  // close startup page
+  // Close startup page
   await Promise.all(allPages.map((p) => p.close()));
   const browserWSEndpoint = browserInstance.wsEndpoint();
   process.send!({ browserWSEndpoint });
+  // eslint-disable-next-line no-process-exit
   browserInstance.on('disconnected', () => process.exit());
 });

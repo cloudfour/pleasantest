@@ -12,11 +12,11 @@ test(
       <option value="2">Banana</option>
     </select>
   `);
-    // finds one
+    // Finds one
     await screen.getByDisplayValue('Foo');
     await screen.getByDisplayValue('Bar');
     await screen.getByDisplayValue('Apple');
-    // too many
+    // Too many
     await expect(screen.getByDisplayValue(/Fo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Found multiple elements with the display value: /Fo/.
@@ -31,7 +31,7 @@ test(
 
             Within: #document"
           `);
-    // doesn't find any
+    // Doesn't find any
     await expect(screen.getByDisplayValue('Cheeseburger')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Unable to find an element with the display value: Cheeseburger.

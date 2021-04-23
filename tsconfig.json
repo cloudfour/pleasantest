@@ -19,13 +19,15 @@
     "allowJs": true,
     "checkJs": true,
     "allowUnreachableCode": false,
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "jsx": "preserve",
+    "jsxFactory": "h"
   },
   "include": [
     "src/**/*.ts",
     "tests/**/*.ts",
+    "tests/**/*.tsx",
     "examples/**/*.ts",
-    "examples/**/*.tsx",
-    "types.d.ts"
+    "examples/**/*.tsx"
   ]
 }

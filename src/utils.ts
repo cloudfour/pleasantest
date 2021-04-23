@@ -2,7 +2,7 @@ import type { ElementHandle, JSHandle } from 'puppeteer';
 
 export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   const properties = await arrayHandle.getProperties();
-  const arr = new Array(properties.size);
+  const arr = Array.from({ length: properties.size });
   for (let i = 0; i < properties.size; i++) {
     const valHandle = properties.get(String(i));
     if (valHandle) {
@@ -11,6 +11,7 @@ export const jsHandleToArray = async (arrayHandle: JSHandle) => {
       arr[i] = typeof val === 'object' ? valHandle : val;
     }
   }
+
   return arr;
 };
 
@@ -28,22 +29,24 @@ export const assertElementHandle: (
   const messageStart = `element must be an ElementHandle\n\n`;
   if (type === 'Promise') {
     throw removeFuncFromStackTrace(
-      new Error(messageStart + 'Received Promise. Did you forget await?'),
+      new Error(`${messageStart}Received Promise. Did you forget await?`),
       fn,
     );
   }
+
   if (type !== 'object' || input === null || !(input as any).asElement) {
     throw removeFuncFromStackTrace(
-      new Error(messageStart + `Received ${type}`),
+      new Error(`${messageStart}Received ${type}`),
       fn,
     );
   }
-  // returns null if it is a JSHandle that does not point to an element
+
+  // Returns null if it is a JSHandle that does not point to an element
   const el = (input as JSHandle).asElement();
   if (!el) {
     throw removeFuncFromStackTrace(
       new Error(
-        messageStart + 'Received a JSHandle that did not point to an element',
+        `${messageStart}Received a JSHandle that did not point to an element`,
       ),
       fn,
     );
@@ -59,6 +62,6 @@ export const removeFuncFromStackTrace = (
   error: Error,
   fn: (...params: any) => any,
 ) => {
-  Error.captureStackTrace?.(error, fn);
+  Error.captureStackTrace(error, fn);
   return error;
 };

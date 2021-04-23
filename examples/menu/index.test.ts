@@ -1,9 +1,10 @@
-import { TestMuleUtils, withBrowser, devices } from 'test-mule';
+import type { TestMuleUtils } from 'test-mule';
+import { withBrowser, devices } from 'test-mule';
 import { Liquid } from 'liquidjs';
 import * as path from 'path';
 const iPhone = devices['iPhone 11'];
 
-var engine = new Liquid({
+const engine = new Liquid({
   root: path.join(__dirname, 'templates'),
   extname: '.html.liquid',
 });
@@ -17,9 +18,10 @@ const renderMenu = async ({
   data: MenuData;
   initJS?: boolean;
 }) => {
-  const html =
-    (await engine.renderFile('index', data)) +
-    `<main><p>${mainContentText}</p></main>`;
+  const html = `${await engine.renderFile(
+    'index',
+    data,
+  )}<main><p>${mainContentText}</p></main>`;
   await utils.injectHTML(html);
   await utils.loadCSS('./index.css');
   if (initJS) {
@@ -91,7 +93,7 @@ test(
     const loginBtn = await screen.getByRole('link', { name: /log in/i });
     await expect(loginBtn).toHaveAttribute('href');
 
-    // open the "about" menu and check its contents
+    // Open the "about" menu and check its contents
     await user.click(aboutBtn);
     await expect(await screen.getByText(aboutText)).toBeVisible();
   }),

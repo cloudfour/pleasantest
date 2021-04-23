@@ -28,17 +28,17 @@ test(
           `);
 
     await expect(deleteButton).toHaveClass('btn-danger extra btn', {
-      // to check if the element has EXACTLY a set of classes
+      // To check if the element has EXACTLY a set of classes
       exact: true,
     });
 
     await expect(deleteButton).not.toHaveClass('btn-danger extra', {
-      // if it has more than expected it is going to fail
+      // If it has more than expected it is going to fail
       exact: true,
     });
     await expect(
       expect(deleteButton).toHaveClass('btn-danger extra', {
-        // if it has more than expected it is going to fail
+        // If it has more than expected it is going to fail
         exact: true,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -51,7 +51,7 @@ test(
           `);
 
     await expect(deleteButton).not.toHaveClass('btn-danger extra', {
-      // if it has more than expected it is going to fail
+      // If it has more than expected it is going to fail
       exact: true,
     });
 

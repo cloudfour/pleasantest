@@ -64,6 +64,7 @@ function bundlePlugin() {
       if (resolved) {
         resolved.id = `\0bundle:${resolved.id}`;
       }
+
       return resolved;
     },
     resolveFileUrl({ relativePath, format }) {
@@ -73,8 +74,10 @@ function bundlePlugin() {
     },
     resolveImportMeta(property, { format }) {
       if (property === 'url' && format === 'cjs') {
+        // eslint-disable-next-line no-template-curly-in-string
         return '`file://${__filename}`';
       }
+
       return null;
     },
     async load(id) {

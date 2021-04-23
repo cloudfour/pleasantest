@@ -47,9 +47,10 @@ export const testMuleUser = (
             try {
               utils.assertAttached(clickEl);
               if (!force) utils.assertVisible(clickEl);
-            } catch (e) {
-              return e;
+            } catch (error) {
+              return error;
             }
+
             if (!force) {
               const clickElRect = clickEl.getBoundingClientRect();
 
@@ -102,23 +103,25 @@ ${coveringEl}`;
       // => ["something", "{backspace}", "something", "{enter}"]
       const chunks: string[] = [];
       while (text) {
-        if (text.startsWith('{')) {
-          text = text.replace(
-            /^{[^{}]*}/,
-            (substr) => (chunks.push(substr.toLowerCase()), ''),
-          );
-        } else {
-          text = text.replace(/^[^{]*/, (substr) => (chunks.push(substr), ''));
-        }
+        text = text.startsWith('{')
+          ? text.replace(/^{[^{}]*}/, (substr) => {
+              chunks.push(substr.toLowerCase());
+              return '';
+            })
+          : text.replace(/^[^{]*/, (substr) => {
+              chunks.push(substr);
+              return '';
+            });
       }
+
       await el
         .evaluateHandle(
           runWithUtils((utils, el, force: boolean) => {
             try {
               utils.assertAttached(el);
               if (!force) utils.assertVisible(el);
-            } catch (e) {
-              return e;
+            } catch (error) {
+              return error;
             }
 
             if (document.activeElement === el) {
@@ -183,7 +186,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
   return user;
 };
 
-// note: command chunks are already lowercased so it is not case-sensitive
+// Note: command chunks are already lowercased so it is not case-sensitive
 // left side: command
 // right side: passed to pptr keyboard.press, full list at https://github.com/puppeteer/puppeteer/blob/main/src/common/USKeyboardLayout.ts
 const typeCommandsMap: Record<string, string> = {
@@ -239,11 +242,12 @@ const throwBrowserError = (func: (...params: any) => any) => async (
       const errorProperties = Object.fromEntries(
         await errorProp.getProperties(),
       );
+      // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
       if (errorProperties.msgWithStringEls && errorProperties.msgWithLiveEls) {
         err = new Error(
           (await errorProperties.msgWithStringEls.jsonValue()) as any,
         );
-        // @ts-expect-error
+        // @ts-expect-error messageForBrowser is a custom thing
         err.messageForBrowser = await jsHandleToArray(
           errorProperties.msgWithLiveEls,
         );
@@ -251,8 +255,10 @@ const throwBrowserError = (func: (...params: any) => any) => async (
         err = new Error((await errorProp.jsonValue()) as any);
       }
     }
+
     removeFuncFromStackTrace(err, func);
     throw err;
   }
+
   return result;
 };

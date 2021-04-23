@@ -17,6 +17,7 @@ test('printErrorFrames', async () => {
   `);
 });
 
+// eslint-disable-next-line @cloudfour/typescript-eslint/require-await
 const fnThatThrows = async () => {
   throw new Error('this is an error');
 };

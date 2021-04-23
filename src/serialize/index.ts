@@ -1,4 +1,4 @@
-interface Handler<T, Serialized extends {}> {
+interface Handler<T, Serialized extends unknown> {
   name: string;
   toObj(input: T): Serialized;
   fromObj(input: Serialized): T;
@@ -20,18 +20,20 @@ export const addToElementCache = (el: Element) => {
   const index = ELEMENT_CACHE.push(el) - 1;
   return `$$STRINGIFIED_ELEMENT_${index}$$`;
 };
+
 /** Replaces stringified elements with live elements in a string */
 export const reviveElementsInString = (str: string) => {
-  let match,
-    out = [],
-    lastFoundIndex = 0;
-  const rgx = /\$\$STRINGIFIED_ELEMENT_([0-9]*)\$\$/g;
+  const out = [];
+  let match;
+  let lastFoundIndex = 0;
+  const rgx = /\$\$STRINGIFIED_ELEMENT_(\d*)\$\$/g;
   while ((match = rgx.exec(str))) {
     out.push(str.slice(lastFoundIndex, match.index));
     const elId = match[1];
     out.push(ELEMENT_CACHE[Number(elId)]);
     lastFoundIndex = match.index + match[0].length;
   }
+
   out.push(str.slice(lastFoundIndex));
   return out;
 };
@@ -78,32 +80,34 @@ export const printElement = (el: Element | Document, depth = 3) => {
         (el.childNodes.length === 1 && el.childNodes[0] instanceof Text));
     for (const child of el.childNodes) {
       if (child instanceof Element) {
-        contents +=
-          '\n  ' + printElement(child, depth - 1).replace(/\n/g, '\n  ');
+        contents += `\n  ${printElement(child, depth - 1).replace(
+          /\n/g,
+          '\n  ',
+        )}`;
       } else if (child instanceof Text) {
-        contents += (singleLine ? '' : '\n  ') + child.textContent;
+        contents += `${singleLine ? '' : '\n  '}${child.textContent}`;
       }
     }
+
     if (!singleLine) contents += '\n';
   } else {
     contents = '[...]';
   }
+
   const tagName = el.tagName.toLowerCase();
   const selfClosing = el.childNodes.length === 0;
-  return (
-    '<' +
-    tagName +
-    (attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' ') +
-    attrs
-      .map((attr) => {
-        // @ts-expect-error
-        if (attr.value === '' && typeof el[attr.name] === 'boolean')
-          return attr.name;
-        return attr.name + '="' + attr.value + '"';
-      })
-      .join(splitAttrs ? '\n  ' : ' ') +
-    (selfClosing ? (splitAttrs ? '\n' : ' ') + '/' : splitAttrs ? '\n' : '') +
-    '>' +
-    (selfClosing ? '' : contents + '</' + tagName + '>')
-  );
+  return `<${tagName}${
+    attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' '
+  }${attrs
+    .map((attr) => {
+      if (
+        attr.value === '' &&
+        typeof el[attr.name as keyof Element] === 'boolean'
+      )
+        return attr.name;
+      return `${attr.name}="${attr.value}"`;
+    })
+    .join(splitAttrs ? '\n  ' : ' ')}${
+    selfClosing ? `${splitAttrs ? '\n' : ' '}/` : splitAttrs ? '\n' : ''
+  }>${selfClosing ? '' : `${contents}</${tagName}>`}`;
 };

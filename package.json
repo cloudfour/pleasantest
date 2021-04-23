@@ -13,22 +13,23 @@
     "@babel/preset-typescript": "^7.13.0",
     "@changesets/changelog-github": "^0.2.8",
     "@changesets/cli": "^2.14.1",
+    "@cloudfour/eslint-plugin": "^16.0.0",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-node-resolve": "^11.2.0",
     "@testing-library/dom": "^7.29.4",
     "@testing-library/jest-dom": "^5.11.9",
     "@types/jest": "^26.0.20",
-    "@types/jscodeshift": "^0.7.2",
     "@types/node": "^14.14.31",
     "@types/puppeteer": "^5.4.3",
     "ansi-regex": "^5.0.0",
+    "aria-query": "*",
     "babel-plugin-un-cjs": "^2.3.0",
     "env-paths": "^2.2.0",
     "errorstacks": "^2.3.0",
     "esbuild-jest": "^0.5.0",
+    "eslint": "^7.22.0",
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
-    "jscodeshift": "^0.11.0",
     "kolorist": "^1.2.10",
     "liquidjs": "^9.22.1",
     "preact": "^10.5.12",
@@ -50,6 +51,26 @@
     "source-map": "^0.7.3",
     "vite": "2.0.0-beta.52"
   },
+  "eslintConfig": {
+    "extends": "plugin:@cloudfour/recommended",
+    "rules": {
+      "@cloudfour/unicorn/filename-case": "off",
+      "no-new-func": "off",
+      "no-await-in-loop": "off",
+      "@cloudfour/typescript-eslint/no-implied-eval": "off",
+      "@cloudfour/typescript-eslint/no-misused-promises": "off",
+      "@cloudfour/jsdoc/check-tag-names": [
+        "error",
+        {
+          "jsxTags": true,
+          "definedTags": [
+            "jest-environment"
+          ]
+        }
+      ],
+      "@cloudfour/typescript-eslint/no-non-null-assertion": "off"
+    }
+  },
   "prettier": {
     "singleQuote": true,
     "trailingComma": "all"
@@ -68,8 +89,8 @@
     "build:watch": "rollup -c rollup.config.js --watch",
     "type": "tsc",
     "type:watch": "tsc --watch",
-    "lint": "prettier --write . && remark . --frail",
-    "check-lint": "prettier --check . && remark . --frail",
+    "lint:check": "eslint . && prettier --check . && remark . --frail",
+    "lint": "eslint --fix . && prettier --write . && remark . --frail",
     "changeset": "changeset",
     "version": "changeset version && prettier --write .",
     "release": "npm run build && changeset publish"

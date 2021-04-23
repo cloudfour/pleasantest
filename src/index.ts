@@ -2,7 +2,8 @@ import * as puppeteer from 'puppeteer';
 import type * as vite from 'vite';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { BoundQueries, getQueriesForElement } from './pptr-testing-library';
+import type { BoundQueries } from './pptr-testing-library';
+import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -11,10 +12,11 @@ import { ansiColorsLog } from './ansi-colors-browser';
 import { createServer, port } from './vite-server';
 import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
+import type { TestMuleUser } from './user';
+import { testMuleUser } from './user';
+import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
-import { testMuleUser, TestMuleUser } from './user';
-import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 export type { TestMuleUser };
 
 export interface TestMuleUtils {
@@ -52,7 +54,7 @@ export interface TestMuleContext {
   user: TestMuleUser;
 }
 
-let serverPromise: Promise<vite.ViteDevServer>;
+let serverPromise: Promise<vite.ViteDevServer> | undefined;
 
 export interface WithBrowserOpts {
   headless?: boolean;
@@ -83,10 +85,11 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const options: WithBrowserOpts = args.length === 1 ? {} : args[0];
   const thisFile = fileURLToPath(import.meta.url);
   // Figure out the file that called withBrowser so that we can resolve paths correctly from there
+  // eslint-disable-next-line @cloudfour/unicorn/error-message
   const stack = parseStackTrace(new Error().stack as string).map(
     (stackFrame) => {
       if (stackFrame.fileName) return stackFrame.fileName;
-      return /\s*at\s+([\w/\-.]*)/.exec(stackFrame.raw)?.[1];
+      return /\s*at\s+([\w./-]*)/.exec(stackFrame.raw)?.[1];
     },
   );
   const testFile = stack.find((stackItem) => {
@@ -95,7 +98,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
     if (stackItem === thisFile) return false;
     // ignore if it is an internal-to-node thing
     if (!stackItem.startsWith('/')) return false;
-    // find the first item that is not the current file
+    // Find the first item that is not the current file
     return true;
   });
 
@@ -108,15 +111,17 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
       if (!leaveOpen || options.headless) {
         await ctx.page.close();
       }
+
       ctx.page.browser().disconnect();
     };
+
     try {
       await testFn(ctx);
     } catch (error) {
       const messageForBrowser: undefined | unknown[] =
-        // this is how we attach the elements to the error from testing-library
+        // This is how we attach the elements to the error from testing-library
         error?.messageForBrowser ||
-        // this is how we attach the elements to the error from jest-dom
+        // This is how we attach the elements to the error from jest-dom
         error?.matcherResult?.messageForBrowser;
       // Jest hangs when sending the error
       // from the worker process up to the main process
@@ -125,11 +130,14 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
       if (error.matcherResult) delete error.matcherResult.messageForBrowser;
       delete error.messageForBrowser;
       if (!options.headless) {
-        let failureMessage: unknown[] = [bold(white(bgRed(' FAIL '))) + '\n\n'];
+        const failureMessage: unknown[] = [
+          `${bold(white(bgRed(' FAIL ')))}\n\n`,
+        ];
         const testName = getTestName();
         if (testName) {
-          failureMessage.push(bold(red(`● ${testName}`)) + '\n\n');
+          failureMessage.push(`${bold(red(`● ${testName}`))}\n\n`);
         }
+
         if (messageForBrowser) {
           failureMessage.push(
             ...messageForBrowser.map((segment: unknown, i) => {
@@ -137,6 +145,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
               if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
                 return indent(segment, false);
               }
+
               return indent(segment);
             }),
           );
@@ -148,9 +157,11 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
           console.log(...colorErr);
         }, ...(ansiColorsLog(...failureMessage) as any));
       }
+
       await cleanup(true);
       throw error;
     }
+
     await cleanup(false);
   };
 };
@@ -174,14 +185,14 @@ const indent = (input: string, indentFirstLine = true) =>
     .split('\n')
     .map((line, i) => {
       if (!indentFirstLine && i === 0) return line;
-      // if there is an escape code at the beginning of the line
+      // If there is an escape code at the beginning of the line
       // put the tab after the escape code
       // the reason for this is to prevent the indentation from getting messed up from wrapping
       // you can see this if you squish the devools window
-      const match = line.match(ansiRegex);
-      if (!match || match.index !== 0) return '  ' + line;
+      const match = ansiRegex.exec(line);
+      if (!match || match.index !== 0) return `  ${line}`;
       const insertPoint = match[0].length;
-      return line.slice(0, insertPoint) + '  ' + line.slice(insertPoint);
+      return `${line.slice(0, insertPoint)}  ${line.slice(insertPoint)}`;
     })
     .join('\n');
 
@@ -208,14 +219,15 @@ const createTab = async ({
       await session.send('Browser.setWindowBounds', {
         windowId,
         bounds: {
-          // allow space for devtools
+          // Allow space for devtools
           // start-disowned-browser.ts sets the devtools preferences with default width
           width: device.viewport.width + 450,
-          height: device.viewport.height + 79, // allow space for toolbar
+          height: device.viewport.height + 79, // Allow space for toolbar
         },
       });
       await session.detach();
     }
+
     await page.emulate(device);
   }
 
@@ -253,10 +265,11 @@ const createTab = async ({
       ),
       caller,
     );
-    return await page.evaluate(...args).catch((error) => {
+    return page.evaluate(...args).catch((error) => {
       if (state.isTestFinished && /target closed/i.test(error.message)) {
         throw forgotAwaitError;
       }
+
       throw error;
     });
   };
@@ -323,7 +336,7 @@ const createTab = async ({
       }
 
       fileName = localFileName;
-      return '    at ' + fileName + ':' + line + ':' + column;
+      return `    at ${fileName}:${line}:${column}`;
     });
     const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
     const specializedErrors = {
@@ -337,12 +350,9 @@ const createTab = async ({
     const ErrorConstructor = specializedErrors[errorName] || Error;
     const error = new ErrorConstructor(message);
 
-    error.stack =
-      errorName +
-      ': ' +
-      message +
-      '\n' +
-      (await Promise.all(modifiedStack)).join('\n');
+    error.stack = `${errorName}: ${message}\n${(
+      await Promise.all(modifiedStack)
+    ).join('\n')}`;
     throw error;
   };
 
@@ -400,7 +410,7 @@ const createTab = async ({
 
   const screen = getQueriesForElement(page, state);
 
-  // the | null is so you can pass directly the result of page.$() which returns null if not found
+  // The | null is so you can pass directly the result of page.$() which returns null if not found
   const within: TestMuleContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
