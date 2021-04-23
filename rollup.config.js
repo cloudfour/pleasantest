@@ -36,7 +36,8 @@ const mainConfig = {
 const typesConfig = {
   input: 'src/index.ts',
   output: [{ file: 'dist/index.d.ts', format: 'es' }],
-  plugins: [dts()],
+  external: ['puppeteer', 'vite', 'pretty-format'],
+  plugins: [dts({ respectExternal: true })],
 };
 
 export default [
