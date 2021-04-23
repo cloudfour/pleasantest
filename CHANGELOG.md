@@ -1,5 +1,11 @@
 # test-mule
 
+## 0.2.1
+
+### Patch Changes
+
+- [`ae4a89a`](https://github.com/cloudfour/test-mule/commit/ae4a89a2b822976d17ecb291a0b7b9c32cc1b6a6) [#53](https://github.com/cloudfour/test-mule/pull/53) Thanks [@calebeby](https://github.com/calebeby)! - Bundle types for `@testing-library/dom` so people don't have to install `@testing-library/dom` (closes [#50](https://github.com/cloudfour/test-mule/issues/50))
+
 ## 0.2.0
 
 ### Minor Changes
