@@ -1,5 +1,11 @@
 # test-mule
 
+## 0.2.2
+
+### Patch Changes
+
+- [`31cc1a9`](https://github.com/cloudfour/test-mule/commit/31cc1a91e0ebf1a0ec9f82ed2575acf7371bb9b1) [#55](https://github.com/cloudfour/test-mule/pull/55) Thanks [@calebeby](https://github.com/calebeby)! - Export `JSHandle` and `ElementHandle` types from puppeteer. Now if you want to use those types you can import them directly from test-mule.
+
 ## 0.2.1
 
 ### Patch Changes
