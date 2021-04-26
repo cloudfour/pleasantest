@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 import type { TestMuleUser } from './user';
 import { testMuleUser } from './user';
 import { assertElementHandle, removeFuncFromStackTrace } from './utils';
+export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
 export type { TestMuleUser };
