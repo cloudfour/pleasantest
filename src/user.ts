@@ -17,6 +17,10 @@ export interface TestMuleUser {
     text: string,
     options?: { delay?: number; force?: boolean },
   ): Promise<void>;
+  clear(
+    element: ElementHandle | null,
+    options?: { force?: boolean },
+  ): Promise<void>;
 }
 
 const forgotAwaitMsg =
@@ -85,7 +89,7 @@ ${coveringEl}`;
     // - The names of the commands in curly brackets are mirroring the user-event command names
     //   *NOT* the Cypress names.
     //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
-    async type(el, text, { delay = 10, force = false } = {}) {
+    async type(el, text, { delay = 1, force = false } = {}) {
       assertElementHandle(el, user.type);
 
       const forgotAwaitError = removeFuncFromStackTrace(
@@ -124,18 +128,23 @@ ${coveringEl}`;
               return error;
             }
 
-            if (document.activeElement === el) {
-              // No need to focus it, it is already focused
-              // We won't move the cursor to the end either because that could be unexpected
-            } else if (
+            if (
               el instanceof HTMLInputElement ||
               el instanceof HTMLTextAreaElement
             ) {
+              // No need to focus it if it is already focused
+              // We won't move the cursor to the end either because that could be unexpected
+              if (document.activeElement === el) return;
+
               el.focus();
               // Move cursor to the end
               const end = el.value.length;
               el.setSelectionRange(end, end);
             } else if (el instanceof HTMLElement && el.isContentEditable) {
+              // No need to focus it if it is already focused
+              // We won't move the cursor to the end either because that could be unexpected
+              if (document.activeElement === el) return;
+
               el.focus();
               const range = el.ownerDocument.createRange();
               range.selectNodeContents(el);
@@ -181,6 +190,52 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
           await page.keyboard.type(chunk, { delay }).catch(handleForgotAwait);
         }
       }
+    },
+    async clear(el, { force = false } = {}) {
+      assertElementHandle(el, user.clear);
+
+      const forgotAwaitError = removeFuncFromStackTrace(
+        new Error(forgotAwaitMsg),
+        user.clear,
+      );
+      const handleForgotAwait = (error: Error) => {
+        throw state.isTestFinished && /target closed/i.test(error.message)
+          ? forgotAwaitError
+          : error;
+      };
+
+      await el
+        .evaluateHandle(
+          runWithUtils((utils, el, force: boolean) => {
+            try {
+              utils.assertAttached(el);
+              if (!force) utils.assertVisible(el);
+            } catch (error) {
+              return error;
+            }
+          }),
+          force,
+        )
+        .then(throwBrowserError(user.clear))
+        .catch(handleForgotAwait);
+
+      await el
+        .evaluateHandle(
+          runWithUtils((utils, el) => {
+            if (
+              el instanceof HTMLInputElement ||
+              el instanceof HTMLTextAreaElement
+            ) {
+              el.select();
+            } else {
+              return utils.error`user.clear command is only available for <input> and textarea elements, received: ${el}`;
+            }
+          }),
+        )
+        .then(throwBrowserError(user.clear))
+        .catch(handleForgotAwait);
+
+      await page.keyboard.press('Backspace');
     },
   };
   return user;

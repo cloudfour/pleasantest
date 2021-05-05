@@ -444,11 +444,13 @@ test(
 );
 ```
 
-#### `TestMuleUser.type(element: ElementHandle, text: string, options?: { force?: boolean }): Promise<void>`
+#### `TestMuleUser.type(element: ElementHandle, text: string, options?: { force?: boolean, delay?: number }): Promise<void>`
 
 Types text into an element, if the element is visible. The element must be an `<input>` or `<textarea>` or have `[contenteditable]`.
 
 If the element already has text in it, the additional text is appended to the existing text. **This is different from Puppeteer and Playwright's default .type behavior**.
+
+The `delay` option controls the amount of time (ms) between keypresses (defaults to 1ms).
 
 **Actionability checks**: It refuses to type into elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
@@ -477,6 +479,24 @@ test(
       button,
       'this is some text..{backspace}{arrowleft} asdf',
     );
+  }),
+);
+```
+
+#### `TestMuleUser.clear(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
+
+Clears a text input's value, if the element is visible. The element must be an `<input>` or `<textarea>`.
+
+**Actionability checks**: It refuses to clear elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'clear example',
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML('<input value="text"/>');
+    const button = await user.clear(button);
   }),
 );
 ```
