@@ -12,11 +12,13 @@ export interface TestMuleUser {
     element: ElementHandle | null,
     options?: { force?: boolean },
   ): Promise<void>;
+  /** Types text into an element, if the element is visible. The element must be an `<input>` or `<textarea>` or have `[contenteditable]`. */
   type(
     element: ElementHandle | null,
     text: string,
     options?: { delay?: number; force?: boolean },
   ): Promise<void>;
+  /** Clears a text input's value, if the element is visible. The element must be an `<input>` or `<textarea>`. */
   clear(
     element: ElementHandle | null,
     options?: { force?: boolean },
