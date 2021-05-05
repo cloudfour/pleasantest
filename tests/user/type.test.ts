@@ -15,7 +15,7 @@ test(
     await user.type(input, 'hiiiiiiii');
     const heading = await screen.getByRole('heading');
     // 9 input events should have fired
-    expect(await heading.evaluate((h) => Number(h.innerHTML))).toEqual(9);
+    await expect(heading).toHaveTextContent('9');
     await expect(input).toHaveValue('hiiiiiiii');
   }),
 );
