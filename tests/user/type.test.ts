@@ -1,8 +1,4 @@
-import type { ElementHandle } from 'puppeteer';
 import { withBrowser } from 'test-mule';
-
-type InputHandle = ElementHandle<HTMLInputElement>;
-type FormHandle = ElementHandle<HTMLFormElement>;
 
 test(
   'element text changes, and separate input events are fired',
@@ -11,11 +7,11 @@ test(
       `<input oninput="document.querySelector('h1').innerHTML++"/>
       <h1>0</h1>`,
     );
-    const input: InputHandle = await screen.getByRole('textbox');
+    const input = await screen.getByRole('textbox');
     await user.type(input, 'hiiiiiiii');
     const heading = await screen.getByRole('heading');
     // 9 input events should have fired
-    expect(await heading.evaluate((h) => Number(h.innerHTML))).toEqual(9);
+    await expect(heading).toHaveTextContent('9');
     await expect(input).toHaveValue('hiiiiiiii');
   }),
 );
@@ -24,7 +20,7 @@ test(
   'appends to existing text (<input />)',
   withBrowser(async ({ user, utils, screen }) => {
     await utils.injectHTML(`<input value="1234" />`);
-    const input: InputHandle = await screen.getByRole('textbox');
+    const input = await screen.getByRole('textbox');
     await user.type(input, '5678');
     await expect(input).toHaveValue('12345678');
   }),
@@ -34,7 +30,7 @@ test(
   'appends to existing text (<textarea />)',
   withBrowser(async ({ user, utils, screen }) => {
     await utils.injectHTML(`<textarea>1234</textarea>`);
-    const textarea: InputHandle = await screen.getByRole('textbox');
+    const textarea = await screen.getByRole('textbox');
     await user.type(textarea, '5678');
     await expect(textarea).toHaveValue('12345678');
   }),
@@ -45,9 +41,9 @@ test(
   withBrowser(async ({ user, utils, screen }) => {
     // Directly on the contenteditable element
     await utils.injectHTML(`<div contenteditable role="textbox">1234</div>`);
-    const div: InputHandle = await screen.getByRole('textbox');
+    const div = await screen.getByRole('textbox');
     await user.type(div, '5678');
-    expect(await div.evaluate((div) => div.textContent)).toEqual('12345678');
+    await expect(div).toHaveTextContent('12345678');
 
     // Ancestor element is contenteditable
     await utils.injectHTML(`<div contenteditable><a href="hi">1234</a></div>`);
@@ -66,8 +62,8 @@ describe('special character sequences', () => {
       await utils.injectHTML(
         `<form name="searchForm" onsubmit="event.preventDefault(); this.remove()"><input value="1234" /></form>`,
       );
-      const input: InputHandle = await screen.getByRole('textbox');
-      const form: FormHandle = await screen.getByRole('form');
+      const input = await screen.getByRole('textbox');
+      const form = await screen.getByRole('form');
       await expect(form).toBeInTheDocument();
       // It shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{eNtEr}');
@@ -79,7 +75,7 @@ describe('special character sequences', () => {
     '{enter} in <textarea> adds newline',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
-      const input: InputHandle = await screen.getByRole('textbox');
+      const input = await screen.getByRole('textbox');
       // It shouldn't care about the capitalization in the command sequences
       await user.type(input, 'hello{ENteR}hello2');
       await expect(input).toHaveValue('1234hello\nhello2');
@@ -89,7 +85,7 @@ describe('special character sequences', () => {
     'arrow keys',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
-      const input: InputHandle = await screen.getByRole('textbox');
+      const input = await screen.getByRole('textbox');
       await user.type(input, '56{arrowleft}insert');
       await expect(input).toHaveValue('12345insert6');
     }),
@@ -107,8 +103,8 @@ describe('special character sequences', () => {
           <textarea></textarea>
         </label
       `);
-      const nameBox: InputHandle = await screen.getByLabelText(/name/i);
-      const descriptionBox: InputHandle = await screen.getByLabelText(/desc/i);
+      const nameBox = await screen.getByLabelText(/name/i);
+      const descriptionBox = await screen.getByLabelText(/desc/i);
       await user.type(nameBox, '1234{tab}5678');
       await expect(nameBox).toHaveValue('1234');
       await expect(descriptionBox).toHaveValue('5678');
@@ -118,7 +114,7 @@ describe('special character sequences', () => {
     '{backspace} and {del}',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
-      const input: InputHandle = await screen.getByRole('textbox');
+      const input = await screen.getByRole('textbox');
       await user.type(input, '56{arrowleft}{backspace}');
       await expect(input).toHaveValue('12346');
       await user.type(input, '{arrowleft}{arrowleft}{del}');
@@ -129,7 +125,7 @@ describe('special character sequences', () => {
     '{selectall}',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<textarea>1234</textarea>`);
-      const input: InputHandle = await screen.getByRole('textbox');
+      const input = await screen.getByRole('textbox');
       await user.type(input, '56{selectall}{backspace}abc');
       await expect(input).toHaveValue('abc');
     }),
@@ -138,9 +134,7 @@ describe('special character sequences', () => {
     '{selectall} throws if used on contenteditable',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<div contenteditable>hello</div>`);
-      const div: ElementHandle<HTMLDivElement> = await screen.getByText(
-        'hello',
-      );
+      const div = await screen.getByText('hello');
       await expect(
         user.type(div, '{selectall}'),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -154,7 +148,7 @@ test(
   'delay',
   withBrowser(async ({ user, utils, screen }) => {
     await utils.injectHTML(`<textarea>1234</textarea>`);
-    const input: InputHandle = await screen.getByRole('textbox');
+    const input = await screen.getByRole('textbox');
     let startTime = Date.now();
     await user.type(input, '123');
     expect(Date.now() - startTime).toBeLessThan(100);
@@ -189,7 +183,7 @@ describe('actionability checks', () => {
     'refuses to type in element that is not visible',
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<input style="opacity: 0" />`);
-      const input: InputHandle = await screen.getByRole('textbox');
+      const input = await screen.getByRole('textbox');
       await expect(user.type(input, 'some text')).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot perform action on element that is not visible (it is near zero opacity):
