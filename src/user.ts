@@ -215,15 +215,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
             } catch (error) {
               return error;
             }
-          }),
-          force,
-        )
-        .then(throwBrowserError(user.clear))
-        .catch(handleForgotAwait);
 
-      await el
-        .evaluateHandle(
-          runWithUtils((utils, el) => {
             if (
               el instanceof HTMLInputElement ||
               el instanceof HTMLTextAreaElement
@@ -233,6 +225,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
               return utils.error`user.clear command is only available for <input> and textarea elements, received: ${el}`;
             }
           }),
+          force,
         )
         .then(throwBrowserError(user.clear))
         .catch(handleForgotAwait);
