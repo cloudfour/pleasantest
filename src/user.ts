@@ -66,14 +66,10 @@ export const testMuleUser = (
       await el
         .evaluateHandle(
           runWithUtils((utils, clickEl, force: boolean) => {
-            try {
-              utils.assertAttached(clickEl);
-              if (!force) utils.assertVisible(clickEl);
-            } catch (error) {
-              return error;
-            }
+            utils.assertAttached(clickEl);
 
             if (!force) {
+              utils.assertVisible(clickEl);
               const clickElRect = clickEl.getBoundingClientRect();
 
               // See if there is an element covering the center of the click target element
@@ -128,12 +124,8 @@ ${coveringEl}`;
       await el
         .evaluateHandle(
           runWithUtils((utils, el, force: boolean) => {
-            try {
-              utils.assertAttached(el);
-              if (!force) utils.assertVisible(el);
-            } catch (error) {
-              return error;
-            }
+            utils.assertAttached(el);
+            if (!force) utils.assertVisible(el);
 
             if (
               el instanceof HTMLInputElement ||
@@ -202,12 +194,8 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
       await el
         .evaluateHandle(
           runWithUtils((utils, el, force: boolean) => {
-            try {
-              utils.assertAttached(el);
-              if (!force) utils.assertVisible(el);
-            } catch (error) {
-              return error;
-            }
+            utils.assertAttached(el);
+            if (!force) utils.assertVisible(el);
 
             if (
               el instanceof HTMLInputElement ||
@@ -249,7 +237,14 @@ const runWithUtils = <Args extends any[], Return extends unknown>(
   return new Function(
     '...args',
     `return import("http://localhost:${port}/@test-mule/user-util")
-    .then((utils) => [utils, (0, ${fn.toString()})(utils, ...args)])
+    .then((utils) => {
+      try {
+        return [utils, (0, ${fn.toString()})(utils, ...args)]
+      } catch (error) {
+        if (error.error) error = error.error
+        return [utils, { error }]
+      }
+    })
     .then(([utils, result]) => {
       if (result && typeof result === 'object' && result.error) {
         const msgWithLiveEls = result.error
