@@ -28,6 +28,33 @@ export interface TestMuleUser {
 const forgotAwaitMsg =
   'Cannot interact with browser after test finishes. Did you forget to await?';
 
+/** Wraps each user method to catch errors that happen when user forgets to await */
+const wrapWithForgotAwait = (
+  user: TestMuleUser,
+  state: { isTestFinished: boolean },
+) => {
+  for (const key of Object.keys(user) as (keyof TestMuleUser)[]) {
+    const original = user[key];
+    // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
+    const wrapper = async (...args: any[]) => {
+      const forgotAwaitError = removeFuncFromStackTrace(
+        new Error(forgotAwaitMsg),
+        wrapper,
+      );
+
+      try {
+        return await (original as any)(...args);
+      } catch (error) {
+        throw state.isTestFinished && /target closed/i.test(error.message)
+          ? forgotAwaitError
+          : error;
+      }
+    };
+
+    user[key] = wrapper;
+  }
+};
+
 export const testMuleUser = (
   page: Page,
   state: { isTestFinished: boolean },
@@ -35,17 +62,6 @@ export const testMuleUser = (
   const user: TestMuleUser = {
     async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
-
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        user.click,
-      );
-
-      const handleForgotAwait = (error: Error) => {
-        throw state.isTestFinished && /target closed/i.test(error.message)
-          ? forgotAwaitError
-          : error;
-      };
 
       await el
         .evaluateHandle(
@@ -78,10 +94,9 @@ ${coveringEl}`;
           }),
           force,
         )
-        .then(throwBrowserError(user.click))
-        .catch(handleForgotAwait);
+        .then(throwBrowserError(user.click));
 
-      await el.click().catch(handleForgotAwait);
+      await el.click();
     },
 
     // Implementation notes:
@@ -93,16 +108,6 @@ ${coveringEl}`;
     //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
     async type(el, text, { delay = 1, force = false } = {}) {
       assertElementHandle(el, user.type);
-
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        user.type,
-      );
-      const handleForgotAwait = (error: Error) => {
-        throw state.isTestFinished && /target closed/i.test(error.message)
-          ? forgotAwaitError
-          : error;
-      };
 
       // Splits input into chunks
       // i.e. "something{backspace}something{enter} "
@@ -165,13 +170,12 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
           }),
           force,
         )
-        .then(throwBrowserError(user.type))
-        .catch(handleForgotAwait);
+        .then(throwBrowserError(user.type));
 
       for (const chunk of chunks) {
         const key = typeCommandsMap[chunk];
         if (key) {
-          await page.keyboard.press(key, { delay }).catch(handleForgotAwait);
+          await page.keyboard.press(key, { delay });
         } else if (chunk === '{selectall}') {
           await el
             .evaluateHandle(
@@ -186,25 +190,14 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
                 }
               }),
             )
-            .then(throwBrowserError(user.type))
-            .catch(handleForgotAwait);
+            .then(throwBrowserError(user.type));
         } else {
-          await page.keyboard.type(chunk, { delay }).catch(handleForgotAwait);
+          await page.keyboard.type(chunk, { delay });
         }
       }
     },
     async clear(el, { force = false } = {}) {
       assertElementHandle(el, user.clear);
-
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        user.clear,
-      );
-      const handleForgotAwait = (error: Error) => {
-        throw state.isTestFinished && /target closed/i.test(error.message)
-          ? forgotAwaitError
-          : error;
-      };
 
       await el
         .evaluateHandle(
@@ -227,12 +220,12 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
           }),
           force,
         )
-        .then(throwBrowserError(user.clear))
-        .catch(handleForgotAwait);
+        .then(throwBrowserError(user.clear));
 
       await page.keyboard.press('Backspace');
     },
   };
+  wrapWithForgotAwait(user, state);
   return user;
 };
 
