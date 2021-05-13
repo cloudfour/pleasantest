@@ -138,7 +138,7 @@ describe('special character sequences', () => {
       await expect(
         user.type(div, '{selectall}'),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"{selectall} command is only available for <input> and textarea elements, received: <div contenteditable=\\"\\">hello</div>"`,
+        `"{selectall} command is only available for <input> and <textarea> elements, received: <div contenteditable=\\"\\">hello</div>"`,
       );
     }),
   );

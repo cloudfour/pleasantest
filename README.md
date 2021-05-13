@@ -501,6 +501,32 @@ test(
 );
 ```
 
+#### `TestMuleUser.selectOptions(element: ElementHandle, values: ElementHandle | ElementHandle[] | string[] | string, options?: { force?: boolean }): Promise<void>`
+
+Selects the specified option(s) of a `<select>` or a `<select multiple>` element. Values can be passed as either strings (option values) or as [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle) references to elements.
+
+**Actionability checks**: It refuses to select in elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'select example',
+  withBrowser(async ({ utils, user, screen }) => {
+    await utils.injectHTML(`
+      <select>
+        <option value="1">A</option>
+        <option value="2">B</option>
+        <option value="3">C</option>
+      </select>,
+    `);
+    const selectEl = await screen.getByRole('combobox');
+    await user.selectOptions(selectEl, '2');
+    await expect(selectEl).toHaveValue('2');
+  }),
+);
+```
+
 ### Utilities API: `TestMuleUtils`
 
 The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#testmulecontextpage). This API is exposed via the [`utils` property in `TestMuleContext`](#testmulecontextutils-testmuleutils)
