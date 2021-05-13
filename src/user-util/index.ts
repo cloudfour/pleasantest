@@ -53,7 +53,7 @@ ${el}`;
 // returns { error: ['something bad happened', el]}
 export const error = (
   literals: TemplateStringsArray,
-  ...placeholders: Element[]
+  ...placeholders: (Element | string)[]
 ) => {
   return {
     error: literals.reduce((acc, val, i) => {

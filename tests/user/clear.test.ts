@@ -31,7 +31,7 @@ test(
     await utils.injectHTML(`<div contenteditable>text</div>`);
     const div = await screen.getByText(/text/);
     await expect(user.clear(div)).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"user.clear command is only available for <input> and textarea elements, received: <div contenteditable=\\"\\">text</div>"`,
+      `"user.clear is only available for <input> and <textarea> elements, received: <div contenteditable=\\"\\">text</div>"`,
     );
   }),
 );
@@ -42,7 +42,7 @@ test(
     await utils.injectHTML(`<div>text</div>`);
     const div = await screen.getByText(/text/);
     await expect(user.clear(div)).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"user.clear command is only available for <input> and textarea elements, received: <div>text</div>"`,
+      `"user.clear is only available for <input> and <textarea> elements, received: <div>text</div>"`,
     );
   }),
 );

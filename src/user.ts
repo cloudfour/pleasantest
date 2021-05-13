@@ -23,6 +23,12 @@ export interface TestMuleUser {
     element: ElementHandle | null,
     options?: { force?: boolean },
   ): Promise<void>;
+  /** Selects the specified option(s) of a <select> or a <select multiple> element. Values can be passed as either strings (option values) or as ElementHandle references to elements. */
+  selectOptions(
+    element: ElementHandle | null,
+    values: ElementHandle | ElementHandle[] | string[] | string,
+    options?: { force?: boolean },
+  ): Promise<void>;
 }
 
 const forgotAwaitMsg =
@@ -62,16 +68,13 @@ export const testMuleUser = (
   const user: TestMuleUser = {
     async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
-
       await el
         .evaluateHandle(
           runWithUtils((utils, clickEl, force: boolean) => {
             utils.assertAttached(clickEl);
-
             if (!force) {
               utils.assertVisible(clickEl);
               const clickElRect = clickEl.getBoundingClientRect();
-
               // See if there is an element covering the center of the click target element
               const coveringEl = document.elementFromPoint(
                 Math.floor(clickElRect.x + clickElRect.width / 2),
@@ -91,7 +94,6 @@ ${coveringEl}`;
           force,
         )
         .then(throwBrowserError(user.click));
-
       await el.click();
     },
 
@@ -126,7 +128,6 @@ ${coveringEl}`;
           runWithUtils((utils, el, force: boolean) => {
             utils.assertAttached(el);
             if (!force) utils.assertVisible(el);
-
             if (
               el instanceof HTMLInputElement ||
               el instanceof HTMLTextAreaElement
@@ -134,7 +135,6 @@ ${coveringEl}`;
               // No need to focus it if it is already focused
               // We won't move the cursor to the end either because that could be unexpected
               if (document.activeElement === el) return;
-
               el.focus();
               // Move cursor to the end
               const end = el.value.length;
@@ -143,7 +143,6 @@ ${coveringEl}`;
               // No need to focus it if it is already focused
               // We won't move the cursor to the end either because that could be unexpected
               if (document.activeElement === el) return;
-
               el.focus();
               const range = el.ownerDocument.createRange();
               range.selectNodeContents(el);
@@ -163,7 +162,6 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
           force,
         )
         .then(throwBrowserError(user.type));
-
       for (const chunk of chunks) {
         const key = typeCommandsMap[chunk];
         if (key) {
@@ -178,7 +176,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
                 ) {
                   el.select();
                 } else {
-                  return utils.error`{selectall} command is only available for <input> and textarea elements, received: ${el}`;
+                  return utils.error`{selectall} command is only available for <input> and <textarea> elements, received: ${el}`;
                 }
               }),
             )
@@ -190,27 +188,90 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
     },
     async clear(el, { force = false } = {}) {
       assertElementHandle(el, user.clear);
-
       await el
         .evaluateHandle(
           runWithUtils((utils, el, force: boolean) => {
             utils.assertAttached(el);
             if (!force) utils.assertVisible(el);
-
             if (
               el instanceof HTMLInputElement ||
               el instanceof HTMLTextAreaElement
             ) {
               el.select();
             } else {
-              return utils.error`user.clear command is only available for <input> and textarea elements, received: ${el}`;
+              return utils.error`user.clear is only available for <input> and <textarea> elements, received: ${el}`;
             }
           }),
           force,
         )
         .then(throwBrowserError(user.clear));
-
       await page.keyboard.press('Backspace');
+    },
+    async selectOptions(el, values, { force = false } = {}) {
+      assertElementHandle(el, user.selectOptions);
+      const valuesArray = Array.isArray(values) ? values : [values];
+      for (const value of valuesArray) {
+        // Make sure all values are strings or ElementHandles
+        if (typeof value !== 'string') {
+          assertElementHandle(
+            value,
+            user.selectOptions,
+            'values must be a string or ElementHandle or array of either of those.',
+          );
+        }
+      }
+
+      const valuesArrayHandle = await el
+        .evaluateHandle(
+          runWithUtils(
+            (
+              utils,
+              el,
+              force: boolean,
+              ...valuesArray: (string | ElementHandle)[]
+            ) => {
+              utils.assertAttached(el);
+              if (!force) utils.assertVisible(el);
+              if (!(el instanceof HTMLSelectElement))
+                return utils.error`user.selectOptions is only available for <select> elements, received: ${el}`;
+              if (valuesArray.length > 1 && !el.multiple)
+                return utils.error`Cannot select multiple options on a <select> element without the \`multiple\` attribute:\n\n${el}`;
+
+              const validOptions = new Set(
+                [...el.options].map((el) => el.value),
+              );
+
+              return valuesArray.map((value) => {
+                if (value instanceof HTMLOptionElement) {
+                  if (
+                    !validOptions.has(value.value) ||
+                    ![...el.options].includes(value)
+                  ) {
+                    throw utils.error`Could not select an option ${value}, it is not one of the valid options in the <select>. Valid options are: ${JSON.stringify(
+                      [...validOptions],
+                    )}`;
+                  }
+
+                  return value.value;
+                }
+
+                if (!validOptions.has(value as string))
+                  throw utils.error`Could not select an option ${JSON.stringify(
+                    value as string,
+                  )}, it is not one of the valid options in the <select>. Valid options are: ${JSON.stringify(
+                    [...validOptions],
+                  )}`;
+
+                return value;
+              });
+            },
+          ),
+          force,
+          ...(valuesArray as any),
+        )
+        .then(throwBrowserError(user.selectOptions));
+
+      await el.select(...((await valuesArrayHandle.jsonValue()) as any));
     },
   };
   wrapWithForgotAwait(user, state);

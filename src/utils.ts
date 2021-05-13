@@ -18,7 +18,12 @@ export const jsHandleToArray = async (arrayHandle: JSHandle) => {
 export const assertElementHandle: (
   input: unknown,
   fn: (...params: any[]) => any,
-) => asserts input is ElementHandle = (input, fn) => {
+  messageStart?: string,
+) => asserts input is ElementHandle = (
+  input,
+  fn,
+  messageStart = `element must be an ElementHandle\n\n`,
+) => {
   const type =
     input === null
       ? 'null'
@@ -26,7 +31,6 @@ export const assertElementHandle: (
       ? 'Promise'
       : typeof input;
 
-  const messageStart = `element must be an ElementHandle\n\n`;
   if (type === 'Promise') {
     throw removeFuncFromStackTrace(
       new Error(`${messageStart}Received Promise. Did you forget await?`),
