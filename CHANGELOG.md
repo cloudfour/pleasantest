@@ -1,5 +1,15 @@
 # test-mule
 
+## 0.3.0
+
+### Minor Changes
+
+- [`4e0335c`](https://github.com/cloudfour/test-mule/commit/4e0335c81b6ce1360109e79ddc2bb73a46d841fd) [#58](https://github.com/cloudfour/test-mule/pull/58) Thanks [@calebeby](https://github.com/calebeby)! - Implement `user.clear()`
+
+  Additionally, the default delay between keypresses in `user.type` has been decreased to 1ms.
+
+* [`f5c2fab`](https://github.com/cloudfour/test-mule/commit/f5c2fab83ca23e676a27b0c33f2ce6275f8eb59d) [#60](https://github.com/cloudfour/test-mule/pull/60) Thanks [@calebeby](https://github.com/calebeby)! - Implement `user.selectOptions()`
+
 ## 0.2.2
 
 ### Patch Changes
