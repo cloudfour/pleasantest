@@ -26,6 +26,7 @@
     "babel-plugin-un-cjs": "^2.3.0",
     "env-paths": "^2.2.0",
     "errorstacks": "^2.3.0",
+    "esbuild": "^0.11.21",
     "esbuild-jest": "^0.5.0",
     "eslint": "^7.22.0",
     "jest": "^26.6.3",
