@@ -167,7 +167,7 @@ test(
 );
 ```
 
-Sometimes, you may want to traverse the DOM tree to find parent, sibling, or descendant elements. Test Mule communicates asynchronously with the browser, so you do not have synchronous access to the DOM tree. You can use [`ElementHandle.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-elementhandleevaluatepagefunction-args) to run code in the browser using an `ElementHandle` returned from a query:
+Sometimes, you may want to traverse the DOM tree to find parent, sibling, or descendant elements. Test Mule communicates asynchronously with the browser, so you do not have synchronous access to the DOM tree. You can use [`ElementHandle.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatepagefunction-args) to run code in the browser using an `ElementHandle` returned from a query:
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -209,7 +209,7 @@ test(
 
 You can use the [User API](#user-api-testmuleuser) to perform actions in the browser.
 
-If the User API is missing a method that you need, you can instead use [methods on `ElementHandle`s directly](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-elementhandle)
+If the User API is missing a method that you need, you can instead use [methods on `ElementHandle`s directly](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)
 
 ```js
 test(
@@ -316,7 +316,7 @@ Call Signatures:
 `WithBrowserOpts`:
 
 - `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
-- `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-pageemulateoptions).
+- `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageemulateoptions).
 
 By default, `withBrowser` will launch a headless Chromium browser. You can tell it to instead launch a headed (visible) browser by chaining `.headed`:
 
@@ -353,7 +353,7 @@ The `devices` import from `test-mule` is re-exported from Puppeteer, you can see
 
 #### `TestMuleContext.screen`
 
-The `TestMuleContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Test Mule compared to Testing Library: in Test Mule, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-elementhandle)'s from Puppeteer.
+The `TestMuleContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Test Mule compared to Testing Library: in Test Mule, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)'s from Puppeteer.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -394,7 +394,7 @@ test(
 
 #### `TestMuleContext.page`
 
-The `TestMuleContext` object exposes the `page` property, which is an instance of Puppeteer's [`Page` class](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-class-page). This will most often be used for navigation ([`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-pagegotourl-options)), but you can do anything with it that you can do with puppeteer.
+The `TestMuleContext` object exposes the `page` property, which is an instance of Puppeteer's [`Page` class](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-page). This will most often be used for navigation ([`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegotourl-options)), but you can do anything with it that you can do with puppeteer.
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -425,7 +425,7 @@ The user API allows you to perform actions on behalf of the user. If you have us
 
 #### `TestMuleUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
 
-Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v7.0.1&show=api-elementhandleclickoptions). The difference is that `TestMuleUser.click` checks that the target element is an element that actually can be clicked before clicking it!
+Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleclickoptions). The difference is that `TestMuleUser.click` checks that the target element is an element that actually can be clicked before clicking it!
 
 **Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
@@ -454,7 +454,7 @@ The `delay` option controls the amount of time (ms) between keypresses (defaults
 
 **Actionability checks**: It refuses to type into elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
-In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-pagekeyboard)
+In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagekeyboard)
 
 | Text string    | Key        | Notes                                                                                   |
 | -------------- | ---------- | --------------------------------------------------------------------------------------- |
@@ -503,7 +503,7 @@ test(
 
 #### `TestMuleUser.selectOptions(element: ElementHandle, values: ElementHandle | ElementHandle[] | string[] | string, options?: { force?: boolean }): Promise<void>`
 
-Selects the specified option(s) of a `<select>` or a `<select multiple>` element. Values can be passed as either strings (option values) or as [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle) references to elements.
+Selects the specified option(s) of a `<select>` or a `<select multiple>` element. Values can be passed as either strings (option values) or as [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle) references to elements.
 
 **Actionability checks**: It refuses to select in elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
@@ -553,7 +553,7 @@ test(
 );
 ```
 
-To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
+To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
 
 ```js
 import { withBrowser } from 'test-mule';
@@ -685,7 +685,7 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 
 ### [pptr-testing-library](https://github.com/testing-library/pptr-testing-library) + Jest
 
-`pptr-testing-library` makes versions of the [Testing Library](https://testing-library.com) queries that work with Puppeteer's [ElementHandle](https://pptr.dev/#?product=Puppeteer&version=v7.1.0&show=api-class-elementhandle)s, similarly to how Test Mule does.
+`pptr-testing-library` makes versions of the [Testing Library](https://testing-library.com) queries that work with Puppeteer's [ElementHandle](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)s, similarly to how Test Mule does.
 
 - It does not make the [jest-dom](https://github.com/testing-library/jest-dom) assertions work with Puppeteer ElementHandles.
 - It does not manage the browser for you. You must manually set up and tear down the browser.

@@ -67,9 +67,11 @@ export function toHaveStyle(htmlElement, css) {
         );
       }
 
-      const receivedSubset = Object.fromEntries(
-        Object.entries(received).filter(([prop]) => prop in expected),
-      );
+      const receivedSubset = {};
+      for (const prop of Object.keys(expected)) {
+        receivedSubset[prop] = received[prop];
+      }
+
       return `${matcherHint}\n\n${this.utils.diff(
         printoutStyles(expected),
         printoutStyles(receivedSubset),
