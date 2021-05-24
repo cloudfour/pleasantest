@@ -29,7 +29,7 @@ ${el}`;
   let opacity = Number(style.opacity);
   let opacityEl: Element | null = el;
   while (opacity && (opacityEl = opacityEl.parentElement)) {
-    opacity *= (getComputedStyle(opacityEl).opacity as any) as number;
+    opacity *= getComputedStyle(opacityEl).opacity as any as number;
   }
 
   if (opacity < 0.05) {
