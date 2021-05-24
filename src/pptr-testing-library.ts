@@ -113,16 +113,15 @@ export const getQueriesForElement = (
           throw error;
         };
 
-        const result: JSHandle<
-          Element | Element[] | DTLError | null
-        > = await page
-          .evaluateHandle(
-            // Using new Function to avoid babel transpiling the import
-            // @ts-expect-error pptr's types don't like new Function
-            new Function(
-              'argsString',
-              'element',
-              `return import("http://localhost:${port}/@test-mule/dom-testing-library")
+        const result: JSHandle<Element | Element[] | DTLError | null> =
+          await page
+            .evaluateHandle(
+              // Using new Function to avoid babel transpiling the import
+              // @ts-expect-error pptr's types don't like new Function
+              new Function(
+                'argsString',
+                'element',
+                `return import("http://localhost:${port}/@test-mule/dom-testing-library")
               .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
                   if (value.__serialized === 'RegExp')
@@ -148,14 +147,14 @@ export const getQueriesForElement = (
                   return { failed: true, messageWithElementsRevived, messageWithElementsStringified }
                 }
               })`,
-            ),
-            serializedArgs,
-            element?.asElement() ||
-              (await page
-                .evaluateHandle(() => document)
-                .catch(handleExecutionAfterTestFinished)),
-          )
-          .catch(handleExecutionAfterTestFinished);
+              ),
+              serializedArgs,
+              element?.asElement() ||
+                (await page
+                  .evaluateHandle(() => document)
+                  .catch(handleExecutionAfterTestFinished)),
+            )
+            .catch(handleExecutionAfterTestFinished);
 
         const failed = await result.evaluate(
           (r) => typeof r === 'object' && r !== null && (r as DTLError).failed,
@@ -164,7 +163,8 @@ export const getQueriesForElement = (
           const resultProperties = Object.fromEntries(
             await result.getProperties(),
           );
-          const messageWithElementsStringified = (await resultProperties.messageWithElementsStringified.jsonValue()) as any;
+          const messageWithElementsStringified =
+            (await resultProperties.messageWithElementsStringified.jsonValue()) as any;
           const messageWithElementsRevived = await jsHandleToArray(
             resultProperties.messageWithElementsRevived,
           );
@@ -186,7 +186,7 @@ export const getQueriesForElement = (
           });
           const props = await result.getProperties();
           for (const [key, value] of props.entries()) {
-            array[(key as any) as number] = value;
+            array[key as any as number] = value;
           }
 
           return array;

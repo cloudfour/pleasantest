@@ -150,16 +150,14 @@ Received ${this.utils.printReceived(arg)}`,
             : (matcherResult) => matcherResult.message(),
         );
         const deserializedMessage = runJestUtilsInNode(message, this as any);
-        const {
-          messageWithElementsRevived,
-          messageWithElementsStringified,
-        } = await elementHandle
-          .evaluateHandle(
-            // @ts-expect-error pptr's types don't like new Function
-            new Function(
-              'el',
-              'message',
-              `return import("http://localhost:${port}/@test-mule/jest-dom")
+        const { messageWithElementsRevived, messageWithElementsStringified } =
+          await elementHandle
+            .evaluateHandle(
+              // @ts-expect-error pptr's types don't like new Function
+              new Function(
+                'el',
+                'message',
+                `return import("http://localhost:${port}/@test-mule/jest-dom")
               .then(({ reviveElementsInString, printElement }) => {
                 const messageWithElementsRevived = reviveElementsInString(message)
                 const messageWithElementsStringified = messageWithElementsRevived
@@ -170,21 +168,22 @@ Received ${this.utils.printReceived(arg)}`,
                   .join('')
                 return { messageWithElementsRevived, messageWithElementsStringified }
               })`,
-            ),
-            deserializedMessage,
-          )
-          .then(async (returnHandle) => {
-            const {
-              messageWithElementsRevived,
-              messageWithElementsStringified,
-            } = Object.fromEntries(await returnHandle.getProperties());
-            return {
-              messageWithElementsStringified: await messageWithElementsStringified.jsonValue(),
-              messageWithElementsRevived: await jsHandleToArray(
-                messageWithElementsRevived,
               ),
-            };
-          });
+              deserializedMessage,
+            )
+            .then(async (returnHandle) => {
+              const {
+                messageWithElementsRevived,
+                messageWithElementsStringified,
+              } = Object.fromEntries(await returnHandle.getProperties());
+              return {
+                messageWithElementsStringified:
+                  await messageWithElementsStringified.jsonValue(),
+                messageWithElementsRevived: await jsHandleToArray(
+                  messageWithElementsRevived,
+                ),
+              };
+            });
         if (thrownError) {
           const error = new Error(messageWithElementsStringified as any);
           // @ts-expect-error messageForBrowser is a property we added to Error
