@@ -64,7 +64,7 @@ describe('Waiting for Promises in executed code', () => {
       await utils.runJS(`
         const heading = document.querySelector('h1')
 
-        new Promise(r => setTimeout(r, 10))
+        new Promise(r => setTimeout(r, 50))
           .then(() => heading.remove())
       `);
 
@@ -82,7 +82,7 @@ describe('Waiting for Promises in executed code', () => {
       await utils.runJS(`
         const heading = document.querySelector('h1')
 
-        await new Promise(r => setTimeout(r, 10))
+        await new Promise(r => setTimeout(r, 50))
           .then(() => heading.remove())
       `);
       await expect(heading).not.toBeInTheDocument();
