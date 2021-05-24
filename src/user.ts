@@ -340,9 +340,10 @@ const throwBrowserError =
         const errorProperties = Object.fromEntries(
           await errorProp.getProperties(),
         );
-        // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
         if (
+          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
           errorProperties.msgWithStringEls &&
+          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
           errorProperties.msgWithLiveEls
         ) {
           err = new Error(
