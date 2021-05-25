@@ -1,0 +1,25 @@
+{
+  "extends": ["group:recommended", "group:monorepos"],
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "matchPackageNames": ["node"],
+      "enabled": false
+    },
+    {
+      "matchDepTypes": ["dependencies"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "matchPackageNames": ["puppeteer"],
+      "prBodyNotes": [
+        ":warning: **Warning:** Manually update the version numbers in URL's in README"
+      ],
+      "commitMessagePrefix": "[Requires manual changes]"
+    }
+  ],
+  "prConcurrentLimit": 5,
+  "stabilityDays": 5,
+  "prCreation": "status-success",
+  "dependencyDashboard": true
+}
