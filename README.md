@@ -28,7 +28,7 @@ Test Mule is a library that allows you test web applications using real browsers
   - [Utilities API: `TestMuleUtils`](#utilities-api-testmuleutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
-- [Limitations](#limitations)
+- [Limitations](#limitationsarchitectural-decisions)
 
 ## Usage
 
