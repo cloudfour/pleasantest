@@ -2,7 +2,7 @@
 
 Test Mule is a library that allows you test web applications using real browsers in your Jest tests. Test Mule is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
 
-Test Mule is driven by these goals:
+## Pleasantest Goals
 
 - Use a real browser so that the test environment is the same as what a real user uses.
 - Integrate with existing tests - browser testing should not be a "separate thing" from other tests.
@@ -14,10 +14,10 @@ Test Mule is driven by these goals:
 - [Usage](#usage)
   - [Getting Started](#getting-started)
   - [Loading Content](#loading-content)
-  - [Loading Styles](#loading-styles)
   - [Selecting Rendered Elements](#selecting-rendered-elements)
   - [Making Assertions](#making-assertions)
   - [Performing Actions](#performing-actions)
+  - [Loading Styles](#loading-styles)
   - [Troubleshooting/Debugging a Failing Test](#troubleshootingdebugging-a-failing-test)
   - [Actionability](#actionability)
 - [Full Example](#full-example)
@@ -126,26 +126,6 @@ test(
 );
 ```
 
-### Loading Styles
-
-If you loaded your content by navigating to a real page, you shouldn't have to worry about this; your CSS should already be loaded. Also, if you rendered your content using a client-side framework and you import your CSS (or Sass, Less, etc.) into your JS (i.e. `import './something.css'`), then it should also just work.
-
-Otherwise, you need to manually tell Test Mule to load your CSS, using [`utils.loadCSS`](#testmuleutilsloadcsscsspath-string-promisevoid)
-
-```js
-import { withBrowser } from 'test-mule';
-
-test(
-  'loading css with utils.loadCSS',
-  withBrowser(async ({ utils }) => {
-    // ... Whatever code you had before to load your content
-
-    // You can import CSS (or Sass, Less, etc.) files
-    await utils.loadCSS('./something.css');
-  }),
-);
-```
-
 ### Selecting Rendered Elements
 
 You can use [Testing Library queries](https://testing-library.com/docs/queries/about#overview) to find elements on the page. The goal is to select elements in a way similar to how a user would; for example by selecting based on a button's text rather than its class name.
@@ -227,6 +207,28 @@ test(
 
     // User API does not support `.hover` yet, so we perform the action directly on the ElementHandle instead:
     await loginButton.hover();
+  }),
+);
+```
+
+### Loading Styles
+
+This might be helpful if your tests depend on CSS classes that change the visibility of elements.
+
+If you loaded your content by navigating to a real page, you shouldn't have to worry about this; your CSS should already be loaded. Also, if you rendered your content using a client-side framework and you import your CSS (or Sass, Less, etc.) into your JS (i.e. `import './something.css'`), then it should also just work.
+
+Otherwise, you need to manually tell Test Mule to load your CSS, using [`utils.loadCSS`](#testmuleutilsloadcsscsspath-string-promisevoid)
+
+```js
+import { withBrowser } from 'test-mule';
+
+test(
+  'loading css with utils.loadCSS',
+  withBrowser(async ({ utils }) => {
+    // ... Whatever code you had before to load your content
+
+    // You can import CSS (or Sass, Less, etc.) files
+    await utils.loadCSS('./something.css');
   }),
 );
 ```
@@ -331,7 +333,7 @@ test(
 );
 ```
 
-The browser will close after the test finishes, if the test passed. You can force the browser to stay open by making the test fail by throwing something.
+If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something.
 
 You can also emulate a device viewport and user agent, by passing the `device` property to the options object in `withBrowser`:
 
