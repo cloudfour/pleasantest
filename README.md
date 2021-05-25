@@ -349,7 +349,7 @@ test(
 );
 ```
 
-The `devices` import from `test-mule` is re-exported from Puppeteer, you can see the full list of available devices [here](https://github.com/puppeteer/puppeteer/blob/v7.1.0/src/common/DeviceDescriptors.ts)
+The `devices` import from `test-mule` is re-exported from Puppeteer, [here is the full list of available devices](https://github.com/puppeteer/puppeteer/blob/v7.1.0/src/common/DeviceDescriptors.ts).
 
 ### `TestMuleContext` Object (passed into test function wrapped by `withBrowser`)
 
@@ -381,14 +381,13 @@ test(
   'test name',
   withBrowser(async ({ within, screen }) => {
     //                 ^^^^^^
-    const containerElement = await screen
-      .getByText(/hello/i)
-      .then((helloElement) => helloElement.parentElement);
+    const containerElement = await screen.getByText(/hello/i);
     const container = within(containerElement);
 
     // Now `container` has queries bound to the container element
     // You can use `container` in the same way as `screen`
 
+    // Find elements matching /some element/i within the container element.
     const someElement = await container.getByText(/some element/i);
   }),
 );
@@ -415,9 +414,13 @@ test(
 );
 ```
 
-#### `TestMuleContext.user`: [`TestMuleUser`](#user-api-testmuleuser)
+#### `TestMuleContext.user`: `TestMuleUser`
 
-#### `TestMuleContext.utils`: [`TestMuleUtils`](#utilities-api-testmuleutils)
+See the [`TestMuleUser`](#user-api-testmuleuser) documentation.
+
+#### `TestMuleContext.utils`: `TestMuleUtils`
+
+See the [`TestMuleUtils`](#utilities-api-testmuleutils) documentation.
 
 ### User API: `TestMuleUser`
 
@@ -477,8 +480,9 @@ test(
   'type example',
   withBrowser(async ({ utils, user, screen }) => {
     await utils.injectHTML('<input />');
-    const button = await user.type(
-      button,
+    const input = await screen.getByRole('textbox');
+    await user.type(
+      input,
       'this is some text..{backspace}{arrowleft} asdf',
     );
   }),
@@ -498,7 +502,8 @@ test(
   'clear example',
   withBrowser(async ({ utils, user, screen }) => {
     await utils.injectHTML('<input value="text"/>');
-    const button = await user.clear(button);
+    const input = await screen.getByRole('textbox');
+    await user.clear(input);
   }),
 );
 ```
@@ -667,7 +672,7 @@ test(
 
 ### [Cypress](https://www.cypress.io/)
 
-Cypress is an browser testing tool that specializes in end-to-end tests.
+Cypress is a browser testing tool that specializes in end-to-end tests.
 
 - Cypress is not integrated with Jest.
 - Cypress is not well-suited for testing individual components of an application, it specializes in end-to-end tests. Note: this will change as [Component Testing](https://docs.cypress.io/guides/component-testing/introduction.html#Getting-Started) support stabilizes.
@@ -709,14 +714,14 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 - Since it is its own test runner, it does not integrate with Jest, so you still have to run your non-browser tests separately. Fortunately, the test syntax is almost the same as Jest, and it uses Jest's `expect` as its library.
 - There is [no watch mode yet](https://github.com/microsoft/playwright-test/issues/33).
 
-## Limitations
+## Limitations/Architectural Decisions
+
+### Out of scope/separate projects
+
+- **Visual Regression Testing**: You can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action) to do visual regression testing.
+- **No Synchronous DOM Access**: Because Jest runs your tests, Test Mule will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Test Mule tests.
 
 ### Temporary Limitations
 
 - **Browser Support**: We only support Chromium for now. We have also tested connecting with Edge and that test was successful, but we do not yet expose an API for that. We will also support Firefox in the near future, since Puppeteer supports it. We have prototyped with integrating Firefox with Test Mule and we have seen that it works. We will not support Safari/Webkit [until Puppeteer supports it](https://github.com/puppeteer/puppeteer/issues/5984). We will not support Internet Explorer. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/32))
-- **Visual Regression Testing**: Test Mule does not have an integrated approach for screenshot diffing/visual regression testing. For now, you can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action), which should work fine. Eventually, we may have an integrated approach. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/33))
 - **Tied to Jest**: For now, Test Mule is designed to work with Jest, and not other test runners like Mocha or Ava. You could _probably_ make it work by loading Jest's `expect` into the other test runners, but this workflow has not been tested. ([Tracking issue](https://github.com/cloudfour/test-mule/issues/34))
-
-### Permanent Limitations
-
-- **No Synchronous DOM Access**: Because Jest runs your tests, Test Mule will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#testmuleutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Test Mule tests.
