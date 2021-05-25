@@ -481,10 +481,7 @@ test(
   withBrowser(async ({ utils, user, screen }) => {
     await utils.injectHTML('<input />');
     const input = await screen.getByRole('textbox');
-    await user.type(
-      input,
-      'this is some text..{backspace}{arrowleft} asdf',
-    );
+    await user.type(input, 'this is some text..{backspace}{arrowleft} asdf');
   }),
 );
 ```
