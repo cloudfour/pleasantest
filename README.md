@@ -334,7 +334,7 @@ test(
 );
 ```
 
-If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something.
+If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something, for example `throw new Error('leave the browser open')`
 
 You can also emulate a device viewport and user agent, by passing the `device` property to the options object in `withBrowser`:
 
