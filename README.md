@@ -27,6 +27,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
+- [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
 
@@ -671,7 +672,7 @@ import { withBrowser } from 'pleasantest';
 test(
   'jest-dom matchers example',
   withBrowser(async ({ screen }) => {
-    const button = await screen.getByText();
+    const button = await screen.getByRole('button');
     // jest-dom matcher -- Runs in browser, *must* be awaited
     await expect(button).toBeVisible();
     // Built-in Jest matcher -- Runs only in Node, does not need to be awaited
@@ -679,6 +680,60 @@ test(
   }),
 );
 ```
+
+## Puppeteer Tips
+
+Pleasantest uses [Puppeteer](https://github.com/puppeteer/puppeteer) under the hood. You don't need to know how to use Puppeteer in order to use Pleasantest, but a little bit of Puppeteer knowledge might come in handy. Here are the parts of Puppeteer that are most helpful and relevant for Pleasantest:
+
+### [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)
+
+An `ElementHandle` is a reference to a DOM element in the browser. When you use one of the [Testing Library queries](pleasantestcontext-screen) to find elements, the queries return promises that resolve to `ElementHandle`s.
+
+You can use the [`.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatepagefunction-args) method to execute code in the browser, using a reference to the actual `Element` instance that the `ElementHandle` points to. For example, if you want to get the [`innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) of an element:
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'Puppeteer .evaluate example',
+  withBrowser(async ({ screen }) => {
+    const button = await screen.getByRole('button');
+    const text = await button.evaluate((buttonEl) => {
+      // Everything inside this callback runs inside the browser
+
+      // buttonEl is the Element instance corresponding to the button ElementHandle
+      return buttonEl.innerText;
+    });
+    // text is the string that was returned by the evaluate callback
+  }),
+);
+```
+
+Sometimes, you may want to return another `ElementHandle` from the browser callback, or some other value that can't be serialized in order to be transferred from the browser to Node. To do this, you can use the [`.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatehandlepagefunction-args) method. In this example, we want to get a reference to the parent of an element.
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'Puppeteer .evaluate example',
+  withBrowser(async ({ screen }) => {
+    const button = await screen.getByRole('button');
+    const parentOfButton = await button.evaluateHandle((buttonEl) => {
+      // buttonEl is the Element instance corresponding to the button ElementHandle
+      return buttonEl.parentElement; // We return another Element
+    });
+    // parentOfButton is another ElementHandle
+  }),
+);
+```
+
+### [`Page`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-page)
+
+The page object is one of the properties that is passed into the test callback by [`withBrowser`](#withbrowser). You can use `.evaluate` and `.evaluateHandle` on `Page`, and those methods work the same as on `ElementHandle`.
+
+Here are some useful methods that are exposed through `Page`:
+
+[`page.cookies`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagecookiesurls), [`page.emulateMediaFeatures`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageemulatemediafeaturesfeatures), [`page.emulateNetworkConditions`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageemulatenetworkconditionsnetworkconditions), [`page.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageevaluatepagefunction-args), [`page.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageevaluatehandlepagefunction-args), [`page.exposeFunction`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageexposefunctionname-puppeteerfunction), [`page.goBack`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegobackoptions), [`page.goForward`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegoforwardoptions), [`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegotourl-options), [`page.metrics`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagemetrics), [`page.reload`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagereloadoptions), [`page.screenshot`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagescreenshotoptions), [`page.setGeolocation`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetgeolocationoptions), [`page.setOfflineMode`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetofflinemodeenabled), [`page.setRequestInterception`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetrequestinterceptionvalue-cachesafe), [`page.title`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagetitle), [`page.url`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageurl), [`page.waitForNavigation`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagewaitfornavigationoptions), [`page.browserContext().overridePermissions`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-browsercontextoverridepermissionsorigin-permissions), [`page.keyboard.press`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-keyboardpresskey-options), [`page.mouse.move`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-mousemovex-y-options), [`page.mouse.click`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-mouseclickx-y-options), [`page.touchscreen.tap`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-touchscreentapx-y)
 
 ## Comparisons with other testing tools
 
