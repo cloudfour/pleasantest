@@ -133,7 +133,7 @@ You can use [Testing Library queries](https://testing-library.com/docs/queries/a
 
 The Testing Library queries are exposed through the [`screen` property](#pleasantestcontextscreen) in the test context parameter.
 
-**You must `await` the result of the query. This is necessary to accomodate for the asynchronous communication with the browser.**
+> :warning: **Don't forget to `await` the result of the query!** This is necessary because of the asynchronous communication with the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -168,7 +168,7 @@ test(
 
 You can use [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to make assertions against the state of the document.
 
-**You must `await` assertions. This is necessary to accomodate for the asynchronous communication with the browser.**
+> :warning: **Don't forget to `await` assertions!** This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
