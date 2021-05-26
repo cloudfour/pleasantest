@@ -144,7 +144,7 @@ test(
     // Menu buttons should be hidden (into the menu)
     const aboutButtons = await screen.queryAllByText(/about/i);
     for (const aboutButton of aboutButtons) {
-      await expect(aboutButton).toBeVisible();
+      await expect(aboutButton).not.toBeVisible();
     }
     // You could also do:
     // await Promise.all(aboutButtons.map((about) => expect(about).not.toBeVisible()));
