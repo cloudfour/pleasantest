@@ -438,8 +438,6 @@ See the [`PleasantestUtils`](#utilities-api-pleasantestutils) documentation.
 
 The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `PleasantestContext`](#pleasantestcontextuser-pleasantestuser).
 
-> **Warning**: The User API is in progress. It should be safe to use the existing methods, but keep in mind that more methods will be added in the future, and more checks will be performed for existing methods as well.
-
 #### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
 
 Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleclickoptions). The difference is that `PleasantestUser.click` checks that the target element is an element that actually can be clicked before clicking it!
@@ -664,7 +662,7 @@ List of matchers:
 
 [`toBeDisabled`](https://github.com/testing-library/jest-dom#tobedisabled), [`toBeEnabled`](https://github.com/testing-library/jest-dom#tobeenabled), [`toBeEmpty`](https://github.com/testing-library/jest-dom#tobeempty), [`toBeEmptyDOMElement`](https://github.com/testing-library/jest-dom#tobeemptydomelement), [`toBeInTheDocument`](https://github.com/testing-library/jest-dom#tobeinthedocument), [`toBeInvalid`](https://github.com/testing-library/jest-dom#tobeinvalid), [`toBeRequired`](https://github.com/testing-library/jest-dom#toberequired), [`toBeValid`](https://github.com/testing-library/jest-dom#tobevalid), [`toBeVisible`](https://github.com/testing-library/jest-dom#tobevisible), [`toContainElement`](https://github.com/testing-library/jest-dom#tocontainelement), [`toContainHTML`](https://github.com/testing-library/jest-dom#tocontainhtml), [`toHaveAttribute`](https://github.com/testing-library/jest-dom#tohaveattribute), [`toHaveClass`](https://github.com/testing-library/jest-dom#tohaveclass), [`toHaveFocus`](https://github.com/testing-library/jest-dom#tohavefocus), [`toHaveFormValues`](https://github.com/testing-library/jest-dom#tohaveformvalues), [`toHaveStyle`](https://github.com/testing-library/jest-dom#tohavestyle), [`toHaveTextContent`](https://github.com/testing-library/jest-dom#tohavetextcontent), [`toHaveValue`](https://github.com/testing-library/jest-dom#tohavevalue), [`toHaveDisplayValue`](https://github.com/testing-library/jest-dom#tohavedisplayvalue), [`toBeChecked`](https://github.com/testing-library/jest-dom#tobechecked), [`toBePartiallyChecked`](https://github.com/testing-library/jest-dom#tobepartiallychecked), [`toHaveDescription`](https://github.com/testing-library/jest-dom#tohavedescription).
 
-**Don't forget to `await` matchers! This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.**
+> :warning: **Don't forget to `await` matchers!** This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
