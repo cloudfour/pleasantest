@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { withBrowser } from 'test-mule';
+import { withBrowser } from 'pleasantest';
 
 test(
   'CSS file with relative path',

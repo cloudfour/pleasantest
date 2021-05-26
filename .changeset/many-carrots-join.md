@@ -1,5 +1,5 @@
 ---
-'test-mule': patch
+'pleasantest': patch
 ---
 
 Update dependencies

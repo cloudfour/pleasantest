@@ -1,5 +1,5 @@
 {
-  "name": "test-mule",
+  "name": "pleasantest",
   "version": "0.3.0",
   "engines": {
     "node": "12 || 14"
@@ -101,5 +101,6 @@
       "remark-validate-links",
       "remark-lint-no-dead-urls"
     ]
-  }
+  },
+  "repository": "cloudfour/pleasantest"
 }

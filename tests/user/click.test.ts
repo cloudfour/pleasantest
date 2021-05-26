@@ -1,9 +1,9 @@
 import type * as puppeteeer from 'puppeteer';
-import { withBrowser } from 'test-mule';
-import type { TestMuleUtils } from 'test-mule';
+import { withBrowser } from 'pleasantest';
+import type { PleasantestUtils } from 'pleasantest';
 
 const setupOverlappingElements = async (
-  utils: TestMuleUtils,
+  utils: PleasantestUtils,
   page: puppeteeer.Page,
   cover = true,
 ) => {

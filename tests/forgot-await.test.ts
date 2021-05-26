@@ -1,5 +1,5 @@
 /* eslint-disable @cloudfour/typescript-eslint/require-await */
-import { withBrowser } from 'test-mule';
+import { withBrowser } from 'pleasantest';
 import { printErrorFrames } from './test-utils';
 
 test('forgot await in testing library query', (done) => {

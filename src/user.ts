@@ -6,7 +6,7 @@ import {
 } from './utils';
 import { port } from './vite-server';
 
-export interface TestMuleUser {
+export interface PleasantestUser {
   /** Clicks an element, if the element is visible and not covered by another element */
   click(
     element: ElementHandle | null,
@@ -36,10 +36,10 @@ const forgotAwaitMsg =
 
 /** Wraps each user method to catch errors that happen when user forgets to await */
 const wrapWithForgotAwait = (
-  user: TestMuleUser,
+  user: PleasantestUser,
   state: { isTestFinished: boolean },
 ) => {
-  for (const key of Object.keys(user) as (keyof TestMuleUser)[]) {
+  for (const key of Object.keys(user) as (keyof PleasantestUser)[]) {
     const original = user[key];
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
     const wrapper = async (...args: any[]) => {
@@ -61,11 +61,11 @@ const wrapWithForgotAwait = (
   }
 };
 
-export const testMuleUser = (
+export const pleasantestUser = (
   page: Page,
   state: { isTestFinished: boolean },
 ) => {
-  const user: TestMuleUser = {
+  const user: PleasantestUser = {
     async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
       await el
@@ -103,7 +103,7 @@ ${coveringEl}`;
     //   Cypress and user-event *Append*
     // - The names of the commands in curly brackets are mirroring the user-event command names
     //   *NOT* the Cypress names.
-    //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
+    //   i.e. Cypress uses {leftarrow} but user-event and pleasantest use {arrowleft}
     async type(el, text, { delay = 1, force = false } = {}) {
       assertElementHandle(el, user.type);
 
@@ -297,7 +297,7 @@ const runWithUtils = <Args extends any[], Return extends unknown>(
 ): ((...args: Args) => Promise<Return>) => {
   return new Function(
     '...args',
-    `return import("http://localhost:${port}/@test-mule/user-util")
+    `return import("http://localhost:${port}/@pleasantest/user-util")
     .then((utils) => {
       try {
         return [utils, (0, ${fn.toString()})(utils, ...args)]

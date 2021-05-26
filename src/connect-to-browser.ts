@@ -91,7 +91,7 @@ export const connectToBrowser = async (
   // - If there is a killed browser in the config, multiple concurrent processes should only start 1 new browser
   // - If there "starting" in the config but nothing is really starting, multiple concurrent processes should only start 1 new browser
   // TODO: Idea: use a state machine!!!
-  const dataPath = envPaths('test-mule').data;
+  const dataPath = envPaths('pleasantest').data;
   const configPath = path.join(dataPath, 'config.json');
   const cachedBrowser = await connectToCachedBrowser(
     configPath,

@@ -9,7 +9,7 @@ const defaultHTML = `
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:;base64,=" />
-    <title>test-mule</title>
+    <title>pleasantest</title>
   </head>
   <body>
     <h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
@@ -23,7 +23,7 @@ export let port = 3000;
 
 export const createServer = async () => {
   const inlineModulePlugin = (): vite.Plugin => {
-    const pluginName = 'test-mule-inline-module-plugin';
+    const pluginName = 'pleasantest-inline-module-plugin';
     return {
       name: pluginName,
       // Has to run resolveId before vite's other resolve handlers
@@ -50,7 +50,7 @@ export const createServer = async () => {
   };
 
   const indexHTMLPlugin = (): vite.Plugin => ({
-    name: 'test-mule-index-html',
+    name: 'pleasantest-index-html',
     configureServer({ middlewares }) {
       middlewares.use((req, res, next) => {
         if (req.url !== '/') return next();
@@ -64,14 +64,14 @@ export const createServer = async () => {
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const clientRuntimePlugin = (): vite.Plugin => ({
-    name: 'test-mule-client-runtime',
+    name: 'pleasantest-client-runtime',
     resolveId(id) {
-      if (!id.startsWith('/@test-mule')) return null;
+      if (!id.startsWith('/@pleasantest')) return null;
       return path.join(
         currentDir,
-        id === '/@test-mule/jest-dom'
+        id === '/@pleasantest/jest-dom'
           ? '../jest-dom.js'
-          : id === '/@test-mule/user-util'
+          : id === '/@pleasantest/user-util'
           ? '../user-util.js'
           : '../pptr-testing-library-client.js',
       );
@@ -79,7 +79,7 @@ export const createServer = async () => {
   });
 
   const disablePollingPlugin = (): vite.Plugin => ({
-    name: 'test-mule-disable-polling',
+    name: 'pleasantest-disable-polling',
     transform(code, id) {
       if (!id.endsWith('vite/dist/client/client.js')) return null;
       return code

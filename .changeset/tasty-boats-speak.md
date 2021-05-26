@@ -1,5 +1,5 @@
 ---
-'test-mule': minor
+'pleasantest': minor
 ---
 
 Update puppeteer to v9.1.1

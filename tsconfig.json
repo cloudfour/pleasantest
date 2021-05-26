@@ -7,7 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "paths": {
-      "test-mule": ["./src"],
+      "pleasantest": ["./src"],
       "puppeteer": ["./node_modules/@types/puppeteer"]
     },
     "noUnusedLocals": true,

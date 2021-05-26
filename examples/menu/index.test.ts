@@ -1,5 +1,5 @@
-import type { TestMuleUtils } from 'test-mule';
-import { withBrowser, devices } from 'test-mule';
+import type { PleasantestUtils } from 'pleasantest';
+import { withBrowser, devices } from 'pleasantest';
 import { Liquid } from 'liquidjs';
 import * as path from 'path';
 const iPhone = devices['iPhone 11'];
@@ -14,7 +14,7 @@ const renderMenu = async ({
   data,
   initJS = true,
 }: {
-  utils: TestMuleUtils;
+  utils: PleasantestUtils;
   data: MenuData;
   initJS?: boolean;
 }) => {
