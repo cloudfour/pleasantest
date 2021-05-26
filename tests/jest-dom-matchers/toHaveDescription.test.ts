@@ -1,4 +1,4 @@
-import { withBrowser } from 'test-mule';
+import { withBrowser } from 'pleasantest';
 
 test(
   'toHaveDescription',
@@ -25,7 +25,7 @@ test(
         expect.stringContaining('will discard'),
       ),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Test Mule does not support using asymmetric matchers in browser-based matchers
+            "Pleasantest does not support using asymmetric matchers in browser-based matchers
 
             Received [31mStringContaining \\"will discard\\"[39m"
           `);

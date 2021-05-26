@@ -121,7 +121,7 @@ export const getQueriesForElement = (
               new Function(
                 'argsString',
                 'element',
-                `return import("http://localhost:${port}/@test-mule/dom-testing-library")
+                `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
               .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                 const deserializedArgs = JSON.parse(argsString, (key, value) => {
                   if (value.__serialized === 'RegExp')

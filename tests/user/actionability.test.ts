@@ -1,12 +1,12 @@
 import type { ElementHandle } from 'puppeteer';
-import { port, withBrowser } from 'test-mule';
+import { port, withBrowser } from 'pleasantest';
 
 const runWithUtils = <Args extends any[], Return extends unknown>(
   fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,
 ): ((...args: Args) => Promise<Return>) => {
   return new Function(
     '...args',
-    `return import("http://localhost:${port}/@test-mule/user-util")
+    `return import("http://localhost:${port}/@pleasantest/user-util")
     .then((utils) => [utils, (0, ${fn.toString()})(utils, ...args)])
     .then(([utils, result]) => {
       if (result && typeof result === 'object' && result.error) {

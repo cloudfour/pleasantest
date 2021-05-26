@@ -81,7 +81,7 @@ expect.extend(
             typeof (arg as any)?.asymmetricMatch === 'function'
           ) {
             const error = new Error(
-              `Test Mule does not support using asymmetric matchers in browser-based matchers
+              `Pleasantest does not support using asymmetric matchers in browser-based matchers
 
 Received ${this.utils.printReceived(arg)}`,
             );
@@ -117,7 +117,7 @@ Received ${this.utils.printReceived(arg)}`,
             new Function(
               'element',
               '...matcherArgs',
-              `return import("http://localhost:${port}/@test-mule/jest-dom")
+              `return import("http://localhost:${port}/@pleasantest/jest-dom")
               .then(({ jestContext, deserialize, ...jestDom }) => {
                 const context = { ...(${ctxString}), ...jestContext }
                 try {
@@ -157,7 +157,7 @@ Received ${this.utils.printReceived(arg)}`,
               new Function(
                 'el',
                 'message',
-                `return import("http://localhost:${port}/@test-mule/jest-dom")
+                `return import("http://localhost:${port}/@pleasantest/jest-dom")
               .then(({ reviveElementsInString, printElement }) => {
                 const messageWithElementsRevived = reviveElementsInString(message)
                 const messageWithElementsStringified = messageWithElementsRevived
@@ -331,7 +331,7 @@ declare global {
       toHaveFormValues(expectedValues: Record<string, unknown>): Promise<R>;
       /**
        * Check if an element has specific css properties applied
-       * Unlike jest-dom, test-mule does not support specifying expected styles as strings, they must be specified as an object.
+       * Unlike jest-dom, pleasantest does not support specifying expected styles as strings, they must be specified as an object.
        * https://github.com/testing-library/jest-dom#tohavestyle
        */
       toHaveStyle(css: Record<string, unknown>): Promise<R>;

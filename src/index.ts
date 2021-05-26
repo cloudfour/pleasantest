@@ -12,15 +12,15 @@ import { ansiColorsLog } from './ansi-colors-browser';
 import { createServer, port } from './vite-server';
 import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
-import type { TestMuleUser } from './user';
-import { testMuleUser } from './user';
+import type { PleasantestUser } from './user';
+import { pleasantestUser } from './user';
 import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
-export type { TestMuleUser };
+export type { PleasantestUser };
 
-export interface TestMuleUtils {
+export interface PleasantestUtils {
   /**
    * Execute a JS code string in the browser.
    * The code string inherits the syntax abilities of the file it is in,
@@ -45,14 +45,14 @@ export interface TestMuleUtils {
   loadJS(jsPath: string): Promise<void>;
 }
 
-export interface TestMuleContext {
+export interface PleasantestContext {
   /** DOM Testing Library queries that are bound to the document */
   screen: BoundQueries;
-  utils: TestMuleUtils;
+  utils: PleasantestUtils;
   /** Returns DOM Testing Library queries that only search within a single element */
   within(element: puppeteer.ElementHandle | null): BoundQueries;
   page: puppeteer.Page;
-  user: TestMuleUser;
+  user: PleasantestUser;
 }
 
 let serverPromise: Promise<vite.ViteDevServer> | undefined;
@@ -63,7 +63,7 @@ export interface WithBrowserOpts {
 }
 
 interface TestFn {
-  (ctx: TestMuleContext): boolean | void | Promise<boolean | void>;
+  (ctx: PleasantestContext): boolean | void | Promise<boolean | void>;
 }
 
 interface WithBrowserFn {
@@ -203,7 +203,7 @@ const createTab = async ({
 }: {
   testPath: string;
   options: WithBrowserOpts;
-}): Promise<TestMuleContext & { state: { isTestFinished: boolean } }> => {
+}): Promise<PleasantestContext & { state: { isTestFinished: boolean } }> => {
   /** Used to provide helpful warnings if things execute after the test finishes (usually means they forgot to await) */
   const state = { isTestFinished: false };
   if (!serverPromise) serverPromise = createServer();
@@ -275,7 +275,7 @@ const createTab = async ({
     });
   };
 
-  const runJS: TestMuleUtils['runJS'] = async (code, args) => {
+  const runJS: PleasantestUtils['runJS'] = async (code, args) => {
     const encodedCode = encodeURIComponent(code);
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
@@ -357,7 +357,7 @@ const createTab = async ({
     throw error;
   };
 
-  const injectHTML: TestMuleUtils['injectHTML'] = async (html) => {
+  const injectHTML: PleasantestUtils['injectHTML'] = async (html) => {
     await safeEvaluate(
       injectHTML,
       (html) => {
@@ -367,7 +367,7 @@ const createTab = async ({
     );
   };
 
-  const injectCSS: TestMuleUtils['injectCSS'] = async (css) => {
+  const injectCSS: PleasantestUtils['injectCSS'] = async (css) => {
     await safeEvaluate(
       injectCSS,
       (css) => {
@@ -379,7 +379,7 @@ const createTab = async ({
     );
   };
 
-  const loadCSS: TestMuleUtils['loadCSS'] = async (cssPath) => {
+  const loadCSS: PleasantestUtils['loadCSS'] = async (cssPath) => {
     const fullPath = cssPath.startsWith('.')
       ? path.join(path.dirname(testPath), cssPath)
       : cssPath;
@@ -391,7 +391,7 @@ const createTab = async ({
     );
   };
 
-  const loadJS: TestMuleUtils['loadJS'] = async (jsPath) => {
+  const loadJS: PleasantestUtils['loadJS'] = async (jsPath) => {
     const fullPath = jsPath.startsWith('.')
       ? path.join(path.dirname(testPath), jsPath)
       : jsPath;
@@ -401,7 +401,7 @@ const createTab = async ({
     );
   };
 
-  const utils: TestMuleUtils = {
+  const utils: PleasantestUtils = {
     runJS,
     injectCSS,
     injectHTML,
@@ -412,7 +412,7 @@ const createTab = async ({
   const screen = getQueriesForElement(page, state);
 
   // The | null is so you can pass directly the result of page.$() which returns null if not found
-  const within: TestMuleContext['within'] = (
+  const within: PleasantestContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
     assertElementHandle(element, within);
@@ -424,7 +424,7 @@ const createTab = async ({
     utils,
     page,
     within,
-    user: testMuleUser(page, state),
+    user: pleasantestUser(page, state),
     state,
   };
 };
