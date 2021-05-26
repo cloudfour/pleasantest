@@ -1,5 +1,17 @@
 # pleasantest
 
+## 0.4.0
+
+### Minor Changes
+
+- [#61](https://github.com/cloudfour/pleasantest/pull/61) [`be9eef7`](https://github.com/cloudfour/pleasantest/commit/be9eef7aed51c51cac3ab604ac023cd114b2e6a7) Thanks [@calebeby](https://github.com/calebeby)! - Update puppeteer to v9.1.1
+
+  Chromium version is now 91.0.4469.0 (r869685)
+
+### Patch Changes
+
+- [#63](https://github.com/cloudfour/pleasantest/pull/63) [`dd1bb5d`](https://github.com/cloudfour/pleasantest/commit/dd1bb5d0f6b5b792c6016bcc630d89e4fed7d483) Thanks [@calebeby](https://github.com/calebeby)! - Update dependencies
+
 ## 0.3.0
 
 ### Minor Changes
