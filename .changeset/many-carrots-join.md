@@ -1,5 +1,0 @@
----
-'pleasantest': patch
----
-
-Update dependencies
