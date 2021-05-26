@@ -357,6 +357,17 @@ The `devices` import from `pleasantest` is re-exported from Puppeteer, [here is 
 
 The `PleasantestContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Pleasantest compared to Testing Library: in Pleasantest, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)'s from Puppeteer.
 
+List of queries attached to screen object:
+
+- [`byRole`](https://testing-library.com/docs/queries/byrole): `getByRole`, `queryByRole`, `getAllByRole`, `queryAllByRole`, `findByRole`, `findAllByRole`
+- [`byLabelText`](https://testing-library.com/docs/queries/bylabeltext): `getByLabelText`, `queryByLabelText`, `getAllByLabelText`, `queryAllByLabelText`, `findByLabelText`, `findAllByLabelText`
+- [`byPlaceholderText`](https://testing-library.com/docs/queries/byplaceholdertext): `getByPlaceholderText`, `queryByPlaceholderText`, `getAllByPlaceholderText`, `queryAllByPlaceholderText`, `findByPlaceholderText`, `findAllByPlaceholderText`
+- [`byText`](https://testing-library.com/docs/queries/bytext): `getByText`, `queryByText`, `getAllByText`, `queryAllByText`, `findByText`, `findAllByText`
+- [`byDisplayValue`](https://testing-library.com/docs/queries/bydisplayvalue): `getByDisplayValue`, `queryByDisplayValue`, `getAllByDisplayValue`, `queryAllByDisplayValue`, `findByDisplayValue`, `findAllByDisplayValue`
+- [`byAltText`](https://testing-library.com/docs/queries/byalttext): `getByAltText`, `queryByAltText`, `getAllByAltText`, `queryAllByAltText`, `findByAltText`, `findAllByAltText`
+- [`byTitle`](https://testing-library.com/docs/queries/bytitle): `getByTitle`, `queryByTitle`, `getAllByTitle`, `queryAllByTitle`, `findByTitle`, `findAllByTitle`
+- [`byTestId`](https://testing-library.com/docs/queries/bytestid): `getByTestId`, `queryByTestId`, `getAllByTestId`, `queryAllByTestId`, `findByTestId`, `findAllByTestId`
+
 ```js
 import { withBrowser } from 'pleasantest';
 
