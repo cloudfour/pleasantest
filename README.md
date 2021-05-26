@@ -685,7 +685,7 @@ Pleasantest uses [Puppeteer](https://github.com/puppeteer/puppeteer) under the h
 
 ### [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)
 
-An `ElementHandle` is a reference to a DOM element in the browser. When you use one of the [Testing Library queries](#pleasantestcontext-screen) to find elements, the queries return promises that resolve to `ElementHandle`s.
+An `ElementHandle` is a reference to a DOM element in the browser. When you use one of the [Testing Library queries](#pleasantestcontextscreen) to find elements, the queries return promises that resolve to `ElementHandle`s.
 
 You can use the [`.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatepagefunction-args) method to execute code in the browser, using a reference to the actual `Element` instance that the `ElementHandle` points to. For example, if you want to get the [`innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) of an element:
 
