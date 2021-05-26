@@ -783,7 +783,24 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 
 ### Out of scope/separate projects
 
-- **Visual Regression Testing**: You can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action) to do visual regression testing.
+- **Visual Regression Testing**: You can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action) to do visual regression testing. We don't plan to bring this functionality directly into Pleasantest, but `jest-image-snapshot` integrates pretty seamlessly:
+
+  ```js
+  import { withBrowser } from 'pleasantest';
+  import { toMatchImageSnapshot } from 'jest-image-snapshot';
+
+  expect.extend({ toMatchImageSnapshot });
+
+  test(
+    'screenshot testing example',
+    withBrowser(async ({ page }) => {
+      await page.goto('https://github.com');
+      const image = await page.screenshot();
+      expect(image).toMatchImageSnapshot();
+    }),
+  );
+  ```
+
 - **No Synchronous DOM Access**: Because Jest runs your tests, Pleasantest will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Pleasantest tests.
 
 ### Temporary Limitations
