@@ -4,6 +4,9 @@ import { Liquid } from 'liquidjs';
 import * as path from 'path';
 const iPhone = devices['iPhone 11'];
 
+// This particular example uses Liquid to load templates with data,
+// but that is not needed for Pleasantest.
+// You can use any way you'd like to load content into the browser.
 const engine = new Liquid({
   root: path.join(__dirname, 'templates'),
   extname: '.html.liquid',
@@ -43,7 +46,7 @@ interface MenuData {
   menuSections: MenuSection[];
 }
 
-const aboutText = 'This company was founded a long time ago blah blah blah';
+const aboutText = 'This company was founded a long time ago';
 const productsText = 'These are the products plz buy them';
 const mainContentText = 'This is the main content';
 
@@ -139,8 +142,12 @@ test(
     await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
     // Menu buttons should be hidden (into the menu)
-    const abouts = await screen.queryAllByText(/about/i);
-    await Promise.all(abouts.map((about) => expect(about).not.toBeVisible()));
+    const aboutButtons = await screen.queryAllByText(/about/i);
+    for (const aboutButton of aboutButtons) {
+      await expect(aboutButton).not.toBeVisible();
+    }
+    // You could also do:
+    // await Promise.all(aboutButtons.map((about) => expect(about).not.toBeVisible()));
 
     const toggleMenuBtn = await screen.getByRole('button', {
       name: /show menu/i,

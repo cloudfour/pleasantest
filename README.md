@@ -27,6 +27,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
+- [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
 
@@ -132,7 +133,7 @@ You can use [Testing Library queries](https://testing-library.com/docs/queries/a
 
 The Testing Library queries are exposed through the [`screen` property](#pleasantestcontextscreen) in the test context parameter.
 
-**You must `await` the result of the query. This is necessary to accomodate for the asynchronous communication with the browser.**
+> :warning: **Don't forget to `await` the result of the query!** This is necessary because of the asynchronous communication with the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -167,7 +168,7 @@ test(
 
 You can use [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to make assertions against the state of the document.
 
-**You must `await` assertions. This is necessary to accomodate for the asynchronous communication with the browser.**
+> :warning: **Don't forget to `await` assertions!** This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -333,7 +334,7 @@ test(
 );
 ```
 
-If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something.
+If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something, for example `throw new Error('leave the browser open')`
 
 You can also emulate a device viewport and user agent, by passing the `device` property to the options object in `withBrowser`:
 
@@ -356,6 +357,17 @@ The `devices` import from `pleasantest` is re-exported from Puppeteer, [here is 
 #### `PleasantestContext.screen`
 
 The `PleasantestContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Pleasantest compared to Testing Library: in Pleasantest, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)'s from Puppeteer.
+
+List of queries attached to screen object:
+
+- [`byRole`](https://testing-library.com/docs/queries/byrole): `getByRole`, `queryByRole`, `getAllByRole`, `queryAllByRole`, `findByRole`, `findAllByRole`
+- [`byLabelText`](https://testing-library.com/docs/queries/bylabeltext): `getByLabelText`, `queryByLabelText`, `getAllByLabelText`, `queryAllByLabelText`, `findByLabelText`, `findAllByLabelText`
+- [`byPlaceholderText`](https://testing-library.com/docs/queries/byplaceholdertext): `getByPlaceholderText`, `queryByPlaceholderText`, `getAllByPlaceholderText`, `queryAllByPlaceholderText`, `findByPlaceholderText`, `findAllByPlaceholderText`
+- [`byText`](https://testing-library.com/docs/queries/bytext): `getByText`, `queryByText`, `getAllByText`, `queryAllByText`, `findByText`, `findAllByText`
+- [`byDisplayValue`](https://testing-library.com/docs/queries/bydisplayvalue): `getByDisplayValue`, `queryByDisplayValue`, `getAllByDisplayValue`, `queryAllByDisplayValue`, `findByDisplayValue`, `findAllByDisplayValue`
+- [`byAltText`](https://testing-library.com/docs/queries/byalttext): `getByAltText`, `queryByAltText`, `getAllByAltText`, `queryAllByAltText`, `findByAltText`, `findAllByAltText`
+- [`byTitle`](https://testing-library.com/docs/queries/bytitle): `getByTitle`, `queryByTitle`, `getAllByTitle`, `queryAllByTitle`, `findByTitle`, `findAllByTitle`
+- [`byTestId`](https://testing-library.com/docs/queries/bytestid): `getByTestId`, `queryByTestId`, `getAllByTestId`, `queryAllByTestId`, `findByTestId`, `findAllByTestId`
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -425,8 +437,6 @@ See the [`PleasantestUtils`](#utilities-api-pleasantestutils) documentation.
 ### User API: `PleasantestUser`
 
 The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `PleasantestContext`](#pleasantestcontextuser-pleasantestuser).
-
-> **Warning**: The User API is in progress. It should be safe to use the existing methods, but keep in mind that more methods will be added in the future, and more checks will be performed for existing methods as well.
 
 #### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
 
@@ -648,7 +658,11 @@ test(
 
 Pleasantest adds [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to Jest's `expect` global. They are slightly modified from the original matchers, they are wrapped to execute in the browser, and return a Promise.
 
-**Don't forget to `await` matchers! This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.**
+List of matchers:
+
+[`toBeDisabled`](https://github.com/testing-library/jest-dom#tobedisabled), [`toBeEnabled`](https://github.com/testing-library/jest-dom#tobeenabled), [`toBeEmpty`](https://github.com/testing-library/jest-dom#tobeempty), [`toBeEmptyDOMElement`](https://github.com/testing-library/jest-dom#tobeemptydomelement), [`toBeInTheDocument`](https://github.com/testing-library/jest-dom#tobeinthedocument), [`toBeInvalid`](https://github.com/testing-library/jest-dom#tobeinvalid), [`toBeRequired`](https://github.com/testing-library/jest-dom#toberequired), [`toBeValid`](https://github.com/testing-library/jest-dom#tobevalid), [`toBeVisible`](https://github.com/testing-library/jest-dom#tobevisible), [`toContainElement`](https://github.com/testing-library/jest-dom#tocontainelement), [`toContainHTML`](https://github.com/testing-library/jest-dom#tocontainhtml), [`toHaveAttribute`](https://github.com/testing-library/jest-dom#tohaveattribute), [`toHaveClass`](https://github.com/testing-library/jest-dom#tohaveclass), [`toHaveFocus`](https://github.com/testing-library/jest-dom#tohavefocus), [`toHaveFormValues`](https://github.com/testing-library/jest-dom#tohaveformvalues), [`toHaveStyle`](https://github.com/testing-library/jest-dom#tohavestyle), [`toHaveTextContent`](https://github.com/testing-library/jest-dom#tohavetextcontent), [`toHaveValue`](https://github.com/testing-library/jest-dom#tohavevalue), [`toHaveDisplayValue`](https://github.com/testing-library/jest-dom#tohavedisplayvalue), [`toBeChecked`](https://github.com/testing-library/jest-dom#tobechecked), [`toBePartiallyChecked`](https://github.com/testing-library/jest-dom#tobepartiallychecked), [`toHaveDescription`](https://github.com/testing-library/jest-dom#tohavedescription).
+
+> :warning: **Don't forget to `await` matchers!** This is necessary because the matchers execute in the browser. If you forget, your matchers may execute after your test finishes, and you may get obscure errors.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -656,7 +670,7 @@ import { withBrowser } from 'pleasantest';
 test(
   'jest-dom matchers example',
   withBrowser(async ({ screen }) => {
-    const button = await screen.getByText();
+    const button = await screen.getByRole('button');
     // jest-dom matcher -- Runs in browser, *must* be awaited
     await expect(button).toBeVisible();
     // Built-in Jest matcher -- Runs only in Node, does not need to be awaited
@@ -664,6 +678,60 @@ test(
   }),
 );
 ```
+
+## Puppeteer Tips
+
+Pleasantest uses [Puppeteer](https://github.com/puppeteer/puppeteer) under the hood. You don't need to know how to use Puppeteer in order to use Pleasantest, but a little bit of Puppeteer knowledge might come in handy. Here are the parts of Puppeteer that are most helpful and relevant for Pleasantest:
+
+### [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-elementhandle)
+
+An `ElementHandle` is a reference to a DOM element in the browser. When you use one of the [Testing Library queries](#pleasantestcontextscreen) to find elements, the queries return promises that resolve to `ElementHandle`s.
+
+You can use the [`.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatepagefunction-args) method to execute code in the browser, using a reference to the actual `Element` instance that the `ElementHandle` points to. For example, if you want to get the [`innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) of an element:
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'Puppeteer .evaluate example',
+  withBrowser(async ({ screen }) => {
+    const button = await screen.getByRole('button');
+    const text = await button.evaluate((buttonEl) => {
+      // Everything inside this callback runs inside the browser
+
+      // buttonEl is the Element instance corresponding to the button ElementHandle
+      return buttonEl.innerText;
+    });
+    // text is the string that was returned by the evaluate callback
+  }),
+);
+```
+
+Sometimes, you may want to return another `ElementHandle` from the browser callback, or some other value that can't be serialized in order to be transferred from the browser to Node. To do this, you can use the [`.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-elementhandleevaluatehandlepagefunction-args) method. In this example, we want to get a reference to the parent of an element.
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'Puppeteer .evaluate example',
+  withBrowser(async ({ screen }) => {
+    const button = await screen.getByRole('button');
+    const parentOfButton = await button.evaluateHandle((buttonEl) => {
+      // buttonEl is the Element instance corresponding to the button ElementHandle
+      return buttonEl.parentElement; // We return another Element
+    });
+    // parentOfButton is another ElementHandle
+  }),
+);
+```
+
+### [`Page`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-page)
+
+The page object is one of the properties that is passed into the test callback by [`withBrowser`](#withbrowser). You can use `.evaluate` and `.evaluateHandle` on `Page`, and those methods work the same as on `ElementHandle`.
+
+Here are some useful methods that are exposed through `Page`:
+
+[`page.cookies`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagecookiesurls), [`page.emulateMediaFeatures`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageemulatemediafeaturesfeatures), [`page.emulateNetworkConditions`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageemulatenetworkconditionsnetworkconditions), [`page.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageevaluatepagefunction-args), [`page.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageevaluatehandlepagefunction-args), [`page.exposeFunction`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageexposefunctionname-puppeteerfunction), [`page.goBack`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegobackoptions), [`page.goForward`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegoforwardoptions), [`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagegotourl-options), [`page.metrics`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagemetrics), [`page.reload`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagereloadoptions), [`page.screenshot`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagescreenshotoptions), [`page.setGeolocation`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetgeolocationoptions), [`page.setOfflineMode`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetofflinemodeenabled), [`page.setRequestInterception`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagesetrequestinterceptionvalue-cachesafe), [`page.title`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagetitle), [`page.url`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageurl), [`page.waitForNavigation`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pagewaitfornavigationoptions), [`page.browserContext().overridePermissions`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-browsercontextoverridepermissionsorigin-permissions), [`page.keyboard.press`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-keyboardpresskey-options), [`page.mouse.move`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-mousemovex-y-options), [`page.mouse.click`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-mouseclickx-y-options), [`page.touchscreen.tap`](https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-touchscreentapx-y)
 
 ## Comparisons with other testing tools
 
@@ -715,7 +783,24 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 
 ### Out of scope/separate projects
 
-- **Visual Regression Testing**: You can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action) to do visual regression testing.
+- **Visual Regression Testing**: You can use [`jest-image-snapshot`](https://github.com/americanexpress/jest-image-snapshot#see-it-in-action) to do visual regression testing. We don't plan to bring this functionality directly into Pleasantest, but `jest-image-snapshot` integrates pretty seamlessly:
+
+  ```js
+  import { withBrowser } from 'pleasantest';
+  import { toMatchImageSnapshot } from 'jest-image-snapshot';
+
+  expect.extend({ toMatchImageSnapshot });
+
+  test(
+    'screenshot testing example',
+    withBrowser(async ({ page }) => {
+      await page.goto('https://github.com');
+      const image = await page.screenshot();
+      expect(image).toMatchImageSnapshot();
+    }),
+  );
+  ```
+
 - **No Synchronous DOM Access**: Because Jest runs your tests, Pleasantest will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Pleasantest tests.
 
 ### Temporary Limitations
