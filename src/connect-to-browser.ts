@@ -121,12 +121,24 @@ export const connectToBrowser = async (
     detached: true,
     stdio: 'ignore',
   });
-  const wsEndpoint = await new Promise<string>((resolve) => {
+  const wsEndpoint = await new Promise<string>((resolve, reject) => {
     subprocess.send({ browser, headless });
     subprocess.on('message', (msg: any) => {
+      if (msg.error)
+        return reject(new Error(`Failed to start browser: ${msg.error}`));
       if (!msg.browserWSEndpoint) return;
       resolve(msg.browserWSEndpoint);
     });
+  }).catch(async (error) => {
+    subprocess.kill();
+    valueWrittenInMeantime = await updateConfig(
+      configPath,
+      browser,
+      headless,
+      '',
+      'starting',
+    );
+    throw error;
   });
   valueWrittenInMeantime = await updateConfig(
     configPath,
