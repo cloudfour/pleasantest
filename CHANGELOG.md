@@ -1,5 +1,11 @@
 # pleasantest
 
+## 0.4.1
+
+### Patch Changes
+
+- [#78](https://github.com/cloudfour/pleasantest/pull/78) [`55b75f9`](https://github.com/cloudfour/pleasantest/commit/55b75f9141e74ac3cf50a5ff02f478371d499f04) Thanks [@calebeby](https://github.com/calebeby)! - Handle errors thrown by browser launcher instead of silently hanging
+
 ## 0.4.0
 
 ### Minor Changes
