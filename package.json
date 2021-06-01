@@ -44,7 +44,7 @@
     "rollup-plugin-terser": "7.0.2",
     "sass": "1.34.0",
     "smoldash": "0.9.0",
-    "typescript": "4.2.4"
+    "typescript": "4.3.2"
   },
   "dependencies": {
     "@types/testing-library__jest-dom": "^5.9.5",
