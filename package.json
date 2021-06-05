@@ -42,7 +42,7 @@
     "rollup-plugin-dts": "2.0.1",
     "rollup-plugin-prettier": "2.1.0",
     "rollup-plugin-terser": "7.0.2",
-    "sass": "1.34.0",
+    "sass": "1.34.1",
     "smoldash": "0.9.0",
     "typescript": "4.3.2"
   },
