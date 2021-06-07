@@ -27,6 +27,7 @@ const methods = [
   'toBeChecked',
   'toBePartiallyChecked',
   'toHaveDescription',
+  'toHaveErrorMessage',
 ] as const;
 
 const isJSHandle = (input: unknown): input is JSHandle => {
@@ -382,6 +383,12 @@ declare global {
        * https://github.com/testing-library/jest-dom#tohavedescription
        */
       toHaveDescription(text?: string | RegExp): Promise<R>;
+
+      /**
+       * Check whether the given element has an ARIA error message (via aria-errormessage)
+       * https://github.com/testing-library/jest-dom#tohaveerrormessage
+       */
+      toHaveErrorMessage(text: string | RegExp): Promise<R>;
     }
   }
 }
