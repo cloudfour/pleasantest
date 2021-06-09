@@ -1,5 +1,19 @@
 # pleasantest
 
+## 0.5.0
+
+### Minor Changes
+
+- [#90](https://github.com/cloudfour/pleasantest/pull/90) [`ecffd3a`](https://github.com/cloudfour/pleasantest/commit/ecffd3a8b881453b5a4fe1abed54d464fef3b632) Thanks [@renovate](https://github.com/apps/renovate)! - New `jest-dom` matcher: `toHaveErrorMessage`
+
+* [#86](https://github.com/cloudfour/pleasantest/pull/86) [`35be60a`](https://github.com/cloudfour/pleasantest/commit/35be60a641a2e48f5fca0fc48afcfeee44f2d45f) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to v10.0.0
+
+  Chromium version is now 92.0.4512.0 (r884014)
+
+### Patch Changes
+
+- [`7705216`](https://github.com/cloudfour/pleasantest/commit/770521667c158de94a5c17f4b4ad48b8955b0952) Thanks [@calebeby](https://github.com/calebeby)! - Update `@testing-library/dom` to `v7.31.2`. This change fixes some issues with label associations.
+
 ## 0.4.1
 
 ### Patch Changes
