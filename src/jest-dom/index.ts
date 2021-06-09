@@ -1,6 +1,4 @@
 import { addToElementCache, serialize } from '../serialize';
-// eslint-disable-next-line @cloudfour/node/no-extraneous-import
-import { equals as jestEquals } from 'expect/build/jasmineUtils';
 // @ts-expect-error types are not provided for this sub-path import
 export * from '@testing-library/jest-dom/matchers';
 export {
@@ -47,7 +45,11 @@ type RecursivePartial<T> = T extends Record<string, unknown>
   : T;
 
 export const jestContext: RecursivePartial<jest.MatcherUtils> = {
-  equals: jestEquals,
+  equals: (a, b) => {
+    // Jest's version of this supports asymmetric matchers,
+    // but since we don't support that this is good enough.
+    return a === b;
+  },
   utils: {
     matcherHint: (...args) => runUtilInNode('matcherHint', args),
     diff: (...args) => {

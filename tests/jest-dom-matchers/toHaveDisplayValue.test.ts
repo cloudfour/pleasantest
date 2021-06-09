@@ -47,5 +47,22 @@ test(
     await expect(selectSingle).toHaveDisplayValue('Select a fruit...');
     await expect(selectSingle).toHaveDisplayValue(/Select/);
     await expect(selectMultiple).toHaveDisplayValue([/Avocado/, 'Banana']);
+
+    // The next two cases are asymmetric matchers, which jest-dom supports but we do not support (yet)
+    await expect(
+      expect(input).toHaveDisplayValue(expect.stringContaining('Luc')),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Pleasantest does not support using asymmetric matchers in browser-based matchers
+
+            Received [31mStringContaining \\"Luc\\"[39m"
+          `);
+
+    await expect(
+      expect(input).toHaveDisplayValue(expect.not.stringContaining('Luc')),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Pleasantest does not support using asymmetric matchers in browser-based matchers
+
+            Received [31mStringNotContaining \\"Luc\\"[39m"
+          `);
   }),
 );
