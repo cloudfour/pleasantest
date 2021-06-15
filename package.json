@@ -39,7 +39,7 @@
     "remark-lint-no-dead-urls": "1.1.0",
     "remark-validate-links": "10.0.4",
     "rollup": "2.51.2",
-    "rollup-plugin-dts": "2.0.1",
+    "rollup-plugin-dts": "3.0.2",
     "rollup-plugin-prettier": "2.1.0",
     "rollup-plugin-terser": "7.0.2",
     "sass": "1.34.1",
