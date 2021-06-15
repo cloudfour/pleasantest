@@ -42,7 +42,7 @@ function printoutStyles(styles) {
 export function toHaveStyle(htmlElement, css) {
   if (typeof css === 'string')
     throw new Error(
-      `test-mule only supports specifying expected styles as objects, received ${JSON.stringify(
+      `pleasantest only supports specifying expected styles as objects, received ${JSON.stringify(
         css,
       )}`,
     );

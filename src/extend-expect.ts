@@ -27,6 +27,7 @@ const methods = [
   'toBeChecked',
   'toBePartiallyChecked',
   'toHaveDescription',
+  'toHaveErrorMessage',
 ] as const;
 
 const isJSHandle = (input: unknown): input is JSHandle => {
@@ -81,7 +82,7 @@ expect.extend(
             typeof (arg as any)?.asymmetricMatch === 'function'
           ) {
             const error = new Error(
-              `Test Mule does not support using asymmetric matchers in browser-based matchers
+              `Pleasantest does not support using asymmetric matchers in browser-based matchers
 
 Received ${this.utils.printReceived(arg)}`,
             );
@@ -117,7 +118,7 @@ Received ${this.utils.printReceived(arg)}`,
             new Function(
               'element',
               '...matcherArgs',
-              `return import("http://localhost:${port}/@test-mule/jest-dom")
+              `return import("http://localhost:${port}/@pleasantest/jest-dom")
               .then(({ jestContext, deserialize, ...jestDom }) => {
                 const context = { ...(${ctxString}), ...jestContext }
                 try {
@@ -150,16 +151,14 @@ Received ${this.utils.printReceived(arg)}`,
             : (matcherResult) => matcherResult.message(),
         );
         const deserializedMessage = runJestUtilsInNode(message, this as any);
-        const {
-          messageWithElementsRevived,
-          messageWithElementsStringified,
-        } = await elementHandle
-          .evaluateHandle(
-            // @ts-expect-error pptr's types don't like new Function
-            new Function(
-              'el',
-              'message',
-              `return import("http://localhost:${port}/@test-mule/jest-dom")
+        const { messageWithElementsRevived, messageWithElementsStringified } =
+          await elementHandle
+            .evaluateHandle(
+              // @ts-expect-error pptr's types don't like new Function
+              new Function(
+                'el',
+                'message',
+                `return import("http://localhost:${port}/@pleasantest/jest-dom")
               .then(({ reviveElementsInString, printElement }) => {
                 const messageWithElementsRevived = reviveElementsInString(message)
                 const messageWithElementsStringified = messageWithElementsRevived
@@ -170,21 +169,22 @@ Received ${this.utils.printReceived(arg)}`,
                   .join('')
                 return { messageWithElementsRevived, messageWithElementsStringified }
               })`,
-            ),
-            deserializedMessage,
-          )
-          .then(async (returnHandle) => {
-            const {
-              messageWithElementsRevived,
-              messageWithElementsStringified,
-            } = Object.fromEntries(await returnHandle.getProperties());
-            return {
-              messageWithElementsStringified: await messageWithElementsStringified.jsonValue(),
-              messageWithElementsRevived: await jsHandleToArray(
-                messageWithElementsRevived,
               ),
-            };
-          });
+              deserializedMessage,
+            )
+            .then(async (returnHandle) => {
+              const {
+                messageWithElementsRevived,
+                messageWithElementsStringified,
+              } = Object.fromEntries(await returnHandle.getProperties());
+              return {
+                messageWithElementsStringified:
+                  await messageWithElementsStringified.jsonValue(),
+                messageWithElementsRevived: await jsHandleToArray(
+                  messageWithElementsRevived,
+                ),
+              };
+            });
         if (thrownError) {
           const error = new Error(messageWithElementsStringified as any);
           // @ts-expect-error messageForBrowser is a property we added to Error
@@ -332,7 +332,7 @@ declare global {
       toHaveFormValues(expectedValues: Record<string, unknown>): Promise<R>;
       /**
        * Check if an element has specific css properties applied
-       * Unlike jest-dom, test-mule does not support specifying expected styles as strings, they must be specified as an object.
+       * Unlike jest-dom, pleasantest does not support specifying expected styles as strings, they must be specified as an object.
        * https://github.com/testing-library/jest-dom#tohavestyle
        */
       toHaveStyle(css: Record<string, unknown>): Promise<R>;
@@ -383,6 +383,12 @@ declare global {
        * https://github.com/testing-library/jest-dom#tohavedescription
        */
       toHaveDescription(text?: string | RegExp): Promise<R>;
+
+      /**
+       * Check whether the given element has an ARIA error message (via aria-errormessage)
+       * https://github.com/testing-library/jest-dom#tohaveerrormessage
+       */
+      toHaveErrorMessage(text: string | RegExp): Promise<R>;
     }
   }
 }

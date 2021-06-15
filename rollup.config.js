@@ -46,11 +46,11 @@ const typesConfig = {
 };
 
 export default [
-  // mainConfig,
-  // userUtilsConfig,
+  mainConfig,
+  userUtilsConfig,
   jestDomConfig,
-  // pptrTestingLibraryConfig,
-  // typesConfig,
+  pptrTestingLibraryConfig,
+  typesConfig,
 ];
 
 /**

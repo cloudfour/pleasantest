@@ -1,4 +1,4 @@
-import { withBrowser } from 'test-mule';
+import { withBrowser } from 'pleasantest';
 
 test(
   'toHaveAttribute',
@@ -36,7 +36,7 @@ test(
     await expect(
       expect(button).toHaveAttribute('type', expect.stringContaining('sub')),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Test Mule does not support using asymmetric matchers in browser-based matchers
+            "Pleasantest does not support using asymmetric matchers in browser-based matchers
 
             Received [31mStringContaining \\"sub\\"[39m"
           `);
@@ -47,7 +47,7 @@ test(
         expect.not.stringContaining('but'),
       ),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Test Mule does not support using asymmetric matchers in browser-based matchers
+            "Pleasantest does not support using asymmetric matchers in browser-based matchers
 
             Received [31mStringNotContaining \\"but\\"[39m"
           `);

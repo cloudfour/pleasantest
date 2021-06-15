@@ -1,13 +1,13 @@
-import { withBrowser } from 'test-mule';
-import type { TestMuleContext, TestMuleUtils } from 'test-mule';
+import { withBrowser } from 'pleasantest';
+import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import { printErrorFrames } from '../test-utils';
 
 const createHeading = async ({
   utils,
   screen,
 }: {
-  utils: TestMuleUtils;
-  screen: TestMuleContext['screen'];
+  utils: PleasantestUtils;
+  screen: PleasantestContext['screen'];
 }) => {
   await utils.injectHTML(`
     <h1>I'm a heading</h1>
@@ -64,7 +64,7 @@ describe('Waiting for Promises in executed code', () => {
       await utils.runJS(`
         const heading = document.querySelector('h1')
 
-        new Promise(r => setTimeout(r, 10))
+        new Promise(r => setTimeout(r, 50))
           .then(() => heading.remove())
       `);
 
@@ -82,7 +82,7 @@ describe('Waiting for Promises in executed code', () => {
       await utils.runJS(`
         const heading = document.querySelector('h1')
 
-        await new Promise(r => setTimeout(r, 10))
+        await new Promise(r => setTimeout(r, 50))
           .then(() => heading.remove())
       `);
       await expect(heading).not.toBeInTheDocument();

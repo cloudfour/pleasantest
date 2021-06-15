@@ -6,7 +6,7 @@ import {
 } from './utils';
 import { port } from './vite-server';
 
-export interface TestMuleUser {
+export interface PleasantestUser {
   /** Clicks an element, if the element is visible and not covered by another element */
   click(
     element: ElementHandle | null,
@@ -36,10 +36,10 @@ const forgotAwaitMsg =
 
 /** Wraps each user method to catch errors that happen when user forgets to await */
 const wrapWithForgotAwait = (
-  user: TestMuleUser,
+  user: PleasantestUser,
   state: { isTestFinished: boolean },
 ) => {
-  for (const key of Object.keys(user) as (keyof TestMuleUser)[]) {
+  for (const key of Object.keys(user) as (keyof PleasantestUser)[]) {
     const original = user[key];
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
     const wrapper = async (...args: any[]) => {
@@ -61,11 +61,11 @@ const wrapWithForgotAwait = (
   }
 };
 
-export const testMuleUser = (
+export const pleasantestUser = (
   page: Page,
   state: { isTestFinished: boolean },
 ) => {
-  const user: TestMuleUser = {
+  const user: PleasantestUser = {
     async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
       await el
@@ -103,7 +103,7 @@ ${coveringEl}`;
     //   Cypress and user-event *Append*
     // - The names of the commands in curly brackets are mirroring the user-event command names
     //   *NOT* the Cypress names.
-    //   i.e. Cypress uses {leftarrow} but user-event and test-mule use {arrowleft}
+    //   i.e. Cypress uses {leftarrow} but user-event and pleasantest use {arrowleft}
     async type(el, text, { delay = 1, force = false } = {}) {
       assertElementHandle(el, user.type);
 
@@ -297,7 +297,7 @@ const runWithUtils = <Args extends any[], Return extends unknown>(
 ): ((...args: Args) => Promise<Return>) => {
   return new Function(
     '...args',
-    `return import("http://localhost:${port}/@test-mule/user-util")
+    `return import("http://localhost:${port}/@pleasantest/user-util")
     .then((utils) => {
       try {
         return [utils, (0, ${fn.toString()})(utils, ...args)]
@@ -328,36 +328,39 @@ const runWithUtils = <Args extends any[], Return extends unknown>(
  * When code that is evaluated in the browser returns {error: ...}, this function causes an error to be thrown in Node.
  * This is better than just throwing directly from the browser code because that would cause the error to be wrapped by Puppeteer's EvaluationError, which causes a confusing stack trace.
  */
-const throwBrowserError = (func: (...params: any) => any) => async (
-  result: JSHandle,
-) => {
-  const resultJSON = (await result.jsonValue()) as any;
-  if (resultJSON?.error) {
-    let err;
-    if (typeof resultJSON.error === 'string') {
-      err = new Error(resultJSON.error);
-    } else {
-      const errorProp = await result.getProperty('error');
-      const errorProperties = Object.fromEntries(
-        await errorProp.getProperties(),
-      );
-      // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
-      if (errorProperties.msgWithStringEls && errorProperties.msgWithLiveEls) {
-        err = new Error(
-          (await errorProperties.msgWithStringEls.jsonValue()) as any,
-        );
-        // @ts-expect-error messageForBrowser is a custom thing
-        err.messageForBrowser = await jsHandleToArray(
-          errorProperties.msgWithLiveEls,
-        );
+const throwBrowserError =
+  (func: (...params: any) => any) => async (result: JSHandle) => {
+    const resultJSON = (await result.jsonValue()) as any;
+    if (resultJSON?.error) {
+      let err;
+      if (typeof resultJSON.error === 'string') {
+        err = new Error(resultJSON.error);
       } else {
-        err = new Error((await errorProp.jsonValue()) as any);
+        const errorProp = await result.getProperty('error');
+        const errorProperties = Object.fromEntries(
+          await errorProp.getProperties(),
+        );
+        if (
+          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
+          errorProperties.msgWithStringEls &&
+          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
+          errorProperties.msgWithLiveEls
+        ) {
+          err = new Error(
+            (await errorProperties.msgWithStringEls.jsonValue()) as any,
+          );
+          // @ts-expect-error messageForBrowser is a custom thing
+          err.messageForBrowser = await jsHandleToArray(
+            errorProperties.msgWithLiveEls,
+          );
+        } else {
+          err = new Error((await errorProp.jsonValue()) as any);
+        }
       }
+
+      removeFuncFromStackTrace(err, func);
+      throw err;
     }
 
-    removeFuncFromStackTrace(err, func);
-    throw err;
-  }
-
-  return result;
-};
+    return result;
+  };

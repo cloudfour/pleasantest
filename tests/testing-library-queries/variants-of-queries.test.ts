@@ -1,4 +1,4 @@
-import { withBrowser } from 'test-mule';
+import { withBrowser } from 'pleasantest';
 
 const singleElementMarkup = `
   <h1>Hello</h1>
