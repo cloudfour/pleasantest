@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { promises as fs } from 'fs';
-import puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 
 process.on('message', async ({ browser, headless }) => {
   try {
