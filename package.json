@@ -16,7 +16,7 @@
     "@changesets/cli": "2.16.0",
     "@cloudfour/eslint-plugin": "16.0.0",
     "@rollup/plugin-babel": "5.3.0",
-    "@rollup/plugin-node-resolve": "11.2.1",
+    "@rollup/plugin-node-resolve": "13.0.0",
     "@testing-library/dom": "7.31.2",
     "@testing-library/jest-dom": "5.13.0",
     "@types/jest": "26.0.23",
