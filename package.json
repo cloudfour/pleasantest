@@ -49,7 +49,7 @@
   "dependencies": {
     "@types/testing-library__jest-dom": "^5.14.0",
     "puppeteer": "^10.0.0",
-    "source-map": "^0.7.3",
+    "source-map": "0.8.0-beta.0",
     "vite": "2.0.0-beta.52"
   },
   "eslintConfig": {
