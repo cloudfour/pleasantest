@@ -1,32 +1,32 @@
 import * as childProcess from 'child_process';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import envPaths from 'env-paths';
 import * as puppeteer from 'puppeteer';
 // @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
+import { fileURLToPath } from 'url';
 
-const readConfig = async (configPath: string) => {
+const readCache = async (cachePath: string) => {
   try {
-    const config = await fs.readFile(configPath, 'utf8').catch(() => '');
-    const parsed = JSON.parse(config);
+    const cache = await fs.readFile(cachePath, 'utf8').catch(() => '');
+    const parsed = JSON.parse(cache);
     if (typeof parsed === 'object') return parsed;
   } catch {}
 
   return {};
 };
 
-const updateConfig = async (
-  configPath: string,
+const updateCacheFile = async (
+  cachePath: string,
   browser: 'chromium',
   headless: boolean,
   value: string | undefined,
   previousValue: string | undefined,
 ) => {
-  await fs.mkdir(path.dirname(configPath), { recursive: true });
-  const oldConfig = await readConfig(configPath);
+  await fs.mkdir(path.dirname(cachePath), { recursive: true });
+  const oldCache = await readCache(cachePath);
   const headlessStr = headless ? 'headless' : 'headed';
-  const browserObj = oldConfig[browser] || (oldConfig[browser] = {});
+  const browserObj = oldCache[browser] || (oldCache[browser] = {});
   if (
     previousValue !== undefined &&
     previousValue !== browserObj[headlessStr]
@@ -35,17 +35,17 @@ const updateConfig = async (
   }
 
   browserObj[headlessStr] = value;
-  await fs.writeFile(configPath, JSON.stringify(oldConfig, null, 2));
+  await fs.writeFile(cachePath, JSON.stringify(oldCache, null, 2));
 };
 
 const connectToCachedBrowser = async (
-  configPath: string,
+  cachePath: string,
   browser: 'chromium',
   headless: boolean,
   timeLimit = 5000,
 ) => {
-  const config = await readConfig(configPath);
-  const cachedWSEndpoint = config[browser]?.[headless ? 'headless' : 'headed'];
+  const cache = await readCache(cachePath);
+  const cachedWSEndpoint = cache[browser]?.[headless ? 'headless' : 'headed'];
   // In case another process is currently starting a browser, wait for that process
   // rather than starting a whole new one
   if (cachedWSEndpoint === 'starting' && timeLimit > 0) {
@@ -56,7 +56,7 @@ const connectToCachedBrowser = async (
       setTimeout(
         () =>
           connectToCachedBrowser(
-            configPath,
+            cachePath,
             browser,
             headless,
             timeLimit - 50,
@@ -87,20 +87,27 @@ export const connectToBrowser = async (
 ) => {
   // I acknowledge that this code is gross and should be refactored
   // Constraints:
-  // - If there is no browser in the config, multiple concurrent processes should only start 1 new browser
-  // - If there is a killed browser in the config, multiple concurrent processes should only start 1 new browser
-  // - If there "starting" in the config but nothing is really starting, multiple concurrent processes should only start 1 new browser
+  // - If there is no browser in the cache, multiple concurrent processes should only start 1 new browser
+  // - If there is a killed browser in the cache, multiple concurrent processes should only start 1 new browser
+  // - If there "starting" in the cache but nothing is really starting, multiple concurrent processes should only start 1 new browser
   // TODO: Idea: use a state machine!!!
-  const dataPath = envPaths('pleasantest').data;
-  const configPath = path.join(dataPath, 'config.json');
+  // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
+  const installFolder = path.dirname(
+    path.dirname(path.dirname(fileURLToPath(import.meta.url))),
+  );
+  // Something like <something>/node_modules/pleasantest/.browser-cache.json
+  const cachePath = path.join(installFolder, '.browser-cache.json');
   const cachedBrowser = await connectToCachedBrowser(
-    configPath,
+    cachePath,
     browser,
     headless,
   );
-  if (isBrowser(cachedBrowser)) return cachedBrowser;
-  let valueWrittenInMeantime = await updateConfig(
-    configPath,
+  if (isBrowser(cachedBrowser)) {
+    return cachedBrowser;
+  }
+
+  let valueWrittenInMeantime = await updateCacheFile(
+    cachePath,
     browser,
     headless,
     'starting',
@@ -108,7 +115,7 @@ export const connectToBrowser = async (
   );
   if (valueWrittenInMeantime) {
     const connectedBrowser = await connectToCachedBrowser(
-      configPath,
+      cachePath,
       browser,
       headless,
     );
@@ -131,8 +138,8 @@ export const connectToBrowser = async (
     });
   }).catch(async (error) => {
     subprocess.kill();
-    valueWrittenInMeantime = await updateConfig(
-      configPath,
+    valueWrittenInMeantime = await updateCacheFile(
+      cachePath,
       browser,
       headless,
       '',
@@ -140,8 +147,8 @@ export const connectToBrowser = async (
     );
     throw error;
   });
-  valueWrittenInMeantime = await updateConfig(
-    configPath,
+  valueWrittenInMeantime = await updateCacheFile(
+    cachePath,
     browser,
     headless,
     wsEndpoint,
