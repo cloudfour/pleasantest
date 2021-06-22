@@ -53,6 +53,7 @@
     "@types/testing-library__jest-dom": "^5.14.0",
     "acorn": "^7.4.1",
     "esbuild": "^0.12.9",
+    "postcss": "^8.3.5",
     "puppeteer": "^10.0.0",
     "rollup": "^2.52.2",
     "rollup-plugin-postcss": "^4.0.0",
