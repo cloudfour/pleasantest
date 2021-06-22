@@ -1,7 +1,7 @@
-import { port } from './vite-server';
 import type { queries, BoundFunctions } from '@testing-library/dom';
 import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
 import type { JSHandle } from 'puppeteer';
+import { createClientRuntimeServer } from './module-server/client-runtime-server';
 
 type ElementToElementHandle<Input> = Input extends Element
   ? import('puppeteer').ElementHandle
@@ -83,6 +83,7 @@ export const getQueriesForElement = (
   state: { isTestFinished: boolean },
   element?: import('puppeteer').ElementHandle,
 ) => {
+  const serverPromise = createClientRuntimeServer();
   // @ts-expect-error TS doesn't understand the properties coming out of Object.fromEntries
   const queries: BoundQueries = Object.fromEntries(
     queryNames.map((queryName: typeof queryNames[number]) => {
@@ -112,6 +113,8 @@ export const getQueriesForElement = (
 
           throw error;
         };
+
+        const { port } = await serverPromise;
 
         const result: JSHandle<Element | Element[] | DTLError | null> =
           await page

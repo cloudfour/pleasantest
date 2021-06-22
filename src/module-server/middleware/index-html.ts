@@ -13,7 +13,6 @@ const defaultHTML = `
     <h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
       Your test will run here
     </h1>
-    <script type="module" src="asdf.js"></script>
   </body>
 </html>
 `;

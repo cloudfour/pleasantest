@@ -1,3 +1,4 @@
+import type { AddressInfo, Socket } from 'net';
 import type { Polka } from 'polka';
 import polka from 'polka';
 
@@ -6,10 +7,55 @@ interface ServerOpts {
 }
 
 export const createServer = ({ middleware }: ServerOpts) =>
-  new Promise<Polka>((resolve) => {
-    // TODO: use different port if port is taken
-    const port = 3000;
-    const server = polka({});
-    if (middleware.length > 0) server.use(...middleware);
-    server.listen(port, undefined, () => resolve(server));
-  });
+  new Promise<{ port: number; server: Polka; close: () => Promise<void> }>(
+    (resolve) => {
+      const server = polka({
+        onError(err, req, res) {
+          const fullPath = req.originalUrl.replace(/\?.+$/, '');
+
+          // ignore missing favicon requests
+          if (fullPath === '/favicon.ico') {
+            res.writeHead(200, {
+              'content-type': 'image/x-icon',
+              'content-length': '0',
+            });
+            return res.end('');
+          }
+
+          // @ts-expect-error TS doesn't know about err.code
+          const code = typeof err.code === 'number' ? err.code : 500;
+
+          res.statusCode = code;
+          res.writeHead(code, { 'content-type': 'text/plain' });
+          res.end(err.stack);
+          console.error(err.stack);
+        },
+      });
+      if (middleware.length > 0) server.use(...middleware);
+
+      const sockets = new Set<Socket>();
+
+      server.listen(
+        // 0 means the OS will choose a random free port
+        0,
+        undefined,
+        () => {
+          const serv = server.server!;
+          serv.on('connection', (socket) => {
+            sockets.add(socket);
+            socket.on('close', () => sockets.delete(socket));
+          });
+          resolve({
+            port: (server.server!.address() as AddressInfo).port,
+            server,
+            close: async () => {
+              for (const socket of sockets) socket.destroy();
+              await new Promise<void>((resolve, reject) => {
+                serv.close((err) => (err ? reject(err) : resolve()));
+              });
+            },
+          });
+        },
+      );
+    },
+  );

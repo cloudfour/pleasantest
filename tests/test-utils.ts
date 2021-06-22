@@ -2,8 +2,8 @@ import { parseStackTrace } from 'errorstacks';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
-export const printErrorFrames = async (error: Error) => {
-  if (!error.stack) return '';
+export const printErrorFrames = async (error?: Error) => {
+  if (!error?.stack) return '';
   const stack = parseStackTrace(error.stack);
 
   const frames = await Promise.all(

@@ -36,7 +36,6 @@ test(
   'allows passing ElementHandles and serializable values into browser',
   withBrowser(async ({ utils, screen }) => {
     const heading = await createHeading({ utils, screen });
-
     await utils.runJS(
       `
         export default (heading, object) => {
@@ -107,11 +106,10 @@ test(
   }),
 );
 
-test(
+test.skip(
   'throws error with real source-mapped location',
   withBrowser(async ({ utils }) => {
-    // Note: the snippet inherits the language support from the test file that includes it
-    // So since this file is a .ts file, the snippet supports TS syntax
+    // Manually-thrown error
     const error = await utils
       .runJS(
         `type foo = 'stringliteraltype'
@@ -128,6 +126,7 @@ test(
                     ^"
     `);
 
+    // Implicitly created error
     const error2 = await utils
       .runJS(
         `type foo = 'stringliteraltype'
@@ -143,10 +142,16 @@ test(
               thisVariableDoesntExist\`,
               ^"
     `);
+    // Syntax error
+    const error3 = await utils
+      .runJS(`console.log('hello)`)
+      .catch((error) => error);
+
+    expect(await printErrorFrames(error3)).toMatchInlineSnapshot();
   }),
 );
 
-test(
+test.skip(
   'allows importing .tsx file, and errors from imported file are source mapped',
   withBrowser(async ({ utils, page }) => {
     await utils.runJS(`

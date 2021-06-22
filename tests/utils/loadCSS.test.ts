@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { withBrowser } from 'pleasantest';
 
-test(
+test.skip(
   'CSS file with relative path',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML(`
@@ -17,7 +17,7 @@ test(
   }),
 );
 
-test(
+test.skip(
   'CSS file with absolute path',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML(`
@@ -33,7 +33,7 @@ test(
   }),
 );
 
-test(
+test.skip(
   'sass/preprocessor file',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML(`
