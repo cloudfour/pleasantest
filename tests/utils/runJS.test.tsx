@@ -199,3 +199,21 @@ test.todo(
 test.todo(
   'if the code string has a syntax error the location is source mapped',
 );
+test.todo('resolution error if a package does not exist in node_modules');
+
+test(
+  'react and react-dom can be imported, and JSX works',
+  withBrowser(async ({ utils, screen }) => {
+    await utils.runJS(`
+      import React from 'react'
+      import reactDOM from 'react-dom'
+
+      const root = document.createElement('div')
+      document.body.innerHTML = ''
+      document.body.append(root)
+      reactDOM.render(<h1>Hi</h1>, root)
+    `);
+    const heading = await screen.getByRole('heading');
+    await expect(heading).toHaveTextContent('Hi');
+  }),
+);
