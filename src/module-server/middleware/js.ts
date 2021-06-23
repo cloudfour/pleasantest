@@ -28,8 +28,7 @@ export const jsMiddleware = ({
       let file: string;
       if (path.startsWith('/@npm/')) {
         id = path.slice(1);
-        // TODO:
-        file = 'halp im stuck in a string';
+        file = ''; // This should never be read
       } else {
         // Remove leading slash, and convert slashes to os-specific slashes
         const osPath = path.slice(1).split(posix.sep).join(sep);
