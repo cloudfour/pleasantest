@@ -6,6 +6,8 @@ import { resolve, legacy as resolveLegacy } from 'resolve.exports';
 import commonjs from '@rollup/plugin-commonjs';
 import { processGlobalPlugin } from './process-global-plugin';
 import * as esbuild from 'esbuild';
+import { parse } from 'cjs-module-lexer';
+import MagicString from 'magic-string';
 
 const npmTranspileCache = new Map<string, string>();
 const setInCache = (id: string, code: string) => {
@@ -136,6 +138,46 @@ const bundleNpmModule = async (mod: string, optimize: boolean) => {
     treeshake: true,
     preserveEntrySignatures: 'allow-extension',
     plugins: [
+      {
+        // This plugin fixes cases of module.exports = require('...')
+        // By default, the named exports from the required module are not generated
+        // This plugin detects those exports,
+        // and makes it so that @rollup/plugin-commonjs can see them and turn them into ES exports (via syntheticNamedExports)
+        // This edge case happens in React, so it was necessary to fix it.
+        name: 'cjs-module-lexer',
+        async transform(code, id) {
+          if (id.startsWith('\0')) return;
+          const out = new MagicString(code);
+          const re =
+            /(^|[\s;])module\.exports\s*=\s*require\(["']([^"']*)["']\)($|[\s;])/g;
+          let match;
+          while ((match = re.exec(code))) {
+            const [, leadingWhitespace, moduleName, trailingWhitespace] = match;
+
+            const resolved = await this.resolve(moduleName, id);
+            if (!resolved || resolved.external) return;
+
+            try {
+              const text = await fs.readFile(resolved.id, 'utf8');
+              const parsed = await parse(text);
+              let replacement = '';
+              for (const exportName of parsed.exports) {
+                replacement += `\nmodule.exports.${exportName} = require("${moduleName}").${exportName}`;
+              }
+
+              out.overwrite(
+                match.index,
+                re.lastIndex,
+                leadingWhitespace + replacement + trailingWhitespace,
+              );
+            } catch {
+              return;
+            }
+          }
+
+          return out.toString();
+        },
+      } as Plugin,
       pluginNodeResolve(),
       processGlobalPlugin({ NODE_ENV: 'development' }),
       commonjs({
@@ -159,6 +201,8 @@ const bundleNpmModule = async (mod: string, optimize: boolean) => {
   const { output } = await bundle.generate({
     format: 'es',
     indent: false,
+    exports: 'named',
+    preferConst: true,
   });
 
   return output[0].code;

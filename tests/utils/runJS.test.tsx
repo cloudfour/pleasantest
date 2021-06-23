@@ -205,13 +205,17 @@ test(
   'react and react-dom can be imported, and JSX works',
   withBrowser(async ({ utils, screen }) => {
     await utils.runJS(`
-      import React from 'react'
-      import reactDOM from 'react-dom'
+      import * as React from 'react'
+      import React2 from 'react'
+      if (React.createElement !== React2.createElement) {
+        throw new Error('Namespace import did not yield same result as direct import')
+      }
+      import { render } from 'react-dom'
 
       const root = document.createElement('div')
       document.body.innerHTML = ''
       document.body.append(root)
-      reactDOM.render(<h1>Hi</h1>, root)
+      render(<h1>Hi</h1>, root)
     `);
     const heading = await screen.getByRole('heading');
     await expect(heading).toHaveTextContent('Hi');

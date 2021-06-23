@@ -39,6 +39,7 @@ const mainConfig = {
     'source-map',
     'acorn',
     'es-module-lexer',
+    'cjs-module-lexer',
     'rollup',
     '@rollup/plugin-commonjs',
     'esbuild',
