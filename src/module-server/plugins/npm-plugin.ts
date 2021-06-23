@@ -159,6 +159,7 @@ const bundleNpmModule = async (mod: string, optimize: boolean) => {
 
             try {
               const text = await fs.readFile(resolved.id, 'utf8');
+              // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
               const parsed = await parse(text);
               let replacement = '';
               for (const exportName of parsed.exports) {
