@@ -1,4 +1,4 @@
-import { join, normalize, posix } from 'path';
+import { dirname, join, normalize, posix } from 'path';
 import type { Plugin, RollupCache } from 'rollup';
 import { rollup } from 'rollup';
 import { existsSync, promises as fs } from 'fs';
@@ -8,14 +8,32 @@ import { processGlobalPlugin } from './process-global-plugin';
 import * as esbuild from 'esbuild';
 import { parse } from 'cjs-module-lexer';
 import MagicString from 'magic-string';
+import { fileURLToPath } from 'url';
+
+// This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
+const installFolder = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+// Something like <something>/node_modules/pleasantest/.cache
+const cacheDir = join(installFolder, '.cache');
 
 const npmTranspileCache = new Map<string, string>();
-const setInCache = (id: string, code: string) => {
-  npmTranspileCache.set(id, code);
+const setInCache = (cachePath: string, code: string) => {
+  npmTranspileCache.set(cachePath, code);
+  fs.mkdir(dirname(cachePath), { recursive: true }).then(() =>
+    fs.writeFile(cachePath, code),
+  );
 };
 
-const getFromCache = (id: string) => {
-  return npmTranspileCache.get(id);
+const getFromCache = async (cachePath: string) => {
+  return (
+    npmTranspileCache.get(cachePath) ||
+    fs
+      .readFile(cachePath, 'utf8')
+      .catch(() => {})
+      .then((code) => {
+        if (code) npmTranspileCache.set(cachePath, code);
+        return code;
+      })
+  );
 };
 
 const isBareImport = (id: string) =>
@@ -39,15 +57,16 @@ export const npmPlugin = ({ root }: { root: string }): Plugin => {
     async load(id) {
       if (!id.startsWith(prefix)) return null;
       id = id.slice(prefix.length);
-      const cached = getFromCache(id);
-      if (cached) return cached;
       const resolved = await nodeResolve(id, root);
-      const result = await bundleNpmModule(resolved, false);
+      const cachePath = join(cacheDir, '@npm', `${resolved.idWithVersion}.js`);
+      const cached = await getFromCache(cachePath);
+      if (cached) return cached;
+      const result = await bundleNpmModule(resolved.path, false);
       // Queue up a second-pass optimized/minified build
-      bundleNpmModule(resolved, true).then((optimizedResult) => {
-        setInCache(id, optimizedResult);
+      bundleNpmModule(resolved.path, true).then((optimizedResult) => {
+        setInCache(cachePath, optimizedResult);
       });
-      setInCache(id, result);
+      setInCache(cachePath, result);
       return result;
     },
   };
@@ -56,12 +75,9 @@ export const npmPlugin = ({ root }: { root: string }): Plugin => {
 const nodeResolve = async (id: string, root: string) => {
   const pathChunks = id.split(posix.sep);
   const isNpmNamespace = id[0] === '@';
+  const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
   // If it is an npm namespace, then get the first two folders, otherwise just one
-  const pkgDir = join(
-    root,
-    'node_modules',
-    ...pathChunks.slice(0, isNpmNamespace ? 2 : 1),
-  );
+  const pkgDir = join(root, 'node_modules', ...packageName);
   // Path within imported module
   const subPath = join(...pathChunks.slice(isNpmNamespace ? 2 : 1));
   const pkgJsonPath = join(pkgDir, 'package.json');
@@ -71,6 +87,9 @@ const nodeResolve = async (id: string, root: string) => {
   } catch {
     throw new Error(`Could not read or parse package.json at ${pkgJsonPath}`);
   }
+
+  const version = pkgJson.version;
+  const idWithVersion = join(`${packageName.join('__')}@${version}`, subPath);
 
   let result = resolve(pkgJson, subPath, {
     browser: true,
@@ -98,13 +117,13 @@ const nodeResolve = async (id: string, root: string) => {
     const extensions = ['.js', '/index.js', '.cjs', '/index.cjs'];
     for (const extension of extensions) {
       const path = normalize(join(pkgDir, subPath) + extension);
-      if (existsSync(path)) return path;
+      if (existsSync(path)) return { path, idWithVersion };
     }
 
     throw new Error(`Could not resolve ${id}`);
   }
 
-  return join(pkgDir, result);
+  return { path: join(pkgDir, result), idWithVersion };
 };
 
 const pluginNodeResolve = (): Plugin => {

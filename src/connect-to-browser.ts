@@ -6,7 +6,14 @@ import * as puppeteer from 'puppeteer';
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 import { fileURLToPath } from 'url';
 
-const readCache = async (cachePath: string) => {
+// This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
+const installFolder = path.dirname(
+  path.dirname(path.dirname(fileURLToPath(import.meta.url))),
+);
+// Something like <something>/node_modules/pleasantest/.browser-cache.json
+const cachePath = path.join(installFolder, '.browser-cache.json');
+
+const readCache = async () => {
   try {
     const cache = await fs.readFile(cachePath, 'utf8').catch(() => '');
     const parsed = JSON.parse(cache);
@@ -17,14 +24,13 @@ const readCache = async (cachePath: string) => {
 };
 
 const updateCacheFile = async (
-  cachePath: string,
   browser: 'chromium',
   headless: boolean,
   value: string | undefined,
   previousValue: string | undefined,
 ) => {
   await fs.mkdir(path.dirname(cachePath), { recursive: true });
-  const oldCache = await readCache(cachePath);
+  const oldCache = await readCache();
   const headlessStr = headless ? 'headless' : 'headed';
   const browserObj = oldCache[browser] || (oldCache[browser] = {});
   if (
@@ -39,12 +45,11 @@ const updateCacheFile = async (
 };
 
 const connectToCachedBrowser = async (
-  cachePath: string,
   browser: 'chromium',
   headless: boolean,
   timeLimit = 5000,
 ) => {
-  const cache = await readCache(cachePath);
+  const cache = await readCache();
   const cachedWSEndpoint = cache[browser]?.[headless ? 'headless' : 'headed'];
   // In case another process is currently starting a browser, wait for that process
   // rather than starting a whole new one
@@ -55,12 +60,9 @@ const connectToCachedBrowser = async (
       // Every 50ms check again (this is recursive)
       setTimeout(
         () =>
-          connectToCachedBrowser(
-            cachePath,
-            browser,
-            headless,
-            timeLimit - 50,
-          ).then(resolve),
+          connectToCachedBrowser(browser, headless, timeLimit - 50).then(
+            resolve,
+          ),
         50,
       );
     });
@@ -91,34 +93,19 @@ export const connectToBrowser = async (
   // - If there is a killed browser in the cache, multiple concurrent processes should only start 1 new browser
   // - If there "starting" in the cache but nothing is really starting, multiple concurrent processes should only start 1 new browser
   // TODO: Idea: use a state machine!!!
-  // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
-  const installFolder = path.dirname(
-    path.dirname(path.dirname(fileURLToPath(import.meta.url))),
-  );
-  // Something like <something>/node_modules/pleasantest/.browser-cache.json
-  const cachePath = path.join(installFolder, '.browser-cache.json');
-  const cachedBrowser = await connectToCachedBrowser(
-    cachePath,
-    browser,
-    headless,
-  );
+  const cachedBrowser = await connectToCachedBrowser(browser, headless);
   if (isBrowser(cachedBrowser)) {
     return cachedBrowser;
   }
 
   let valueWrittenInMeantime = await updateCacheFile(
-    cachePath,
     browser,
     headless,
     'starting',
     cachedBrowser.previousValue,
   );
   if (valueWrittenInMeantime) {
-    const connectedBrowser = await connectToCachedBrowser(
-      cachePath,
-      browser,
-      headless,
-    );
+    const connectedBrowser = await connectToCachedBrowser(browser, headless);
     if (!isBrowser(connectedBrowser))
       throw new Error('unable to connect to brwoser');
     return connectedBrowser;
@@ -139,7 +126,6 @@ export const connectToBrowser = async (
   }).catch(async (error) => {
     subprocess.kill();
     valueWrittenInMeantime = await updateCacheFile(
-      cachePath,
       browser,
       headless,
       '',
@@ -148,7 +134,6 @@ export const connectToBrowser = async (
     throw error;
   });
   valueWrittenInMeantime = await updateCacheFile(
-    cachePath,
     browser,
     headless,
     wsEndpoint,
