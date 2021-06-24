@@ -32,7 +32,16 @@ export const createModuleServer = async ({
     processGlobalPlugin({ NODE_ENV: 'development' }),
     npmPlugin({ root }),
     esbuildPlugin(),
-    postcssPlugin(),
+    postcssPlugin({
+      inject: (cssVariable) => {
+        return `
+        const style = document.createElement('style')
+        style.type = 'text/css'
+        document.head.append(style)
+        style.appendChild(document.createTextNode(${cssVariable}))
+        `;
+      },
+    }),
   ];
   const filteredPlugins = plugins.filter(Boolean) as Plugin[];
   const middleware: polka.Middleware[] = [

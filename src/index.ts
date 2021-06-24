@@ -383,9 +383,9 @@ const createTab = async ({
   };
 
   const loadCSS: PleasantestUtils['loadCSS'] = async (cssPath) => {
-    const fullPath = cssPath.startsWith('.')
-      ? path.join(path.dirname(testPath), cssPath)
-      : cssPath;
+    const fullPath = path.isAbsolute(cssPath)
+      ? path.relative(process.cwd(), cssPath)
+      : path.join(path.dirname(testPath), cssPath);
     await safeEvaluate(
       loadCSS,
       `import(${JSON.stringify(

@@ -122,7 +122,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       throw new Error('getFileName is not implemented');
     },
     addWatchFile() {
-      throw new Error('addWatchFile is not implemented');
+      // No-op
     },
     getWatchFiles() {
       throw new Error('getWatchFiles is not implemented');
