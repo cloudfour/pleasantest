@@ -28,7 +28,7 @@ const getFromCache = async (cachePath: string) => {
     npmTranspileCache.get(cachePath) ||
     fs
       .readFile(cachePath, 'utf8')
-      .catch(() => {})
+      .catch(() => {}) // Ignore if file is not found in cache
       .then((code) => {
         if (code) npmTranspileCache.set(cachePath, code);
         return code;
