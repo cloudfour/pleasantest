@@ -300,6 +300,7 @@ const createTab = async ({
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
     const { message, stack } = res;
+    // TODO: re-enable source map usage once source map support is added to module server
     // Const parsedStack = parseStackTrace(stack);
     // const modifiedStack = parsedStack.map(async (stackItem) => {
     //   if (!stackItem.fileName) return stackItem.raw;
@@ -354,6 +355,7 @@ const createTab = async ({
     const error = new ErrorConstructor(message);
     error.stack = stack;
 
+    // TODO: re-enable source map usage once source map support is added to module server
     // Error.stack = `${errorName}: ${message}\n${(
     //   await Promise.all(modifiedStack)
     // ).join('\n')}`;
