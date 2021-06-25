@@ -10,6 +10,9 @@ interface JSMiddlewareOpts {
   plugins: Plugin[];
 }
 
+// TODO: make this configurable
+const jsExts = /\.(?:[jt]sx?|[cm]js)$/;
+
 // Minimal version of https://github.com/preactjs/wmr/blob/main/packages/wmr/src/wmr-middleware.js
 
 export const jsMiddleware = ({
@@ -56,6 +59,13 @@ export const jsMiddleware = ({
       }
 
       if (!code && code !== '') {
+        // If it doesn't have a js-like extension,
+        // and none of the rollup plugins provided a load hook for it
+        // and it doesn't have the ?import param (added for non-JS assets that can be imported into JS, like css)
+        // Then treat it as a static asset
+        if (!jsExts.test(resolvedId) && req.query.import === undefined)
+          return next();
+
         // Always use the resolved id as the basis for our file
         let file = resolvedId;
         file = file.split(posix.sep).join(sep);
@@ -90,6 +100,11 @@ export const jsMiddleware = ({
               return spec;
             }
           }
+
+          // If it wasn't resovled, and doesn't have a js-like extension
+          // add the ?import query param so it is clear
+          // that the request needs to end up as JS that can be imported
+          if (!jsExts.test(spec)) return `${spec}?import`;
 
           return spec;
         },

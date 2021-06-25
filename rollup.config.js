@@ -44,6 +44,7 @@ const mainConfig = {
     '@rollup/plugin-commonjs',
     'esbuild',
     /postcss/,
+    /mime/,
   ],
 };
 
