@@ -1,4 +1,4 @@
-import { posix, relative, resolve, sep } from 'path';
+import { posix, resolve } from 'path';
 import type polka from 'polka';
 import { promises as fs, createReadStream } from 'fs';
 import mime from 'mime/lite';
