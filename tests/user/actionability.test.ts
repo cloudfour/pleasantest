@@ -1,9 +1,17 @@
 import type { ElementHandle } from 'puppeteer';
-import { port, withBrowser } from 'pleasantest';
+import { withBrowser } from 'pleasantest';
+import {
+  cleanupClientRuntimeServer,
+  createClientRuntimeServer,
+} from '../../src/module-server/client-runtime-server';
+import path from 'path';
 
-const runWithUtils = <Args extends any[], Return extends unknown>(
+const runWithUtils = async <Args extends any[], Return extends unknown>(
   fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,
-): ((...args: Args) => Promise<Return>) => {
+): Promise<(...args: Args) => Promise<Return>> => {
+  const { port } = await createClientRuntimeServer(
+    path.join(process.cwd(), 'dist'),
+  );
   return new Function(
     '...args',
     `return import("http://localhost:${port}/@pleasantest/user-util")
@@ -26,9 +34,9 @@ const runWithUtils = <Args extends any[], Return extends unknown>(
   ) as any;
 };
 
-const isAttached = (el: ElementHandle) =>
+const isAttached = async (el: ElementHandle) =>
   el.evaluate(
-    runWithUtils((utils, clickEl) => {
+    await runWithUtils((utils, clickEl) => {
       try {
         utils.assertAttached(clickEl);
         return true;
@@ -38,9 +46,9 @@ const isAttached = (el: ElementHandle) =>
     }),
   );
 
-const isVisible = (el: ElementHandle) =>
+const isVisible = async (el: ElementHandle) =>
   el.evaluate(
-    runWithUtils((utils, clickEl) => {
+    await runWithUtils((utils, clickEl) => {
       try {
         utils.assertVisible(clickEl);
         return true;
@@ -153,4 +161,8 @@ describe('visible', () => {
       expect(await isVisible(div)).toBe(false);
     }),
   );
+});
+
+afterAll(async () => {
+  await cleanupClientRuntimeServer();
 });

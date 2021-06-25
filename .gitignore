@@ -1,3 +1,4 @@
 dist
 node_modules
 .browser-cache.json
+.cache

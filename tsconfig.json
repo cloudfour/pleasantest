@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "strictBindCallApply": true,
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

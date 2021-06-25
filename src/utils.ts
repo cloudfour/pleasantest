@@ -7,7 +7,7 @@ export const jsHandleToArray = async (arrayHandle: JSHandle) => {
     const valHandle = properties.get(String(i));
     if (valHandle) {
       // Change primitives to live values rather than JSHandles
-      const val = await valHandle.jsonValue();
+      const val = await valHandle.jsonValue().catch(() => valHandle);
       arr[i] = typeof val === 'object' ? valHandle : val;
     }
   }

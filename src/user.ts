@@ -1,10 +1,10 @@
 import type { ElementHandle, JSHandle, Page } from 'puppeteer';
+import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import {
   assertElementHandle,
   jsHandleToArray,
   removeFuncFromStackTrace,
 } from './utils';
-import { port } from './vite-server';
 
 export interface PleasantestUser {
   /** Clicks an element, if the element is visible and not covered by another element */
@@ -61,10 +61,42 @@ const wrapWithForgotAwait = (
   }
 };
 
-export const pleasantestUser = (
+export const pleasantestUser = async (
   page: Page,
   state: { isTestFinished: boolean },
 ) => {
+  const { port } = await createClientRuntimeServer();
+  const runWithUtils = <Args extends any[], Return extends unknown>(
+    fn: (userUtil: typeof import('./user-util'), ...args: Args) => Return,
+  ): ((...args: Args) => Promise<Return>) =>
+    new Function(
+      '...args',
+      `return import("http://localhost:${port}/@pleasantest/user-util")
+      .then((utils) => {
+        try {
+          return [utils, (0, ${fn.toString()})(utils, ...args)]
+        } catch (error) {
+          if (error.error) error = error.error
+          return [utils, { error }]
+        }
+      })
+      .then(([utils, result]) => {
+        if (result && typeof result === 'object' && result.error) {
+          const msgWithLiveEls = result.error
+          if (typeof msgWithLiveEls === 'string') return { error: msgWithLiveEls }
+          const msgWithStringEls = msgWithLiveEls
+            .map(el => {
+              if (el instanceof Element || el instanceof Document)
+                return utils.printElement(el)
+              return el
+            })
+            .join('')
+          return { error: { msgWithLiveEls, msgWithStringEls } }
+        }
+        return result
+      })`,
+    ) as any;
+
   const user: PleasantestUser = {
     async click(el, { force = false } = {}) {
       assertElementHandle(el, user.click);
@@ -290,38 +322,6 @@ const typeCommandsMap: Record<string, string> = {
   '{tab}': 'Tab',
   '{backspace}': 'Backspace',
   '{del}': 'Delete',
-};
-
-const runWithUtils = <Args extends any[], Return extends unknown>(
-  fn: (userUtil: typeof import('./user-util'), ...args: Args) => Return,
-): ((...args: Args) => Promise<Return>) => {
-  return new Function(
-    '...args',
-    `return import("http://localhost:${port}/@pleasantest/user-util")
-    .then((utils) => {
-      try {
-        return [utils, (0, ${fn.toString()})(utils, ...args)]
-      } catch (error) {
-        if (error.error) error = error.error
-        return [utils, { error }]
-      }
-    })
-    .then(([utils, result]) => {
-      if (result && typeof result === 'object' && result.error) {
-        const msgWithLiveEls = result.error
-        if (typeof msgWithLiveEls === 'string') return { error: msgWithLiveEls }
-        const msgWithStringEls = msgWithLiveEls
-          .map(el => {
-            if (el instanceof Element || el instanceof Document)
-              return utils.printElement(el)
-            return el
-          })
-          .join('')
-        return { error: { msgWithLiveEls, msgWithStringEls } }
-      }
-      return result
-    })`,
-  ) as any;
 };
 
 /**

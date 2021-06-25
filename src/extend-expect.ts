@@ -1,7 +1,7 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
+import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import { deserialize, serialize } from './serialize';
 import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
-import { port } from './vite-server';
 
 const methods = [
   'toBeInTheDOM',
@@ -41,9 +41,10 @@ expect.extend(
     methods.map((methodName) => {
       const matcher = async function (
         this: jest.MatcherUtils,
-        elementHandle: import('puppeteer').ElementHandle | null,
+        elementHandle: ElementHandle | null,
         ...matcherArgs: unknown[]
       ) {
+        const serverPromise = createClientRuntimeServer();
         if (typeof elementHandle !== 'object' || !elementHandle?.asElement()) {
           // Special case: expect(null).not.toBeInTheDocument() should pass
           if (methodName === 'toBeInTheDocument' && this.isNot) {
@@ -109,6 +110,8 @@ Received ${this.utils.printReceived(arg)}`,
 
           throw error;
         };
+
+        const { port } = await serverPromise;
 
         const ctxString = JSON.stringify(this); // Contains stuff like isNot and promise
         const result = await elementHandle

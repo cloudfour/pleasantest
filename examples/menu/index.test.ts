@@ -106,27 +106,21 @@ test(
   'Desktop menus toggle open/closed',
   withBrowser(async ({ screen, utils, page, user }) => {
     await renderMenu({ utils, data });
-
     const aboutBtn = await screen.getByRole('button', { name: /about/i });
     const productsBtn = await screen.getByRole('button', { name: /products/i });
-
     // First click: opens about menu
     await user.click(aboutBtn);
     await expect(await screen.getByText(aboutText)).toBeVisible();
-
     // Second click: closes about menu
     await user.click(aboutBtn);
     await expect(await screen.getByText(aboutText)).not.toBeVisible();
-
     // Open products menu
     await user.click(productsBtn);
     await expect(await screen.getByText(productsText)).toBeVisible();
-
     // Clicking about button should close products menu and open about menu
     await user.click(aboutBtn);
     await expect(await screen.getByText(productsText)).not.toBeVisible();
     await expect(await screen.getByText(aboutText)).toBeVisible();
-
     // Click near the bottom of the screen (outside the menu), and the menu should close
     await page.mouse.click(page.viewport().width / 2, page.viewport().height);
     await expect(await screen.getByText(aboutText)).not.toBeVisible();

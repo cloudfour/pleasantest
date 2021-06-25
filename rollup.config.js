@@ -34,14 +34,24 @@ const mainConfig = {
     nodeResolve({ extensions }),
     bundlePlugin(),
   ],
-  external: ['puppeteer', 'vite', 'pptr-testing-library', 'source-map'],
+  external: [
+    'puppeteer',
+    'source-map',
+    'acorn',
+    'es-module-lexer',
+    'cjs-module-lexer',
+    'rollup',
+    '@rollup/plugin-commonjs',
+    'esbuild',
+    /postcss/,
+  ],
 };
 
 /** @type {import('rollup').RollupOptions} */
 const typesConfig = {
   input: 'src/index.ts',
   output: [{ file: 'dist/index.d.ts', format: 'es' }],
-  external: ['puppeteer', 'vite', 'pretty-format'],
+  external: ['puppeteer', 'pretty-format'],
   plugins: [dts({ respectExternal: true })],
 };
 

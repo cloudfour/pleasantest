@@ -1,7 +1,5 @@
 import * as puppeteer from 'puppeteer';
-import type * as vite from 'vite';
 import * as path from 'path';
-import { promises as fs } from 'fs';
 import type { BoundQueries } from './pptr-testing-library';
 import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
@@ -9,12 +7,13 @@ import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
 import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
 import { ansiColorsLog } from './ansi-colors-browser';
-import { createServer, port } from './vite-server';
 import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 import type { PleasantestUser } from './user';
 import { pleasantestUser } from './user';
 import { assertElementHandle, removeFuncFromStackTrace } from './utils';
+import { createModuleServer } from './module-server';
+import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
@@ -54,8 +53,6 @@ export interface PleasantestContext {
   page: puppeteer.Page;
   user: PleasantestUser;
 }
-
-let serverPromise: Promise<vite.ViteDevServer> | undefined;
 
 export interface WithBrowserOpts {
   headless?: boolean;
@@ -106,7 +103,10 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const testPath = testFile ? path.relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const { state, ...ctx } = await createTab({ testPath, options });
+    const { state, cleanupServer, ...ctx } = await createTab({
+      testPath,
+      options,
+    });
     const cleanup = async (leaveOpen: boolean) => {
       state.isTestFinished = true;
       if (!leaveOpen || options.headless) {
@@ -114,6 +114,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
       }
 
       ctx.page.browser().disconnect();
+      await cleanupServer();
     };
 
     try {
@@ -203,13 +204,18 @@ const createTab = async ({
 }: {
   testPath: string;
   options: WithBrowserOpts;
-}): Promise<PleasantestContext & { state: { isTestFinished: boolean } }> => {
+}): Promise<
+  PleasantestContext & {
+    state: { isTestFinished: boolean };
+    cleanupServer: () => Promise<void>;
+  }
+> => {
   /** Used to provide helpful warnings if things execute after the test finishes (usually means they forgot to await) */
   const state = { isTestFinished: false };
-  if (!serverPromise) serverPromise = createServer();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   const page = await browserContext.newPage();
+  const { port, close: closeServer } = await createModuleServer();
 
   if (device) {
     if (!headless) {
@@ -234,8 +240,6 @@ const createTab = async ({
 
   page.on('console', (message) => {
     const text = message.text();
-    // ignore vite spam
-    if (text.startsWith('[vite]')) return;
     // This is naive, there is probably something better to check
     // If the text includes %c, then it probably came from the jest output being forwarded into the browser
     // So we don't need to print it _again_ in node, since it already came from node
@@ -251,8 +255,6 @@ const createTab = async ({
       console.log('[browser]', text);
     }
   });
-
-  const server = await serverPromise;
 
   await page.goto(`http://localhost:${port}`);
 
@@ -298,47 +300,48 @@ const createTab = async ({
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
     const { message, stack } = res;
-    const parsedStack = parseStackTrace(stack);
-    const modifiedStack = parsedStack.map(async (stackItem) => {
-      if (!stackItem.fileName) return stackItem.raw;
-      let fileName = stackItem.fileName;
-      let line = stackItem.line;
-      let column = stackItem.column;
-      if (!fileName.startsWith(`http://localhost:${port}`))
-        return stackItem.raw;
-      const url = new URL(fileName);
-      const localFileName = path.join(process.cwd(), url.pathname);
-      const transformResult = await server.transformRequest(
-        url.pathname + url.search,
-      );
-      const map = typeof transformResult === 'object' && transformResult?.map;
-      if (!map) return stackItem.raw;
+    // TODO: re-enable source map usage once source map support is added to module server
+    // Const parsedStack = parseStackTrace(stack);
+    // const modifiedStack = parsedStack.map(async (stackItem) => {
+    //   if (!stackItem.fileName) return stackItem.raw;
+    //   let fileName = stackItem.fileName;
+    //   let line = stackItem.line;
+    //   let column = stackItem.column;
+    //   if (!fileName.startsWith(`http://localhost:${port}`))
+    //     return stackItem.raw;
+    //   const url = new URL(fileName);
+    //   const localFileName = path.join(process.cwd(), url.pathname);
+    //   const transformResult = await server.transformRequest(
+    //     url.pathname + url.search,
+    //   );
+    //   const map = typeof transformResult === 'object' && transformResult?.map;
+    //   if (!map) return stackItem.raw;
 
-      const { SourceMapConsumer } = await import('source-map');
-      const consumer = await new SourceMapConsumer(map as any);
-      const sourceLocation = consumer.originalPositionFor({ line, column });
-      consumer.destroy();
-      if (sourceLocation.line === null || sourceLocation.column === null)
-        return stackItem.raw;
+    //   const { SourceMapConsumer } = await import('source-map');
+    //   const consumer = await new SourceMapConsumer(map as any);
+    //   const sourceLocation = consumer.originalPositionFor({ line, column });
+    //   consumer.destroy();
+    //   if (sourceLocation.line === null || sourceLocation.column === null)
+    //     return stackItem.raw;
 
-      const inlineCode = url.searchParams.get('inline-code');
-      if (inlineCode) {
-        const fileSrc = await fs.readFile(localFileName, 'utf8');
-        const inlineStartIdx = fileSrc.indexOf(inlineCode);
-        if (inlineStartIdx === -1) return stackItem.raw;
-        const linesTillInlineCode = (
-          fileSrc.slice(0, inlineStartIdx).match(/\n/g) || []
-        ).length;
-        column = sourceLocation.column + 1;
-        line = sourceLocation.line + linesTillInlineCode;
-      } else {
-        column = sourceLocation.column + 1;
-        line = sourceLocation.line;
-      }
+    //   const inlineCode = url.searchParams.get('inline-code');
+    //   if (inlineCode) {
+    //     const fileSrc = await fs.readFile(localFileName, 'utf8');
+    //     const inlineStartIdx = fileSrc.indexOf(inlineCode);
+    //     if (inlineStartIdx === -1) return stackItem.raw;
+    //     const linesTillInlineCode = (
+    //       fileSrc.slice(0, inlineStartIdx).match(/\n/g) || []
+    //     ).length;
+    //     column = sourceLocation.column + 1;
+    //     line = sourceLocation.line + linesTillInlineCode;
+    //   } else {
+    //     column = sourceLocation.column + 1;
+    //     line = sourceLocation.line;
+    //   }
 
-      fileName = localFileName;
-      return `    at ${fileName}:${line}:${column}`;
-    });
+    //   fileName = localFileName;
+    //   return `    at ${fileName}:${line}:${column}`;
+    // });
     const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
     const specializedErrors = {
       EvalError,
@@ -350,10 +353,12 @@ const createTab = async ({
     } as any;
     const ErrorConstructor = specializedErrors[errorName] || Error;
     const error = new ErrorConstructor(message);
+    error.stack = stack;
 
-    error.stack = `${errorName}: ${message}\n${(
-      await Promise.all(modifiedStack)
-    ).join('\n')}`;
+    // TODO: re-enable source map usage once source map support is added to module server
+    // Error.stack = `${errorName}: ${message}\n${(
+    //   await Promise.all(modifiedStack)
+    // ).join('\n')}`;
     throw error;
   };
 
@@ -380,9 +385,9 @@ const createTab = async ({
   };
 
   const loadCSS: PleasantestUtils['loadCSS'] = async (cssPath) => {
-    const fullPath = cssPath.startsWith('.')
-      ? path.join(path.dirname(testPath), cssPath)
-      : cssPath;
+    const fullPath = path.isAbsolute(cssPath)
+      ? path.relative(process.cwd(), cssPath)
+      : path.join(path.dirname(testPath), cssPath);
     await safeEvaluate(
       loadCSS,
       `import(${JSON.stringify(
@@ -424,17 +429,14 @@ const createTab = async ({
     utils,
     page,
     within,
-    user: pleasantestUser(page, state),
+    user: await pleasantestUser(page, state),
     state,
+    cleanupServer: () => closeServer(),
   };
 };
 
-afterAll(async () => {
-  if (serverPromise) {
-    const server = await serverPromise;
-    await server.close();
-  }
-});
-
 export const devices = puppeteer.devices;
-export { port };
+
+afterAll(async () => {
+  await cleanupClientRuntimeServer();
+});
