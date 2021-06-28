@@ -73,7 +73,7 @@ test(
       <div>I have a background image</div>
     `);
 
-    const timeout = 100;
+    const timeout = 500;
 
     const stylesheet1Promise = page.waitForResponse(
       (response) => {
