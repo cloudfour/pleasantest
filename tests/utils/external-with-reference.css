@@ -1,0 +1,8 @@
+@import './external.css';
+
+div {
+  background-image: url('./smiley.svg');
+  background-size: cover;
+  width: 500px;
+  height: 500px;
+}

@@ -26,7 +26,9 @@ export const createServer = ({ middleware }: ServerOpts) =>
           const code = typeof err.code === 'number' ? err.code : 500;
 
           res.statusCode = code;
+
           res.writeHead(code, { 'content-type': 'text/plain' });
+          if (code === 404) return res.end('not found');
           res.end(err.stack);
           console.error(err.stack);
         },

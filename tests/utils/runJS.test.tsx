@@ -221,3 +221,16 @@ test(
     await expect(heading).toHaveTextContent('Hi');
   }),
 );
+
+test(
+  'Allows importing CSS into JS file',
+  withBrowser(async ({ utils, screen }) => {
+    await utils.injectHTML('<h1>This is a heading</h1>');
+    const heading = await screen.getByRole('heading');
+    await expect(heading).toBeVisible();
+    await utils.runJS(`
+      import './external.sass'
+    `);
+    await expect(heading).not.toBeVisible();
+  }),
+);

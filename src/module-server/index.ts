@@ -8,8 +8,10 @@ import { resolveExtensionsPlugin } from './plugins/resolve-extensions-plugin';
 import { createServer } from './server';
 import type { RollupAliasOptions } from '@rollup/plugin-alias';
 import aliasPlugin from '@rollup/plugin-alias';
-import postcssPlugin from 'rollup-plugin-postcss';
 import { esbuildPlugin } from './plugins/esbuild-plugin';
+import { cssPlugin } from './plugins/css';
+import { cssMiddleware } from './middleware/css';
+import { staticMiddleware } from './middleware/static';
 
 interface ModuleServerOpts {
   root?: string;
@@ -32,21 +34,14 @@ export const createModuleServer = async ({
     processGlobalPlugin({ NODE_ENV: 'development' }),
     npmPlugin({ root }),
     esbuildPlugin(),
-    postcssPlugin({
-      inject: (cssVariable) => {
-        return `
-        const style = document.createElement('style')
-        style.type = 'text/css'
-        document.head.append(style)
-        style.appendChild(document.createTextNode(${cssVariable}))
-        `;
-      },
-    }),
+    cssPlugin(),
   ];
   const filteredPlugins = plugins.filter(Boolean) as Plugin[];
   const middleware: polka.Middleware[] = [
     indexHTMLMiddleware,
     jsMiddleware({ root, plugins: filteredPlugins }),
+    cssMiddleware({ root }),
+    staticMiddleware({ root }),
   ];
   return createServer({ middleware });
 };
