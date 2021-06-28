@@ -59,7 +59,7 @@
     "esbuild": "^0.12.9",
     "postcss": "^8.3.5",
     "puppeteer": "^10.0.0",
-    "rollup": "^2.52.2",
+    "rollup": "^2.52.3",
     "rollup-plugin-postcss": "^4.0.0",
     "source-map": "0.8.0-beta.0"
   },
