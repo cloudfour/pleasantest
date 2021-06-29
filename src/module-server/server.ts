@@ -1,3 +1,4 @@
+import { Console } from 'console';
 import type { AddressInfo, Socket } from 'net';
 import type { Polka } from 'polka';
 import polka from 'polka';
@@ -30,7 +31,10 @@ export const createServer = ({ middleware }: ServerOpts) =>
           res.writeHead(code, { 'content-type': 'text/plain' });
           if (code === 404) return res.end('not found');
           res.end(err.stack);
-          console.error(err.stack);
+          // Create a new console instance instead of using the global one
+          // Because the global one is overridden by Jest, and it adds a misleading second stack trace and code frame below it
+          const console = new Console(process.stdout, process.stderr);
+          console.log(err.stack);
         },
       });
       if (middleware.length > 0) server.use(...middleware);

@@ -34,6 +34,8 @@
   - options, watchChange, resolveImportMeta, resolveFileUrl hooks removed
   - ctx.emitFile, ctx.addWatchFile, ctx.setAssetSource, ctx.getFileName removed
   - relative resolution fixed to handle '.' for ctx.resolveId
+  - Source map handling added to transform hook
+  - Error handling (with code frame, using source maps) added to transform hook
   */
 
 import { resolve, dirname } from 'path';
@@ -44,6 +46,14 @@ import type {
   PluginContext as RollupPluginContext,
   ResolveIdResult,
 } from 'rollup';
+import { combineSourceMaps } from './combine-source-maps';
+import { createCodeFrame } from 'simple-code-frame';
+import type {
+  DecodedSourceMap,
+  RawSourceMap,
+} from '@ampproject/remapping/dist/types/types';
+import * as colors from 'kolorist';
+import { promises as fs } from 'fs';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */
 const popIndex = (array: any[], index: number) => {
@@ -56,6 +66,24 @@ const identifierPair = (id: string, importer?: string) => {
   if (importer) return `${id}\n${importer}`;
   return id;
 };
+
+class ErrorWithLocation extends Error {
+  line: number;
+  column?: number;
+  constructor({
+    message,
+    line,
+    column,
+  }: {
+    message: string;
+    line: number;
+    column?: number;
+  }) {
+    super(message);
+    this.line = line;
+    this.column = column;
+  }
+}
 
 type PluginContext = Omit<
   RollupPluginContext,
@@ -133,9 +161,17 @@ export const createPluginContainer = (plugins: Plugin[]) => {
     warn(...args) {
       console.log(`[${plugin?.name}]`, ...args);
     },
-    error(error) {
-      if (typeof error === 'string') throw new Error(error);
-      throw error;
+    error(error, pos) {
+      if (pos === undefined) {
+        if (typeof error === 'string') throw new Error(error);
+        throw error;
+      }
+
+      throw new ErrorWithLocation({
+        message: error as string,
+        line: typeof pos === 'number' ? pos : pos.line,
+        column: (pos as any).column,
+      });
     },
   };
 
@@ -189,16 +225,83 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       return Object.keys(opts).length > 1 ? (opts as { id: string }) : id;
     },
 
-    async transform(code: string, id: string) {
+    async transform(
+      originalCode: string,
+      id: string,
+      inputMap?: DecodedSourceMap | RawSourceMap | string,
+    ) {
+      let code = originalCode;
+      // TODO: if any of the transforms is missing sourcemaps, then there should be no source maps emitted
+      const sourceMaps: (DecodedSourceMap | RawSourceMap)[] = [];
+      if (inputMap)
+        sourceMaps.push(
+          typeof inputMap === 'string' ? JSON.parse(inputMap) : inputMap,
+        );
       for (plugin of plugins) {
         if (!plugin.transform) continue;
-        const result = await plugin.transform.call(ctx as any, code, id);
-        if (!result) continue;
+        try {
+          const result = await plugin.transform.call(ctx as any, code, id);
+          if (!result) continue;
 
-        code = typeof result === 'object' ? result.code || code : result;
+          if (typeof result === 'object') {
+            if (!result.code) continue;
+            code = result.code;
+            if (result.map)
+              sourceMaps.push(
+                typeof result.map === 'string'
+                  ? JSON.parse(result.map)
+                  : result.map,
+              );
+          } else {
+            code = result;
+          }
+        } catch (error) {
+          if (error instanceof ErrorWithLocation) {
+            let line = error.line;
+            let column = error.column || 0;
+            if (sourceMaps.length > 0) {
+              const { SourceMapConsumer } = await import('source-map');
+              const consumer = await new SourceMapConsumer(
+                combineSourceMaps(id, sourceMaps) as any,
+              );
+              const sourceLocation = consumer.originalPositionFor({
+                line,
+                column,
+              });
+              consumer.destroy();
+              if (sourceLocation.line !== null) {
+                line = sourceLocation.line;
+                column = sourceLocation.column || 0;
+                if (sourceLocation.source) {
+                  originalCode = await fs.readFile(
+                    sourceLocation.source,
+                    'utf8',
+                  );
+                }
+              }
+            }
+
+            const frame = createCodeFrame(originalCode, line - 1, column);
+            const message = `[${plugin.name}] ${colors.red(
+              colors.bold(error.message),
+            )}
+
+${colors.red(`${id}:${line}:${column + 1}`)}
+
+${frame}`;
+            const modifiedError = new Error(message);
+            modifiedError.stack = message;
+            throw modifiedError;
+          }
+
+          throw error;
+        }
       }
 
-      return code;
+      return {
+        code,
+        map: combineSourceMaps(id, sourceMaps),
+      };
     },
 
     async load(id: string): Promise<LoadResult> {

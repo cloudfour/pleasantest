@@ -14,6 +14,8 @@ import { pleasantestUser } from './user';
 import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
+import { Console } from 'console';
+
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
@@ -215,7 +217,7 @@ const createTab = async ({
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   const page = await browserContext.newPage();
-  const { port, close: closeServer } = await createModuleServer();
+  const { requestCache, port, close: closeServer } = await createModuleServer();
 
   if (device) {
     if (!headless) {
@@ -245,6 +247,9 @@ const createTab = async ({
     // So we don't need to print it _again_ in node, since it already came from node
     if (text.includes('%c')) return;
     const type = message.type();
+    // Create a new console instance instead of using the global one
+    // Because the global one is overridden by Jest, and it adds a misleading second stack trace and code frame below it
+    const console = new Console(process.stdout, process.stderr);
     if (type === 'error') {
       const error = new Error(text);
       const location = message.location();
@@ -278,7 +283,8 @@ const createTab = async ({
   };
 
   const runJS: PleasantestUtils['runJS'] = async (code, args) => {
-    const encodedCode = encodeURIComponent(code);
+    // For some reason encodeURIComponent doesn't encode '
+    const encodedCode = encodeURIComponent(code).replace(/'/g, '%27');
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
@@ -299,49 +305,52 @@ const createTab = async ({
     )) as undefined | { message: string; stack: string };
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
-    const { message, stack } = res;
-    // TODO: re-enable source map usage once source map support is added to module server
-    // Const parsedStack = parseStackTrace(stack);
-    // const modifiedStack = parsedStack.map(async (stackItem) => {
-    //   if (!stackItem.fileName) return stackItem.raw;
-    //   let fileName = stackItem.fileName;
-    //   let line = stackItem.line;
-    //   let column = stackItem.column;
-    //   if (!fileName.startsWith(`http://localhost:${port}`))
-    //     return stackItem.raw;
-    //   const url = new URL(fileName);
-    //   const localFileName = path.join(process.cwd(), url.pathname);
-    //   const transformResult = await server.transformRequest(
-    //     url.pathname + url.search,
-    //   );
-    //   const map = typeof transformResult === 'object' && transformResult?.map;
-    //   if (!map) return stackItem.raw;
+    let { message, stack } = res;
+    if (message.includes(`Failed to fetch dynamically imported module: ${url}`))
+      message =
+        'Failed to load runJS code (most likely due to a transpilation error)';
 
-    //   const { SourceMapConsumer } = await import('source-map');
-    //   const consumer = await new SourceMapConsumer(map as any);
-    //   const sourceLocation = consumer.originalPositionFor({ line, column });
-    //   consumer.destroy();
-    //   if (sourceLocation.line === null || sourceLocation.column === null)
-    //     return stackItem.raw;
-
-    //   const inlineCode = url.searchParams.get('inline-code');
-    //   if (inlineCode) {
-    //     const fileSrc = await fs.readFile(localFileName, 'utf8');
-    //     const inlineStartIdx = fileSrc.indexOf(inlineCode);
-    //     if (inlineStartIdx === -1) return stackItem.raw;
-    //     const linesTillInlineCode = (
-    //       fileSrc.slice(0, inlineStartIdx).match(/\n/g) || []
-    //     ).length;
-    //     column = sourceLocation.column + 1;
-    //     line = sourceLocation.line + linesTillInlineCode;
-    //   } else {
-    //     column = sourceLocation.column + 1;
-    //     line = sourceLocation.line;
-    //   }
-
-    //   fileName = localFileName;
-    //   return `    at ${fileName}:${line}:${column}`;
-    // });
+    const parsedStack = parseStackTrace(stack);
+    let isFirst = true;
+    const modifiedStack = parsedStack.map(async (stackItem) => {
+      if (stackItem.raw.startsWith(stack.slice(0, stack.indexOf('\n'))))
+        return null;
+      if (!stackItem.fileName) return stackItem.raw;
+      const fileName = stackItem.fileName;
+      const line = stackItem.line;
+      const column = stackItem.column;
+      if (!fileName.startsWith(`http://localhost:${port}`))
+        return stackItem.raw;
+      const url = new URL(fileName);
+      const id = `.${url.pathname}`;
+      const transformResult = requestCache.get(id);
+      const map = typeof transformResult === 'object' && transformResult.map;
+      if (!map) return stackItem.raw;
+      const { SourceMapConsumer } = await import('source-map');
+      const consumer = await new SourceMapConsumer(map as any);
+      const sourceLocation = consumer.originalPositionFor({ line, column });
+      consumer.destroy();
+      if (sourceLocation.line === null || sourceLocation.column === null)
+        return stackItem.raw;
+      const mappedColumn = sourceLocation.column + 1;
+      const mappedLine = sourceLocation.line;
+      // The check for i === 0 is because Jest fails to recognize
+      const mappedPath = sourceLocation.source || url.pathname;
+      // If the stack frame has a name (i.e. function name), then display it
+      // _unless_ the stack frame is the first frame
+      // because if the function name is displayed in the first stack frame,
+      // then Jest cannot parse the stack trace to display the code frame
+      const location =
+        stackItem.name && !isFirst // Have to use isFirst instead of array loop index because function has early returns
+          ? `${stackItem.name} (${mappedPath}:${mappedLine}:${mappedColumn})`
+          : `${
+              // The first line has to be an absolute path,
+              // otherwise Jest won't recognize it for the code frame
+              isFirst ? path.join(process.cwd(), mappedPath) : mappedPath
+            }:${mappedLine}:${mappedColumn}`;
+      isFirst = false;
+      return `    at ${location}`;
+    });
     const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
     const specializedErrors = {
       EvalError,
@@ -351,14 +360,29 @@ const createTab = async ({
       TypeError,
       URIError,
     } as any;
-    const ErrorConstructor = specializedErrors[errorName] || Error;
+    const ErrorConstructor: ErrorConstructor =
+      specializedErrors[errorName] || Error;
     const error = new ErrorConstructor(message);
-    error.stack = stack;
 
-    // TODO: re-enable source map usage once source map support is added to module server
-    // Error.stack = `${errorName}: ${message}\n${(
-    //   await Promise.all(modifiedStack)
-    // ).join('\n')}`;
+    const finalStack = (await Promise.all(modifiedStack))
+      .filter(Boolean)
+      .join('\n');
+
+    // If the browser error did not provide a stack, use the stack trace from node
+    if (finalStack) {
+      error.stack = `${errorName}: ${message}\n${finalStack}`;
+    } else {
+      removeFuncFromStackTrace(error, runJS);
+      if (error.stack)
+        error.stack = error.stack
+          .split('\n')
+          .filter(
+            // This was appearing in stack traces and it messed up the Jest output
+            (line) => !(/runMicrotasks/.test(line) && /<anonymous>/.test(line)),
+          )
+          .join('\n');
+    }
+
     throw error;
   };
 

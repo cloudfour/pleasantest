@@ -1,13 +1,19 @@
 import { dirname, isAbsolute, posix, relative, resolve, sep } from 'path';
 import type polka from 'polka';
-import type { Plugin } from 'rollup';
+import type { Plugin, SourceDescription } from 'rollup';
 import { createPluginContainer } from '../rollup-plugin-container';
 import { promises as fs } from 'fs';
 import { transformImports } from '../transform-imports';
+import type {
+  DecodedSourceMap,
+  RawSourceMap,
+} from '@ampproject/remapping/dist/types/types';
+import MagicString from 'magic-string';
 
 interface JSMiddlewareOpts {
   root: string;
   plugins: Plugin[];
+  requestCache: Map<string, SourceDescription>;
 }
 
 // TODO: make this configurable
@@ -18,6 +24,7 @@ const jsExts = /\.(?:[jt]sx?|[cm]js)$/;
 export const jsMiddleware = ({
   root,
   plugins,
+  requestCache,
 }: JSMiddlewareOpts): polka.Middleware => {
   const rollupPlugins = createPluginContainer(plugins);
 
@@ -51,10 +58,27 @@ export const jsMiddleware = ({
         typeof resolved === 'object' ? resolved?.id : resolved
       ) as string;
       let code: string | undefined;
+      let map: DecodedSourceMap | RawSourceMap | string | undefined;
       if (typeof req.query['inline-code'] === 'string') {
         code = req.query['inline-code'];
+        const fileSrc = await fs.readFile(file, 'utf8');
+        const inlineStartIdx = fileSrc.indexOf(code);
+        if (inlineStartIdx !== -1) {
+          const str = new MagicString(fileSrc);
+          str.remove(0, inlineStartIdx);
+          str.remove(inlineStartIdx + code.length, fileSrc.length);
+          map = str.generateMap({
+            hires: true,
+            source: id,
+            includeContent: true,
+          }) as any;
+        }
       } else {
         const result = resolvedId && (await rollupPlugins.load(resolvedId));
+        if (typeof result === 'object' && result?.map) {
+          map = result.map as any;
+        }
+
         code = typeof result === 'object' ? result?.code : result;
       }
 
@@ -73,7 +97,9 @@ export const jsMiddleware = ({
         code = await fs.readFile(file, 'utf-8');
       }
 
-      code = await rollupPlugins.transform(code, id);
+      const transformResult = await rollupPlugins.transform(code, id, map);
+      requestCache.set(id, transformResult as any);
+      code = transformResult.code;
 
       // Normalize import paths
       // Resolve all the imports and replace them, and inline the resulting resolved paths

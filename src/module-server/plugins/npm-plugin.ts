@@ -78,6 +78,9 @@ const nodeResolve = async (id: string, root: string) => {
   const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
   // If it is an npm namespace, then get the first two folders, otherwise just one
   const pkgDir = join(root, 'node_modules', ...packageName);
+  await fs.stat(pkgDir).catch(() => {
+    throw new Error(`Could not resolve ${id} from ${root}`);
+  });
   // Path within imported module
   const subPath = join(...pathChunks.slice(isNpmNamespace ? 2 : 1));
   const pkgJsonPath = join(pkgDir, 'package.json');
