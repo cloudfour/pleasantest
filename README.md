@@ -56,7 +56,7 @@ module.exports = {
 };
 ```
 
-If you are using Babel outside of Jest, you can make your Babel config change based on whether it is being used in Jest, by following [these instructions](https://jestjs.io/docs/getting-started#using-babel)
+If you are using Babel outside of Jest, you can make your Babel config change based on whether it is being used in Jest, by following [these instructions](https://jestjs.io/docs/getting-started#using-babel).
 
 Then you can create a test file, for example `something.test.ts`:
 
