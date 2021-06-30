@@ -334,7 +334,6 @@ const createTab = async ({
         return stackItem.raw;
       const mappedColumn = sourceLocation.column + 1;
       const mappedLine = sourceLocation.line;
-      // The check for i === 0 is because Jest fails to recognize
       const mappedPath = sourceLocation.source || url.pathname;
       // If the stack frame has a name (i.e. function name), then display it
       // _unless_ the stack frame is the first frame
