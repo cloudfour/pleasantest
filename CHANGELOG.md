@@ -1,5 +1,22 @@
 # pleasantest
 
+## 0.6.0
+
+### Minor Changes
+
+- [#115](https://github.com/cloudfour/pleasantest/pull/115) [`b4eb08d`](https://github.com/cloudfour/pleasantest/commit/b4eb08d5659e0f869cb5dddb4fcd49aa6ada0286) Thanks [@calebeby](https://github.com/calebeby)! - Replace vite-based module server with wmr-based custom module server
+  (This is probably a breaking change - minor bump is only because pre-1.0)
+
+* [#126](https://github.com/cloudfour/pleasantest/pull/126) [`e06e6bc`](https://github.com/cloudfour/pleasantest/commit/e06e6bc683cf3052ce2c4321694decb5d769bd98) Thanks [@calebeby](https://github.com/calebeby)! - Improve error message display for errors coming from browsers
+
+- [#116](https://github.com/cloudfour/pleasantest/pull/116) [`5afa0a6`](https://github.com/cloudfour/pleasantest/commit/5afa0a6a0d45b22c6cfa719453b2676f3bea6872) Thanks [@calebeby](https://github.com/calebeby)! - Add support for static files and css requested directly
+
+* [#106](https://github.com/cloudfour/pleasantest/pull/106) [`994b810`](https://github.com/cloudfour/pleasantest/commit/994b810e5eb4ed7cb57be6d2bf5b044d42a7b75c) Thanks [@calebeby](https://github.com/calebeby)! - Cache browser instances locally instead of globally
+
+### Patch Changes
+
+- [#122](https://github.com/cloudfour/pleasantest/pull/122) [`f2632ce`](https://github.com/cloudfour/pleasantest/commit/f2632ce237e4ce84177d6df4375c002105e12f54) Thanks [@renovate](https://github.com/apps/renovate)! - Update `@testing-library/dom` to [`v8.0.0`](https://github.com/testing-library/dom-testing-library/releases/tag/v8.0.0)
+
 ## 0.5.0
 
 ### Minor Changes
