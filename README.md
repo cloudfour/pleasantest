@@ -37,7 +37,36 @@ Pleasantest is a library that allows you test web applications using real browse
 
 Pleasantest integrates with Jest tests. If you haven't set up Jest yet, [here is Jest's getting started guide](https://jestjs.io/docs/en/getting-started).
 
-The [`withBrowser` wrapper](#withbrowser) tells Pleasantest to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
+```
+npm i -D jest pleasantest
+```
+
+Then you can enable support for `import` statements in Jest by running:
+
+```
+npm i -D babel-jest @babel/core @babel/preset-env
+```
+
+and then adding to your Babel config (if you don't have one yet, create a `babel.config.js` at the root of your project):
+
+```js
+// babel.config.js
+module.exports = {
+  presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+};
+```
+
+If you are using Babel outside of Jest, you can make your Babel config change based on whether it is being used in Jest, by following [these instructions](https://jestjs.io/docs/getting-started#using-babel)
+
+Then you can create a test file, for example `something.test.ts`:
+
+```js
+test('test name', () => {
+  // Your test code here
+});
+```
+
+To add Pleasantest to the test, wrap the test function with [`withBrowser`](#withbrowser), and mark the function as `async`. The `withBrowser` wrapper tells Pleasantest to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -54,7 +83,7 @@ test(
 
 #### Option 1: Rendering using a client-side framework
 
-If your app is client-side rendered, that use case is supported too! You can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to tell Pleasantest how to render your app:
+If your app is client-side rendered, you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to tell Pleasantest how to render your app:
 
 ```js
 import { withBrowser } from 'pleasantest';
