@@ -1,5 +1,5 @@
 import type polka from 'polka';
-import type { Plugin } from 'rollup';
+import type { Plugin, SourceDescription } from 'rollup';
 import { indexHTMLMiddleware } from './middleware/index-html';
 import { jsMiddleware } from './middleware/js';
 import { npmPlugin } from './plugins/npm-plugin';
@@ -37,11 +37,15 @@ export const createModuleServer = async ({
     cssPlugin(),
   ];
   const filteredPlugins = plugins.filter(Boolean) as Plugin[];
+  const requestCache = new Map<string, SourceDescription>();
   const middleware: polka.Middleware[] = [
     indexHTMLMiddleware,
-    jsMiddleware({ root, plugins: filteredPlugins }),
+    jsMiddleware({ root, plugins: filteredPlugins, requestCache }),
     cssMiddleware({ root }),
     staticMiddleware({ root }),
   ];
-  return createServer({ middleware });
+  return {
+    ...(await createServer({ middleware })),
+    requestCache,
+  };
 };

@@ -106,7 +106,7 @@ test(
   }),
 );
 
-test.skip(
+test(
   'throws error with real source-mapped location',
   withBrowser(async ({ utils }) => {
     // Manually-thrown error
@@ -120,11 +120,11 @@ test.skip(
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
       "Error: errorFromTs
       -------------------------------------------------------
-      tests/utils/runJS.test.ts
+      tests/utils/runJS.test.tsx
 
               throw new Error('errorFromTs')\`,
                     ^"
-    `);
+      `);
 
     // Implicitly created error
     const error2 = await utils
@@ -137,21 +137,29 @@ test.skip(
     expect(await printErrorFrames(error2)).toMatchInlineSnapshot(`
       "ReferenceError: thisVariableDoesntExist is not defined
       -------------------------------------------------------
-      tests/utils/runJS.test.ts
+      tests/utils/runJS.test.tsx
 
               thisVariableDoesntExist\`,
               ^"
-    `);
-    // Syntax error
-    const error3 = await utils
-      .runJS(`console.log('hello)`)
-      .catch((error) => error);
+      `);
 
-    expect(await printErrorFrames(error3)).toMatchInlineSnapshot();
+    // Syntax error
+    const error3 = await utils.runJS(`asdf()}`).catch((error) => error);
+
+    expect(await printErrorFrames(error3)).toMatchInlineSnapshot(`
+      "TypeError: Failed to load runJS code (most likely due to a transpilation error)
+      -------------------------------------------------------
+      tests/utils/runJS.test.tsx
+
+          const error3 = await utils.runJS(\`asdf()}\`).catch((error) => error);
+                         ^
+      -------------------------------------------------------
+      dist/cjs/index.cjs"
+      `);
   }),
 );
 
-test.skip(
+test(
   'allows importing .tsx file, and errors from imported file are source mapped',
   withBrowser(async ({ utils, page }) => {
     await utils.runJS(`
@@ -185,11 +193,11 @@ test.skip(
         preactRender(<ThrowComponent />, document.body);
         ^
       -------------------------------------------------------
-      tests/utils/runJS.test.ts
+      tests/utils/runJS.test.tsx
 
               renderThrow()\`,
               ^"
-    `);
+      `);
   }),
 );
 

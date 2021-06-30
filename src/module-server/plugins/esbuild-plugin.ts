@@ -13,9 +13,19 @@ export const esbuildPlugin = (): Plugin => {
     async transform(code, id) {
       if (!shouldProcess(id)) return null;
       const loader = extname(id).slice(1) as esbuild.Loader;
-      const result = await esbuild.transform(code, { sourcefile: id, loader });
-
-      return result.code;
+      return esbuild
+        .transform(code, {
+          sourcefile: id,
+          loader,
+          sourcemap: 'external',
+        })
+        .catch((error) => {
+          const err = error.errors[0];
+          this.error(err.text, {
+            line: err.location.line,
+            column: err.location.column,
+          });
+        });
     },
   };
 };
