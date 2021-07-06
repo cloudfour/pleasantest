@@ -1,5 +1,11 @@
 # pleasantest
 
+## 0.6.1
+
+### Patch Changes
+
+- [#128](https://github.com/cloudfour/pleasantest/pull/128) [`c074d3d`](https://github.com/cloudfour/pleasantest/commit/c074d3d96d253cb2379211b98f495ade9f1bd0c3) Thanks [@calebeby](https://github.com/calebeby)! - Enable JSX parsing/transpilation for .js, .mjs, .cjs files (not just .jsx)
+
 ## 0.6.0
 
 ### Minor Changes
