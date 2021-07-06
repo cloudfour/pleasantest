@@ -12,7 +12,8 @@ export const esbuildPlugin = (): Plugin => {
     name: 'esbuild',
     async transform(code, id) {
       if (!shouldProcess(id)) return null;
-      const loader = extname(id).slice(1) as esbuild.Loader;
+      const ext = extname(id).slice(1);
+      const loader = /[cm]?jsx?$/.test(ext) ? 'jsx' : (ext as esbuild.Loader);
       return esbuild
         .transform(code, {
           sourcefile: id,
