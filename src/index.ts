@@ -349,14 +349,13 @@ const createTab = async ({
       const mappedColumn = sourceLocation.column + 1;
       const mappedLine = sourceLocation.line;
       const mappedPath = sourceLocation.source || url.pathname;
-      const stackLine = printStackLine(
+      return printStackLine(
         // For the code frames, Jest will only recognize absolute paths
         path.join(process.cwd(), mappedPath),
         mappedLine,
         mappedColumn,
         stackItem.name,
       );
-      return stackLine;
     });
     const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
     const specializedErrors = {
