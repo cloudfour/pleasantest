@@ -1,5 +1,19 @@
 # pleasantest
 
+## 0.6.2
+
+### Patch Changes
+
+- [#139](https://github.com/cloudfour/pleasantest/pull/139) [`1d5f16c`](https://github.com/cloudfour/pleasantest/commit/1d5f16cfd9bc0ef73528117d4a80f541d3ce9f30) Thanks [@calebeby](https://github.com/calebeby)! - Improve error message when Promise is passed into jest-dom matcher
+
+* [#143](https://github.com/cloudfour/pleasantest/pull/143) [`0ba7584`](https://github.com/cloudfour/pleasantest/commit/0ba7584cace9f5cf8126e07ee66b923f4ca2d5ad) Thanks [@calebeby](https://github.com/calebeby)! - Improve CJS interop with packages that can't be statically analyzed
+
+- [#141](https://github.com/cloudfour/pleasantest/pull/141) [`a9ef60c`](https://github.com/cloudfour/pleasantest/commit/a9ef60c7379a0ce5006f5ea779a9d2853f373d1d) Thanks [@calebeby](https://github.com/calebeby)! - Refactor and improve browser stack trace printing
+
+* [#142](https://github.com/cloudfour/pleasantest/pull/142) [`2da5f1c`](https://github.com/cloudfour/pleasantest/commit/2da5f1cab7dff9384954b80f8a783835d605232a) Thanks [@calebeby](https://github.com/calebeby)! - Fix bug where css files in node_modules were pre-bundled
+
+- [#143](https://github.com/cloudfour/pleasantest/pull/143) [`0ba7584`](https://github.com/cloudfour/pleasantest/commit/0ba7584cace9f5cf8126e07ee66b923f4ca2d5ad) Thanks [@calebeby](https://github.com/calebeby)! - Allow resolving subfolders with package.json files
+
 ## 0.6.1
 
 ### Patch Changes
