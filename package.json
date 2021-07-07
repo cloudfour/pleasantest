@@ -2,7 +2,7 @@
   "name": "pleasantest",
   "version": "0.6.1",
   "engines": {
-    "node": "12 || 14 || 16"
+    "node": "^12.2 || 14 || 16"
   },
   "files": [
     "dist"
@@ -38,6 +38,7 @@
     "polka": "0.5.2",
     "preact": "10.5.14",
     "prettier": "2.3.2",
+    "prop-types": "^15.7.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "remark-cli": "9.0.0",

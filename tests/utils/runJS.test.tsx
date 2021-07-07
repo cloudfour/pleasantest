@@ -210,27 +210,6 @@ test.todo(
 test.todo('resolution error if a package does not exist in node_modules');
 
 test(
-  'react and react-dom can be imported, and JSX works',
-  withBrowser(async ({ utils, screen }) => {
-    await utils.runJS(`
-      import * as React from 'react'
-      import React2 from 'react'
-      if (React.createElement !== React2.createElement) {
-        throw new Error('Namespace import did not yield same result as direct import')
-      }
-      import { render } from 'react-dom'
-
-      const root = document.createElement('div')
-      document.body.innerHTML = ''
-      document.body.append(root)
-      render(<h1>Hi</h1>, root)
-    `);
-    const heading = await screen.getByRole('heading');
-    await expect(heading).toHaveTextContent('Hi');
-  }),
-);
-
-test(
   'Allows importing CSS into JS file',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML('<h1>This is a heading</h1>');
@@ -242,3 +221,43 @@ test(
     await expect(heading).not.toBeVisible();
   }),
 );
+
+describe('CJS interop edge cases', () => {
+  test(
+    'Named exports implicitly created from default-only export',
+    withBrowser(async ({ utils }) => {
+      // Prop-types is CJS and provides non-statically-analyzable named exports
+      await utils.runJS(`
+        import { number } from 'prop-types'
+        import PropTypes from 'prop-types'
+        if (number !== PropTypes.number) {
+          throw new Error('Named import did not yield same result as default import')
+        }
+        PropTypes.checkPropTypes(
+          { name: number },
+          { name: 5 },
+        );
+      `);
+    }),
+  );
+  test(
+    'react and react-dom can be imported, and JSX works',
+    withBrowser(async ({ utils, screen }) => {
+      await utils.runJS(`
+        import * as React from 'react'
+        import React2 from 'react'
+        if (React.createElement !== React2.createElement) {
+          throw new Error('Namespace import did not yield same result as direct import')
+        }
+        import { render } from 'react-dom'
+
+        const root = document.createElement('div')
+        document.body.innerHTML = ''
+        document.body.append(root)
+        render(<h1>Hi</h1>, root)
+      `);
+      const heading = await screen.getByRole('heading');
+      await expect(heading).toHaveTextContent('Hi');
+    }),
+  );
+});
