@@ -57,6 +57,16 @@ export const assertElementHandle: (
   }
 };
 
+export const changeErrorMessage = (
+  error: Error,
+  changeMessage: (originalMessage: string) => string,
+) => {
+  const newMessage = changeMessage(error.message);
+  if (error.stack) error.stack = error.stack.replace(error.message, newMessage);
+  error.message = newMessage;
+  return error;
+};
+
 /**
  * Manipulate the stack trace and remove fn from it
  * That way jest will show a code frame from the user's code, not ours

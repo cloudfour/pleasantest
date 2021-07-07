@@ -9,6 +9,8 @@ import * as esbuild from 'esbuild';
 import { parse } from 'cjs-module-lexer';
 import MagicString from 'magic-string';
 import { fileURLToPath } from 'url';
+import { jsExts } from '../middleware/js';
+import { changeErrorMessage } from '../../utils';
 
 // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
 const installFolder = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
