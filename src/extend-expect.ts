@@ -1,7 +1,12 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import { deserialize, serialize } from './serialize';
-import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
+import {
+  isElementHandle,
+  isPromise,
+  jsHandleToArray,
+  removeFuncFromStackTrace,
+} from './utils';
 
 const methods = [
   'toBeInTheDOM',
@@ -45,7 +50,7 @@ expect.extend(
         ...matcherArgs: unknown[]
       ) {
         const serverPromise = createClientRuntimeServer();
-        if (typeof elementHandle !== 'object' || !elementHandle?.asElement()) {
+        if (!isElementHandle(elementHandle)) {
           // Special case: expect(null).not.toBeInTheDocument() should pass
           if (methodName === 'toBeInTheDocument' && this.isNot) {
             // This is actually passing but since it is isNot it has to return false
@@ -62,11 +67,15 @@ expect.extend(
             `${this.utils.RECEIVED_COLOR(
               'received',
             )} value must be an HTMLElement or an SVGElement.`,
-            this.utils.printWithType(
-              'Received',
-              elementHandle,
-              this.utils.printReceived,
-            ),
+            isPromise(elementHandle)
+              ? `Received a ${this.utils.RECEIVED_COLOR(
+                  'Promise',
+                )}. Did you forget to await?`
+              : this.utils.printWithType(
+                  'Received',
+                  elementHandle,
+                  this.utils.printReceived,
+                ),
           ].join('\n');
           const error = new Error(message);
 
