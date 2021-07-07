@@ -88,3 +88,15 @@ export const removeFuncFromStackTrace = (
   Error.captureStackTrace(error, fn);
   return error;
 };
+
+export const printStackLine = (
+  path: string,
+  line: number,
+  column: number,
+  fnName?: string,
+) => {
+  const location = fnName
+    ? `${fnName} (${path}:${line}:${column})`
+    : `${path}:${line}:${column}`;
+  return `    at ${location}`;
+};

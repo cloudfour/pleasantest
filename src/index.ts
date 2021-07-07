@@ -11,7 +11,11 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 import type { PleasantestUser } from './user';
 import { pleasantestUser } from './user';
-import { assertElementHandle, removeFuncFromStackTrace } from './utils';
+import {
+  assertElementHandle,
+  printStackLine,
+  removeFuncFromStackTrace,
+} from './utils';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
 import { Console } from 'console';
@@ -311,7 +315,6 @@ const createTab = async ({
         'Failed to load runJS code (most likely due to a transpilation error)';
 
     const parsedStack = parseStackTrace(stack);
-    let isFirst = true;
     const modifiedStack = parsedStack.map(async (stackItem) => {
       if (stackItem.raw.startsWith(stack.slice(0, stack.indexOf('\n'))))
         return null;
@@ -325,7 +328,18 @@ const createTab = async ({
       const id = `.${url.pathname}`;
       const transformResult = requestCache.get(id);
       const map = typeof transformResult === 'object' && transformResult.map;
-      if (!map) return stackItem.raw;
+      if (!map) {
+        let p = url.pathname;
+        const npmPrefix = '/@npm/';
+        if (p.startsWith(npmPrefix))
+          p = path.join(
+            process.cwd(),
+            'node_modules',
+            p.slice(npmPrefix.length),
+          );
+        return printStackLine(p, line, column, stackItem.name);
+      }
+
       const { SourceMapConsumer } = await import('source-map');
       const consumer = await new SourceMapConsumer(map as any);
       const sourceLocation = consumer.originalPositionFor({ line, column });
@@ -335,20 +349,13 @@ const createTab = async ({
       const mappedColumn = sourceLocation.column + 1;
       const mappedLine = sourceLocation.line;
       const mappedPath = sourceLocation.source || url.pathname;
-      // If the stack frame has a name (i.e. function name), then display it
-      // _unless_ the stack frame is the first frame
-      // because if the function name is displayed in the first stack frame,
-      // then Jest cannot parse the stack trace to display the code frame
-      const location =
-        stackItem.name && !isFirst // Have to use isFirst instead of array loop index because function has early returns
-          ? `${stackItem.name} (${mappedPath}:${mappedLine}:${mappedColumn})`
-          : `${
-              // The first line has to be an absolute path,
-              // otherwise Jest won't recognize it for the code frame
-              isFirst ? path.join(process.cwd(), mappedPath) : mappedPath
-            }:${mappedLine}:${mappedColumn}`;
-      isFirst = false;
-      return `    at ${location}`;
+      return printStackLine(
+        // For the code frames, Jest will only recognize absolute paths
+        path.join(process.cwd(), mappedPath),
+        mappedLine,
+        mappedColumn,
+        stackItem.name,
+      );
     });
     const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
     const specializedErrors = {
