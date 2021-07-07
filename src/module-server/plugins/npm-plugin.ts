@@ -233,7 +233,7 @@ const bundleNpmModule = async (mod: string, id: string, optimize: boolean) => {
     treeshake: true,
     preserveEntrySignatures: 'allow-extension',
     plugins: [
-      namedExports.length > 0 &&
+      hasSyntheticNamedExports &&
         ({
           // This plugin handles special-case packages whose named exports cannot be found via static analysis
           // For these packages, the package is require()'d, and the named exports are determined that way.
