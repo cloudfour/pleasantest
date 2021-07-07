@@ -17,7 +17,7 @@ interface JSMiddlewareOpts {
 }
 
 // TODO: make this configurable
-const jsExts = /\.(?:[jt]sx?|[cm]js)$/;
+export const jsExts = /\.(?:[jt]sx?|[cm]js)$/;
 
 // Minimal version of https://github.com/preactjs/wmr/blob/main/packages/wmr/src/wmr-middleware.js
 
