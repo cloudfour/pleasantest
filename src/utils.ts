@@ -19,6 +19,16 @@ export const isPromise = <T extends any>(
   input: unknown | Promise<T>,
 ): input is Promise<T> => Promise.resolve(input) === input; // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
 
+export const isElementHandle = (input: unknown): input is ElementHandle => {
+  if (typeof input !== 'object' || !input) return false;
+  return (input as any).asElement?.() === input;
+};
+
+export const isJSHandle = (input: unknown): input is JSHandle => {
+  if (typeof input !== 'object' || !input) return false;
+  return 'asElement' in input;
+};
+
 export const assertElementHandle: (
   input: unknown,
   fn: (...params: any[]) => any,
@@ -38,20 +48,19 @@ export const assertElementHandle: (
     );
   }
 
-  if (type !== 'object' || input === null || !(input as any).asElement) {
+  if (!isElementHandle(input)) {
+    // If it is a JSHandle, that points to something _other_ than an element
+    if (isJSHandle(input)) {
+      throw removeFuncFromStackTrace(
+        new Error(
+          `${messageStart}Received a JSHandle that did not point to an element`,
+        ),
+        fn,
+      );
+    }
+
     throw removeFuncFromStackTrace(
       new Error(`${messageStart}Received ${type}`),
-      fn,
-    );
-  }
-
-  // Returns null if it is a JSHandle that does not point to an element
-  const el = (input as JSHandle).asElement();
-  if (!el) {
-    throw removeFuncFromStackTrace(
-      new Error(
-        `${messageStart}Received a JSHandle that did not point to an element`,
-      ),
       fn,
     );
   }

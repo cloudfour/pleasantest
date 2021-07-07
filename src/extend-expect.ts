@@ -1,7 +1,12 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import { deserialize, serialize } from './serialize';
-import { isPromise, jsHandleToArray, removeFuncFromStackTrace } from './utils';
+import {
+  isElementHandle,
+  isPromise,
+  jsHandleToArray,
+  removeFuncFromStackTrace,
+} from './utils';
 
 const methods = [
   'toBeInTheDOM',
@@ -45,11 +50,7 @@ expect.extend(
         ...matcherArgs: unknown[]
       ) {
         const serverPromise = createClientRuntimeServer();
-        if (
-          typeof elementHandle !== 'object' ||
-          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
-          !elementHandle?.asElement?.()
-        ) {
+        if (!isElementHandle(elementHandle)) {
           // Special case: expect(null).not.toBeInTheDocument() should pass
           if (methodName === 'toBeInTheDocument' && this.isNot) {
             // This is actually passing but since it is isNot it has to return false
