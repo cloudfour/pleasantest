@@ -1,14 +1,14 @@
 import { dirname, join, normalize, posix } from 'path';
 import type { Plugin, RollupCache } from 'rollup';
 import { rollup } from 'rollup';
-import { existsSync, promises as fs } from 'fs';
+import { promises as fs } from 'fs';
 import { resolve, legacy as resolveLegacy } from 'resolve.exports';
 import commonjs from '@rollup/plugin-commonjs';
 import { processGlobalPlugin } from './process-global-plugin';
 import * as esbuild from 'esbuild';
 import { parse } from 'cjs-module-lexer';
-import MagicString from 'magic-string';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { jsExts } from '../middleware/js';
 import { changeErrorMessage } from '../../utils';
 
@@ -78,9 +78,9 @@ export const npmPlugin = ({ root }: { root: string }): Plugin => {
       const cachePath = join(cacheDir, '@npm', `${resolved.idWithVersion}.js`);
       const cached = await getFromCache(cachePath);
       if (cached) return cached;
-      const result = await bundleNpmModule(resolved.path, false);
+      const result = await bundleNpmModule(resolved.path, id, false);
       // Queue up a second-pass optimized/minified build
-      bundleNpmModule(resolved.path, true).then((optimizedResult) => {
+      bundleNpmModule(resolved.path, id, true).then((optimizedResult) => {
         setInCache(cachePath, optimizedResult);
       });
       setInCache(cachePath, result);
@@ -89,17 +89,16 @@ export const npmPlugin = ({ root }: { root: string }): Plugin => {
   };
 };
 
-const nodeResolve = async (id: string, root: string) => {
-  const pathChunks = id.split(posix.sep);
-  const isNpmNamespace = id[0] === '@';
-  const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
-  // If it is an npm namespace, then get the first two folders, otherwise just one
-  const pkgDir = join(root, 'node_modules', ...packageName);
-  await fs.stat(pkgDir).catch(() => {
-    throw new Error(`Could not resolve ${id} from ${root}`);
-  });
-  // Path within imported module
-  const subPath = join(...pathChunks.slice(isNpmNamespace ? 2 : 1));
+interface ResolveResult {
+  path: string;
+  idWithVersion: string;
+}
+
+const resolveFromFolder = async (
+  pkgDir: string,
+  subPath: string,
+  packageName: string[],
+): Promise<false | ResolveResult> => {
   const pkgJsonPath = join(pkgDir, 'package.json');
   let pkgJson;
   try {
@@ -133,17 +132,54 @@ const nodeResolve = async (id: string, root: string) => {
   if (!result && subPath === '.')
     result = resolveLegacy(pkgJson, { browser: false, fields: ['main'] });
 
-  if (!result) {
+  if (!result && !('exports' in pkgJson)) {
     const extensions = ['.js', '/index.js', '.cjs', '/index.cjs'];
+    // If this was not conditionally included, this would have infinite recursion
+    if (subPath !== '.') extensions.unshift('');
     for (const extension of extensions) {
       const path = normalize(join(pkgDir, subPath) + extension);
-      if (existsSync(path)) return { path, idWithVersion };
+      const stats = await fs.stat(path).catch(() => null);
+      if (stats) {
+        if (stats.isFile()) return { path, idWithVersion };
+        if (stats.isDirectory()) {
+          // If you import some-package/foo and foo is a folder with a package.json in it,
+          // resolve main fields from the package.json
+          const result = await resolveFromFolder(path, '.', packageName);
+          if (result) return { path: result.path, idWithVersion };
+        }
+      }
     }
-
-    throw new Error(`Could not resolve ${id}`);
   }
 
+  if (!result) return false;
   return { path: join(pkgDir, result), idWithVersion };
+};
+
+const resolveCache = new Map<string, ResolveResult>();
+
+const resolveCacheKey = (id: string, root: string) => `${id}\0\0${root}`;
+
+const nodeResolve = async (id: string, root: string) => {
+  const cacheKey = resolveCacheKey(id, root);
+  const cached = resolveCache.get(cacheKey);
+  if (cached) return cached;
+  const pathChunks = id.split(posix.sep);
+  const isNpmNamespace = id[0] === '@';
+  const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
+  // If it is an npm namespace, then get the first two folders, otherwise just one
+  const pkgDir = join(root, 'node_modules', ...packageName);
+  await fs.stat(pkgDir).catch(() => {
+    throw new Error(`Could not resolve ${id} from ${root}`);
+  });
+  // Path within imported module
+  const subPath = join(...pathChunks.slice(isNpmNamespace ? 2 : 1));
+  const result = await resolveFromFolder(pkgDir, subPath, packageName);
+  if (result) {
+    resolveCache.set(cacheKey, result);
+    return result;
+  }
+
+  throw new Error(`Could not resolve ${id}`);
 };
 
 const pluginNodeResolve = (): Plugin => {
@@ -151,13 +187,8 @@ const pluginNodeResolve = (): Plugin => {
     name: 'node-resolve',
     resolveId(id) {
       if (isBareImport(id)) return { id: prefix + id, external: true };
-      if (id.startsWith(prefix)) {
-        return {
-          // Remove the leading slash, otherwise rollup turns it into a relative path up to disk root
-          id,
-          external: true,
-        };
-      }
+      // If requests already have the npm prefix, mark them as external
+      if (id.startsWith(prefix)) return { id, external: true };
     },
   };
 };
@@ -166,58 +197,60 @@ let npmCache: RollupCache | undefined;
 
 /**
  * Bundle am npm module entry path into a single file
- * @param mod The module to bundle, including subpackage/path
+ * @param mod The full path of the module to bundle, including subpackage/path
+ * @param id The imported identifier
  * @param optimize Whether the bundle should be a minified/optimized bundle, or the default quick non-optimized bundle
  */
-const bundleNpmModule = async (mod: string, optimize: boolean) => {
+const bundleNpmModule = async (mod: string, id: string, optimize: boolean) => {
+  let namedExports: string[] = [];
+  if (dynamicCJSModules.has(id)) {
+    let isValidCJS = true;
+    try {
+      const text = await fs.readFile(mod, 'utf8');
+      // Goal: Determine if it is ESM or CJS.
+      // Try to parse it with cjs-module-lexer, if it fails, assume it is ESM
+      // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
+      await parse(text);
+    } catch {
+      isValidCJS = false;
+    }
+
+    if (isValidCJS) {
+      const require = createRequire(import.meta.url);
+      // eslint-disable-next-line @cloudfour/typescript-eslint/no-var-requires
+      const imported = require(mod);
+      if (typeof imported === 'object' && !imported.__esModule)
+        namedExports = Object.keys(imported);
+    }
+  }
+
+  const virtualEntry = '\0virtualEntry';
+  const hasSyntheticNamedExports = namedExports.length > 0;
   const bundle = await rollup({
-    input: mod,
+    input: hasSyntheticNamedExports ? virtualEntry : mod,
     cache: npmCache,
     shimMissingExports: true,
     treeshake: true,
     preserveEntrySignatures: 'allow-extension',
     plugins: [
-      {
-        // This plugin fixes cases of module.exports = require('...')
-        // By default, the named exports from the required module are not generated
-        // This plugin detects those exports,
-        // and makes it so that @rollup/plugin-commonjs can see them and turn them into ES exports (via syntheticNamedExports)
-        // This edge case happens in React, so it was necessary to fix it.
-        name: 'cjs-module-lexer',
-        async transform(code, id) {
-          if (id.startsWith('\0')) return;
-          const out = new MagicString(code);
-          const re =
-            /(^|[\s;])module\.exports\s*=\s*require\(["']([^"']*)["']\)($|[\s;])/g;
-          let match;
-          while ((match = re.exec(code))) {
-            const [, leadingWhitespace, moduleName, trailingWhitespace] = match;
-
-            const resolved = await this.resolve(moduleName, id);
-            if (!resolved || resolved.external) return;
-
-            try {
-              const text = await fs.readFile(resolved.id, 'utf8');
-              // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
-              const parsed = await parse(text);
-              let replacement = '';
-              for (const exportName of parsed.exports) {
-                replacement += `\nmodule.exports.${exportName} = require("${moduleName}").${exportName}`;
-              }
-
-              out.overwrite(
-                match.index,
-                re.lastIndex,
-                leadingWhitespace + replacement + trailingWhitespace,
-              );
-            } catch {
-              return;
+      hasSyntheticNamedExports &&
+        ({
+          // This plugin handles special-case packages whose named exports cannot be found via static analysis
+          // For these packages, the package is require()'d, and the named exports are determined that way.
+          // A virtual entry exports the named exports from the real entry package
+          name: 'cjs-named-exports',
+          resolveId(id) {
+            if (id === virtualEntry) return virtualEntry;
+          },
+          load(id) {
+            if (id === virtualEntry) {
+              const code = `export * from '${mod}'
+export {${namedExports.join(', ')}} from '${mod}'
+export { default } from '${mod}'`;
+              return code;
             }
-          }
-
-          return out.toString();
-        },
-      } as Plugin,
+          },
+        } as Plugin),
       pluginNodeResolve(),
       processGlobalPlugin({ NODE_ENV: 'development' }),
       commonjs({
@@ -247,3 +280,9 @@ const bundleNpmModule = async (mod: string, optimize: boolean) => {
 
   return output[0].code;
 };
+
+/**
+ * Any package names in this set will need to have their named exports detected manually via require()
+ * because the export names cannot be statically analyzed
+ */
+const dynamicCJSModules = new Set(['prop-types', 'react-dom', 'react']);
