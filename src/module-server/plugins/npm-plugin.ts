@@ -51,13 +51,28 @@ export const npmPlugin = ({ root }: { root: string }): Plugin => {
   return {
     name: 'npm',
     // Rewrite bare imports to have @npm/ prefix
-    resolveId(id) {
-      if (isBareImport(id)) return prefix + id;
+    async resolveId(id, importer) {
+      if (!isBareImport(id)) return;
+      const resolved = await nodeResolve(id, root).catch((error) => {
+        throw importer
+          ? changeErrorMessage(
+              error,
+              (msg) => `${msg} (imported by ${importer})`,
+            )
+          : error;
+      });
+      if (!jsExts.test(resolved.path))
+        // Don't pre-bundle, use the full path to the file in node_modules
+        // (ex: CSS files in node_modules)
+        return resolved.path;
+
+      return prefix + id;
     },
     async load(id) {
       if (!id.startsWith(prefix)) return null;
       id = id.slice(prefix.length);
       const resolved = await nodeResolve(id, root);
+      if (!jsExts.test(resolved.path)) return null; // Don't pre-bundle
       const cachePath = join(cacheDir, '@npm', `${resolved.idWithVersion}.js`);
       const cached = await getFromCache(cachePath);
       if (cached) return cached;
