@@ -15,6 +15,10 @@ export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   return arr;
 };
 
+export const isPromise = <T extends any>(
+  input: unknown | Promise<T>,
+): input is Promise<T> => Promise.resolve(input) === input; // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
+
 export const assertElementHandle: (
   input: unknown,
   fn: (...params: any[]) => any,
@@ -25,11 +29,7 @@ export const assertElementHandle: (
   messageStart = `element must be an ElementHandle\n\n`,
 ) => {
   const type =
-    input === null
-      ? 'null'
-      : typeof input === 'object' && Promise.resolve(input) === input // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
-      ? 'Promise'
-      : typeof input;
+    input === null ? 'null' : isPromise(input) ? 'Promise' : typeof input;
 
   if (type === 'Promise') {
     throw removeFuncFromStackTrace(
