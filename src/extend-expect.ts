@@ -4,9 +4,7 @@ import { deserialize, serialize } from './serialize';
 import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
 
 const methods = [
-  'toBeInTheDOM',
   'toBeInTheDocument',
-  'toBeEmpty',
   'toBeEmptyDOMElement',
   'toContainElement',
   'toContainHTML',
@@ -26,7 +24,6 @@ const methods = [
   'toHaveDisplayValue',
   'toBeChecked',
   'toBePartiallyChecked',
-  'toHaveDescription',
   'toHaveErrorMessage',
 ] as const;
 
@@ -380,12 +377,6 @@ declare global {
        * https://github.com/testing-library/jest-dom#tobepartiallychecked
        */
       toBePartiallyChecked(): Promise<R>;
-
-      /**
-       * Check whether the given element has a description (via aria-describedby)
-       * https://github.com/testing-library/jest-dom#tohavedescription
-       */
-      toHaveDescription(text?: string | RegExp): Promise<R>;
 
       /**
        * Check whether the given element has an ARIA error message (via aria-errormessage)
