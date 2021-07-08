@@ -8,6 +8,8 @@ const methods = [
   'toBeEmptyDOMElement',
   'toContainElement',
   'toContainHTML',
+  'toHaveAccessibleDescription',
+  'toHaveAccessibleName',
   'toHaveTextContent',
   'toHaveAttribute',
   'toHaveClass',
@@ -307,6 +309,19 @@ declare global {
        * https://github.com/testing-library/jest-dom#tocontainhtml
        */
       toContainHTML(html: string): Promise<R>;
+      /**
+       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-description).
+       * You can pass the exact string, or you can make a partial match passing a regular expression
+       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
+       */
+      toHaveAccessibleDescription(text?: string | RegExp): Promise<R>;
+      /**
+       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-name).
+       * It is useful, for instance, to assert that form elements and buttons are properly labelled.
+       * You can pass the exact string, or you can make a partial match passing a regular expression
+       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
+       */
+      toHaveAccessibleName(text?: string | RegExp): Promise<R>;
       /**
        * Check whether the given element has an attribute or not.
        * You can also optionally check that the attribute has a specific expected value
