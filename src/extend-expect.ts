@@ -9,12 +9,12 @@ import {
 } from './utils';
 
 const methods = [
-  'toBeInTheDOM',
   'toBeInTheDocument',
-  'toBeEmpty',
   'toBeEmptyDOMElement',
   'toContainElement',
   'toContainHTML',
+  'toHaveAccessibleDescription',
+  'toHaveAccessibleName',
   'toHaveTextContent',
   'toHaveAttribute',
   'toHaveClass',
@@ -31,7 +31,6 @@ const methods = [
   'toHaveDisplayValue',
   'toBeChecked',
   'toBePartiallyChecked',
-  'toHaveDescription',
   'toHaveErrorMessage',
 ] as const;
 
@@ -320,6 +319,19 @@ declare global {
        */
       toContainHTML(html: string): Promise<R>;
       /**
+       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-description).
+       * You can pass the exact string, or you can make a partial match passing a regular expression
+       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
+       */
+      toHaveAccessibleDescription(text?: string | RegExp): Promise<R>;
+      /**
+       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-name).
+       * It is useful, for instance, to assert that form elements and buttons are properly labelled.
+       * You can pass the exact string, or you can make a partial match passing a regular expression
+       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
+       */
+      toHaveAccessibleName(text?: string | RegExp): Promise<R>;
+      /**
        * Check whether the given element has an attribute or not.
        * You can also optionally check that the attribute has a specific expected value
        * https://github.com/testing-library/jest-dom#tohaveattribute
@@ -389,12 +401,6 @@ declare global {
        * https://github.com/testing-library/jest-dom#tobepartiallychecked
        */
       toBePartiallyChecked(): Promise<R>;
-
-      /**
-       * Check whether the given element has a description (via aria-describedby)
-       * https://github.com/testing-library/jest-dom#tohavedescription
-       */
-      toHaveDescription(text?: string | RegExp): Promise<R>;
 
       /**
        * Check whether the given element has an ARIA error message (via aria-errormessage)
