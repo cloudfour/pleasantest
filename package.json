@@ -24,7 +24,7 @@
     "@types/jest": "26.0.23",
     "@types/node": "16.0.0",
     "@types/polka": "0.5.2",
-    "@types/puppeteer": "5.4.3",
+    "@types/puppeteer": "5.4.4",
     "ansi-regex": "6.0.0",
     "aria-query": "*",
     "babel-plugin-un-cjs": "2.5.0",
