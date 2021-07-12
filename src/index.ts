@@ -158,7 +158,9 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
             }),
           );
         } else {
-          failureMessage.push(indent(error.message));
+          failureMessage.push(
+            indent(error instanceof Error ? error.message : String(error)),
+          );
         }
 
         await ctx.page.evaluate((...colorErr) => {
