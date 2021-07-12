@@ -1,5 +1,17 @@
 # pleasantest
 
+## 0.7.0
+
+### Minor Changes
+
+- [#146](https://github.com/cloudfour/pleasantest/pull/146) [`8619f64`](https://github.com/cloudfour/pleasantest/commit/8619f64b2b7f2aea145450b491f086eb7aa14ddc) Thanks [@calebeby](https://github.com/calebeby)! - Allow throwing things other than errors within withBrowser
+
+* [#104](https://github.com/cloudfour/pleasantest/pull/104) [`69fd00b`](https://github.com/cloudfour/pleasantest/commit/69fd00b285e9a1ed4cf21cdf5cfefd29a642cd5b) Thanks [@renovate](https://github.com/apps/renovate)! - Remove toHaveDescription, toBeInTheDOM, and toBeEmpty (they are deprecated by jest-dom)
+
+- [#104](https://github.com/cloudfour/pleasantest/pull/104) [`69fd00b`](https://github.com/cloudfour/pleasantest/commit/69fd00b285e9a1ed4cf21cdf5cfefd29a642cd5b) Thanks [@renovate](https://github.com/apps/renovate)! - Add toHaveAccessibleDescription and toHaveAccessibleName from jest-dom matchers
+
+* [#137](https://github.com/cloudfour/pleasantest/pull/137) [`707f97b`](https://github.com/cloudfour/pleasantest/commit/707f97bc8acc6b67bf2c438c3946c44c817820cd) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to [`10.1.0`](https://github.com/puppeteer/puppeteer/blob/main/CHANGELOG.md#1010-2021-06-29)
+
 ## 0.6.2
 
 ### Patch Changes
