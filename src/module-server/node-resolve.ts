@@ -1,7 +1,3 @@
-// TODO before merge: See how to integrate with resolve-extensions-plugin:
-// './asdf' should look at package.json if ./asdf is a folder with package.json
-// './asdf' should also look for ./asdf/index.js
-
 import { dirname, join, posix, resolve as pResolve } from 'path';
 import { promises as fs } from 'fs';
 import { resolve, legacy as resolveLegacy } from 'resolve.exports';
