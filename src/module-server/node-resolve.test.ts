@@ -10,7 +10,11 @@ const createdPaths: string[] = [];
 afterAll(async () => {
   await Promise.all(
     createdPaths.map(async (path) => {
-      await fs.rm(path, { recursive: true, force: true });
+      // For node 12, fs.rm() is not supported.
+      // For node 16, fs.rmdir() with recursive is deprecated (but still works)
+      // When we drop support for node 12, switch to below line for fs.rm()
+      await fs.rmdir(path, { recursive: true });
+      // Await fs.rm(path, { recursive: true, force: true });
     }),
   );
 });
