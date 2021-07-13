@@ -1,8 +1,9 @@
 import { posix, relative, resolve, sep } from 'path';
 import type polka from 'polka';
 import { promises as fs } from 'fs';
-import { cssExts, cssPlugin } from '../plugins/css';
+import { cssPlugin } from '../plugins/css';
 import type { PluginContext, TransformPluginContext } from 'rollup';
+import { cssExts } from '../extensions-and-detection';
 
 interface CSSMiddlewareOpts {
   root: string;

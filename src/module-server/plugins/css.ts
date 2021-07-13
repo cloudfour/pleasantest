@@ -1,8 +1,8 @@
 import postcssPlugin from 'rollup-plugin-postcss';
 import { transformCssImports } from '../transform-css-imports';
 import { join } from 'path';
+import { cssExts } from '../extensions-and-detection';
 
-export const cssExts = /\.(?:css|styl|stylus|s[ac]ss|less)$/;
 export const cssPlugin = ({
   returnCSS = false,
 }: { returnCSS?: boolean } = {}) => {
@@ -25,7 +25,7 @@ export const cssPlugin = ({
         // Rewrites emitted url(...) and @imports to be relative to the project root.
         // Otherwise, relative paths don't work for injected stylesheets
         name: 'rewriteImports',
-        test: /\.(?:css|styl|stylus|s[ac]ss|less)$/,
+        test: cssExts,
         async process({ code, map }: { code: string; map?: string }) {
           code = await transformCssImports(code, this.id, {
             resolveId(specifier, id) {
