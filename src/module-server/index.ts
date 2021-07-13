@@ -27,10 +27,7 @@ export const createModuleServer = async ({
   const plugins = [
     ...userPlugins,
     aliases && aliasPlugin({ entries: aliases }),
-    resolveExtensionsPlugin({
-      extensions: ['.ts', '.tsx', '.js', '.cjs'],
-      index: true,
-    }),
+    resolveExtensionsPlugin(),
     processGlobalPlugin({ NODE_ENV: 'development' }),
     npmPlugin({ root }),
     esbuildPlugin(),
