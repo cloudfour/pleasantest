@@ -59,10 +59,11 @@ const createFs = async (input: string) => {
 };
 
 describe('resolving in node_modules', () => {
-  test('resolves main field', async () => {
+  test('resolves main field with higher priority than index.js', async () => {
     const fs = await createFs(`
       ./node_modules/foo/package.json {"main": "entry.js"}
       ./node_modules/foo/entry.js
+      ./node_modules/foo/index.js
     `);
     expect(await fs.resolve('foo')).toBe('./node_modules/foo/entry.js');
   });
