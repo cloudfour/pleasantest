@@ -9,15 +9,13 @@ import type {
   RawSourceMap,
 } from '@ampproject/remapping/dist/types/types';
 import MagicString from 'magic-string';
+import { jsExts } from '../extensions-and-detection';
 
 interface JSMiddlewareOpts {
   root: string;
   plugins: Plugin[];
   requestCache: Map<string, SourceDescription>;
 }
-
-// TODO: make this configurable
-export const jsExts = /\.(?:[jt]sx?|[cm]js)$/;
 
 // Minimal version of https://github.com/preactjs/wmr/blob/main/packages/wmr/src/wmr-middleware.js
 

@@ -4,7 +4,10 @@ module.exports = {
     '^pleasantest$': '<rootDir>/dist/cjs/index.cjs',
   },
   testRunner: 'jest-circus/runner',
-  watchPathIgnorePatterns: ['<rootDir>/src/', '<rootDir>/.cache'],
+  watchPathIgnorePatterns: [
+    '<rootDir>/.cache',
+    '<rootDir>/src/.*(?<!\\.test)\\.ts',
+  ],
   transform: {
     '^.+\\.[jt]sx?$': ['esbuild-jest', { sourcemap: true }],
   },
