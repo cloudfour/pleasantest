@@ -57,7 +57,7 @@
     "@rollup/plugin-commonjs": "^19.0.0",
     "@types/testing-library__jest-dom": "^5.14.0",
     "acorn": "^8.4.1",
-    "cjs-module-lexer": "^1.2.1",
+    "cjs-module-lexer": "^1.2.2",
     "es-module-lexer": "^0.7.1",
     "esbuild": "^0.12.15",
     "mime": "^2.5.2",
