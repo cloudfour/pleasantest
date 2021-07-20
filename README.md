@@ -345,10 +345,28 @@ Call Signatures:
 - `withBrowser.headed(testFn: (context: PleasantestContext) => Promise<void>)`
 - `withBrowser.headed(opts: WithBrowserOpts, testFn: (context: PleasantestContext) => Promise<void>)`
 
-`WithBrowserOpts`:
+`WithBrowserOpts` (all properties are optional):
 
 - `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
 - `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v10.1.0&show=api-pageemulateoptions).
+- `moduleServer`: Module Server options object (all properties are optional)
+  - `plugins`: Array of Rollup, Vite, or WMR plugins to add. They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
+  - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
+  - `esbuild`: [`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`: Options to pass to esbuild. Set to false to disable esbuild.
+
+You can configure the default options (applied to all tests in current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
+
+```js
+import { configureDefaults } from 'pleasantest'
+
+configureDefaults({
+  device: /* ... */,
+  moduleServer: {
+    /* ... */
+  },
+  /* ... */
+})
+```
 
 By default, `withBrowser` will launch a headless Chromium browser. You can tell it to instead launch a headed (visible) browser by chaining `.headed`:
 
@@ -682,6 +700,10 @@ test(
   }),
 );
 ```
+
+todo document configuredefaults
+todo document module server options
+todo explain how module server works
 
 ### [`jest-dom`](https://github.com/testing-library/jest-dom) Matchers
 
