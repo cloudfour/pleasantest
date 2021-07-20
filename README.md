@@ -701,10 +701,6 @@ test(
 );
 ```
 
-todo document configuredefaults
-todo document module server options
-todo explain how module server works
-
 ### [`jest-dom`](https://github.com/testing-library/jest-dom) Matchers
 
 Pleasantest adds [`jest-dom`'s matchers](https://github.com/testing-library/jest-dom#table-of-contents) to Jest's `expect` global. They are slightly modified from the original matchers, they are wrapped to execute in the browser, and return a Promise.
