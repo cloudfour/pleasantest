@@ -30,10 +30,7 @@ const stubs = {
     }
   `,
   'lodash/isEqual': `export { isEqual as default } from 'smoldash'`,
-  'lodash/uniq': `
-    const uniq = (input) => Array.from(new Set(input))
-    export default uniq
-  `,
+  'lodash/uniq': `export { uniq as default } from 'smoldash'`,
   '@babel/runtime/helpers/extends': `export default Object.assign`,
 };
 
