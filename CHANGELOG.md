@@ -1,5 +1,15 @@
 # pleasantest
 
+## 0.8.0
+
+### Minor Changes
+
+- [#163](https://github.com/cloudfour/pleasantest/pull/163) [`248376d`](https://github.com/cloudfour/pleasantest/commit/248376d6ed0b5290191659590d5da4ad5ca897f5) Thanks [@calebeby](https://github.com/calebeby)! - Make module server configurable
+
+### Patch Changes
+
+- [#159](https://github.com/cloudfour/pleasantest/pull/159) [`a999340`](https://github.com/cloudfour/pleasantest/commit/a9993400847dd9e6dcf35a83c3156c020093401d) Thanks [@calebeby](https://github.com/calebeby)! - Improve node_modules and relative paths resolution
+
 ## 0.7.0
 
 ### Minor Changes
