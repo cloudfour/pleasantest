@@ -34,6 +34,7 @@ import { parse } from 'es-module-lexer';
 import { createCodeFrame } from 'simple-code-frame';
 import * as colors from 'kolorist';
 import { cssExts, jsExts } from './extensions-and-detection';
+import { extname } from 'path';
 
 type MaybePromise<T> = Promise<T> | T;
 type ResolveFn = (
@@ -73,7 +74,9 @@ ${frame}
 `;
     if (!jsExts.test(id) && !cssExts.test(id))
       message += `${colors.yellow(
-        'You may need to add transform plugins to handle non-JS input',
+        `You may need to add plugins to the module server to handle ${
+          extname(id) ? `${extname(id)} files` : id
+        }`,
       )}\n`;
 
     const modifiedError = new Error(message);
