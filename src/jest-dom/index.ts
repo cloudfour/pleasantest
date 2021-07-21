@@ -18,20 +18,18 @@ const runUtilInNode = (name: string, args: any[]) => {
     if (typeof val === 'string') {
       return val.replace(
         /\$JEST_UTILS\.([$A-Z_a-z]*)\$([^)]*)\$END_JEST_UTILS\$/g,
-        (_match, methodName, subArgs) => {
-          return `$JEST_UTILS.${methodName}$${
+        (_match, methodName, subArgs) =>
+          `$JEST_UTILS.${methodName}$${
             cachedSubArgs.push(subArgs) - 1
-          }$END_JEST_UTILS$`;
-        },
+          }$END_JEST_UTILS$`,
       );
     }
 
     return val;
   }).replace(
     /\$JEST_UTILS\.([$A-Z_a-z]*)\$(.*?)\$END_JEST_UTILS\$/g,
-    (_match, methodName, subArgsIdx) => {
-      return `$JEST_UTILS.${methodName}$${cachedSubArgs[subArgsIdx]}$END_JEST_UTILS$`;
-    },
+    (_match, methodName, subArgsIdx) =>
+      `$JEST_UTILS.${methodName}$${cachedSubArgs[subArgsIdx]}$END_JEST_UTILS$`,
   );
   return `$JEST_UTILS.${name}$${stringifiedArgs}$END_JEST_UTILS$`;
 };
@@ -45,16 +43,13 @@ type RecursivePartial<T> = T extends Record<string, unknown>
   : T;
 
 export const jestContext: RecursivePartial<jest.MatcherUtils> = {
-  equals: (a, b) => {
+  equals: (a, b) =>
     // Jest's version of this supports asymmetric matchers,
     // but since we don't support that this is good enough.
-    return a === b;
-  },
+    a === b,
   utils: {
     matcherHint: (...args) => runUtilInNode('matcherHint', args),
-    diff: (...args) => {
-      return runUtilInNode('diff', args);
-    },
+    diff: (...args) => runUtilInNode('diff', args),
     printReceived: (arg) => {
       if (arg instanceof Element) {
         return jestContext.utils!.RECEIVED_COLOR!(addToElementCache(arg));

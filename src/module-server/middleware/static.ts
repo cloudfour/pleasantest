@@ -10,10 +10,9 @@ interface StaticMiddlewareOpts {
 /**
  * This middleware handles static assets that are requested
  */
-export const staticMiddleware = ({
-  root,
-}: StaticMiddlewareOpts): polka.Middleware => {
-  return async (req, res, next) => {
+export const staticMiddleware =
+  ({ root }: StaticMiddlewareOpts): polka.Middleware =>
+  async (req, res, next) => {
     try {
       const absPath = resolve(root, ...req.path.split(posix.sep));
       if (!absPath.startsWith(root)) return next();
@@ -31,4 +30,3 @@ export const staticMiddleware = ({
       next(error);
     }
   };
-};

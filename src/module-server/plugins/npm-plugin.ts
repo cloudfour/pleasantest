@@ -21,18 +21,15 @@ const setInCache = (cachePath: string, code: string) => {
   );
 };
 
-const getFromCache = async (cachePath: string) => {
-  return (
-    npmTranspileCache.get(cachePath) ||
-    fs
-      .readFile(cachePath, 'utf8')
-      .catch(() => {}) // Ignore if file is not found in cache
-      .then((code) => {
-        if (code) npmTranspileCache.set(cachePath, code);
-        return code;
-      })
-  );
-};
+const getFromCache = async (cachePath: string) =>
+  npmTranspileCache.get(cachePath) ||
+  fs
+    .readFile(cachePath, 'utf8')
+    .catch(() => {}) // Ignore if file is not found in cache
+    .then((code) => {
+      if (code) npmTranspileCache.set(cachePath, code);
+      return code;
+    });
 
 export const npmPlugin = ({
   root,
@@ -40,53 +37,48 @@ export const npmPlugin = ({
 }: {
   root: string;
   envVars: Record<string, string>;
-}): Plugin => {
-  return {
-    name: 'npm',
-    // Rewrite bare imports to have @npm/ prefix
-    async resolveId(id, importer) {
-      if (!isBareImport(id)) return;
-      const resolved = await resolveFromNodeModules(id, root).catch((error) => {
-        throw importer
-          ? changeErrorMessage(
-              error,
-              (msg) => `${msg} (imported by ${importer})`,
-            )
-          : error;
-      });
-      if (!resolved) return;
-      if (!jsExts.test(resolved.path))
-        // Don't pre-bundle, use the full path to the file in node_modules
-        // (ex: CSS files in node_modules)
-        return resolved.path;
+}): Plugin => ({
+  name: 'npm',
+  // Rewrite bare imports to have @npm/ prefix
+  async resolveId(id, importer) {
+    if (!isBareImport(id)) return;
+    const resolved = await resolveFromNodeModules(id, root).catch((error) => {
+      throw importer
+        ? changeErrorMessage(error, (msg) => `${msg} (imported by ${importer})`)
+        : error;
+    });
+    if (!resolved) return;
+    if (!jsExts.test(resolved.path))
+      // Don't pre-bundle, use the full path to the file in node_modules
+      // (ex: CSS files in node_modules)
+      return resolved.path;
 
-      return npmPrefix + id;
-    },
-    async load(id) {
-      if (!id.startsWith(npmPrefix)) return;
-      id = id.slice(npmPrefix.length);
-      const resolved = await resolveFromNodeModules(id, root);
-      if (!resolved) return;
+    return npmPrefix + id;
+  },
+  async load(id) {
+    if (!id.startsWith(npmPrefix)) return;
+    id = id.slice(npmPrefix.length);
+    const resolved = await resolveFromNodeModules(id, root);
+    if (!resolved) return;
 
-      const cachePath = join(
-        cacheDir,
-        '@npm',
-        `${resolved.idWithVersion}-${hash(envVars)}.js`,
-      );
-      const cached = await getFromCache(cachePath);
-      if (cached) return cached;
-      const result = await bundleNpmModule(resolved.path, id, false, envVars);
-      // Queue up a second-pass optimized/minified build
-      bundleNpmModule(resolved.path, id, true, envVars).then(
-        (optimizedResult) => {
-          setInCache(cachePath, optimizedResult);
-        },
-      );
-      setInCache(cachePath, result);
-      return result;
-    },
-  };
-};
+    const cachePath = join(
+      cacheDir,
+      '@npm',
+      `${resolved.idWithVersion}-${hash(envVars)}.js`,
+    );
+    const cached = await getFromCache(cachePath);
+    if (cached) return cached;
+    const result = await bundleNpmModule(resolved.path, id, false, envVars);
+    // Queue up a second-pass optimized/minified build
+    bundleNpmModule(resolved.path, id, true, envVars).then(
+      (optimizedResult) => {
+        setInCache(cachePath, optimizedResult);
+      },
+    );
+    setInCache(cachePath, result);
+    return result;
+  },
+});
 
 const hash = (inputs: Record<string, string>) =>
   createHash('sha512').update(JSON.stringify(inputs)).digest('hex').slice(0, 7);

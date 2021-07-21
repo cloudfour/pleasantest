@@ -107,13 +107,11 @@ export { default } from '${mod}'`;
   return output[0].code;
 };
 
-const pluginNodeResolve = (): Plugin => {
-  return {
-    name: 'node-resolve',
-    resolveId(id) {
-      if (isBareImport(id)) return { id: npmPrefix + id, external: true };
-      // If requests already have the npm prefix, mark them as external
-      if (id.startsWith(npmPrefix)) return { id, external: true };
-    },
-  };
-};
+const pluginNodeResolve = (): Plugin => ({
+  name: 'node-resolve',
+  resolveId(id) {
+    if (isBareImport(id)) return { id: npmPrefix + id, external: true };
+    // If requests already have the npm prefix, mark them as external
+    if (id.startsWith(npmPrefix)) return { id, external: true };
+  },
+});

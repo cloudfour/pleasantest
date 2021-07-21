@@ -1,16 +1,14 @@
 /** @returns {import("rollup").Plugin} */
-export const rollupPluginAriaQuery = () => {
-  return {
-    resolveId(source) {
-      if (source === 'aria-query') return 'aria-query';
-      return null;
-    },
-    async load(source) {
-      if (source !== 'aria-query') return null;
-      return getAriaQueryCode();
-    },
-  };
-};
+export const rollupPluginAriaQuery = () => ({
+  resolveId(source) {
+    if (source === 'aria-query') return 'aria-query';
+    return null;
+  },
+  async load(source) {
+    if (source !== 'aria-query') return null;
+    return getAriaQueryCode();
+  },
+});
 
 const getAriaQueryCode = async () => {
   const q = await import('aria-query');

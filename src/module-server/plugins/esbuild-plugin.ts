@@ -10,27 +10,25 @@ const shouldProcess = (id: string) => {
 
 export const esbuildPlugin = (
   esbuildOptions: esbuild.TransformOptions,
-): Plugin => {
-  return {
-    name: 'esbuild',
-    async transform(code, id) {
-      if (!shouldProcess(id)) return null;
-      const ext = extname(id).slice(1);
-      const loader = /[cm]?jsx?$/.test(ext) ? 'jsx' : (ext as esbuild.Loader);
-      return esbuild
-        .transform(code, {
-          sourcefile: id,
-          loader,
-          sourcemap: 'external',
-          ...esbuildOptions,
-        })
-        .catch((error) => {
-          const err = error.errors[0];
-          this.error(err.text, {
-            line: err.location.line,
-            column: err.location.column,
-          });
+): Plugin => ({
+  name: 'esbuild',
+  async transform(code, id) {
+    if (!shouldProcess(id)) return null;
+    const ext = extname(id).slice(1);
+    const loader = /[cm]?jsx?$/.test(ext) ? 'jsx' : (ext as esbuild.Loader);
+    return esbuild
+      .transform(code, {
+        sourcefile: id,
+        loader,
+        sourcemap: 'external',
+        ...esbuildOptions,
+      })
+      .catch((error) => {
+        const err = error.errors[0];
+        this.error(err.text, {
+          line: err.location.line,
+          column: err.location.column,
         });
-    },
-  };
-};
+      });
+  },
+});
