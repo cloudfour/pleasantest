@@ -12,16 +12,14 @@ export const cssPlugin = ({
 }) => {
   const transformedCSS = new Map<string, string>();
   const plugin = postcssPlugin({
-    inject: (cssVariable) => {
-      return `
+    inject: (cssVariable) => `
         const style = document.createElement('style')
         style.type = 'text/css'
         const promise = new Promise(r => style.addEventListener('load', r))
         style.appendChild(document.createTextNode(${cssVariable}))
         document.head.append(style)
         await promise
-      `;
-    },
+      `,
     // They are executed right to left. We want our custom loader to run last
     use: ['rewriteImports', 'sass', 'stylus', 'less'],
     loaders: [

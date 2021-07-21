@@ -5,18 +5,16 @@ import type { Plugin } from '../plugin';
  */
 export const environmentVariablesPlugin = (
   env: Record<string, string>,
-): Plugin => {
-  return {
-    name: 'process-global',
-    transform(code) {
-      for (const [property, value] of Object.entries(env)) {
-        code = code.replace(
-          new RegExp(`(?:import\\.meta|process)\\.env\\.${property}`, 'g'),
-          JSON.stringify(value),
-        );
-      }
+): Plugin => ({
+  name: 'process-global',
+  transform(code) {
+    for (const [property, value] of Object.entries(env)) {
+      code = code.replace(
+        new RegExp(`(?:import\\.meta|process)\\.env\\.${property}`, 'g'),
+        JSON.stringify(value),
+      );
+    }
 
-      return code;
-    },
-  };
-};
+    return code;
+  },
+});

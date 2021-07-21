@@ -39,7 +39,7 @@ test(
             Within: #document"
           `);
   }),
-  10000,
+  10_000,
 );
 
 test(
@@ -118,7 +118,7 @@ test(
       await screen.findAllByText(/Hello/, {}, { timeout: 5 }),
     ).toHaveLength(2);
   }),
-  10000,
+  10_000,
 );
 
 test(

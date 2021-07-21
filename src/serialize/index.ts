@@ -45,18 +45,17 @@ export const reviveElementsInString = (str: string) => {
 export const serialize = (
   input: unknown,
   visitor?: (val: unknown) => unknown,
-) => {
-  return JSON.stringify(input, (_key, _value) => {
+) =>
+  JSON.stringify(input, (_key, _value) => {
     const value = visitor ? visitor(_value) : _value;
     const handler = handlers.find((h) => h.detect(value));
     if (handler)
       return { __objType: handler.name, value: handler.toObj(value) };
     return value;
   });
-};
 
-export const deserialize = (input: string) => {
-  return JSON.parse(input, (_key, value) => {
+export const deserialize = (input: string) =>
+  JSON.parse(input, (_key, value) => {
     const serializedType = typeof value === 'object' && value?.__objType;
     return (
       (serializedType &&
@@ -66,7 +65,6 @@ export const deserialize = (input: string) => {
       value
     );
   });
-};
 
 export const printElement = (el: Element | Document, depth = 3) => {
   if (el instanceof Document) return '#document';

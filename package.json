@@ -15,7 +15,7 @@
     "@babel/preset-typescript": "7.14.5",
     "@changesets/changelog-github": "0.4.0",
     "@changesets/cli": "2.16.0",
-    "@cloudfour/eslint-plugin": "17.0.0",
+    "@cloudfour/eslint-plugin": "^17.0.1",
     "@rollup/plugin-alias": "3.1.4",
     "@rollup/plugin-babel": "5.3.0",
     "@rollup/plugin-node-resolve": "13.0.2",
@@ -76,6 +76,7 @@
       "@cloudfour/unicorn/filename-case": "off",
       "no-new-func": "off",
       "no-await-in-loop": "off",
+      "@cloudfour/unicorn/prefer-node-protocol": "off",
       "@cloudfour/typescript-eslint/no-implied-eval": "off",
       "@cloudfour/typescript-eslint/no-misused-promises": "off",
       "@cloudfour/jsdoc/check-tag-names": [

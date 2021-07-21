@@ -54,12 +54,10 @@ ${el}`;
 export const error = (
   literals: TemplateStringsArray,
   ...placeholders: (Element | string)[]
-) => {
-  return {
-    error: literals.reduce((acc, val, i) => {
-      if (i !== 0) acc.push(placeholders[i - 1]);
-      if (val !== '') acc.push(val);
-      return acc;
-    }, [] as (string | Element)[]),
-  };
-};
+) => ({
+  error: literals.reduce((acc, val, i) => {
+    if (i !== 0) acc.push(placeholders[i - 1]);
+    if (val !== '') acc.push(val);
+    return acc;
+  }, [] as (string | Element)[]),
+});
