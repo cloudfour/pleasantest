@@ -20,13 +20,13 @@ test('printErrorFrames with native stack trace', async () => {
 test('printErrorFrames with browser-made stack trace', async () => {
   const error = new Error('something');
   error.stack = `Error: something
-        at ${process.cwd()}/tests/utils/external.tsx:14:9
+        at ${process.cwd()}/tests/utils/external.tsx:12:9
         at S.re [as render] (http://localhost:56999/@npm/preact:1:8041)
         at W (http://localhost:56999/@npm/preact:1:5810)
         at B (http://localhost:56999/@npm/preact:1:2144)
         at W (http://localhost:56999/@npm/preact:1:6043)
         at Y (http://localhost:56999/@npm/preact:1:8155)
-        at renderThrow (tests/utils/external.tsx:18:3)`;
+        at renderThrow (tests/utils/external.tsx:16:3)`;
 
   expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
 "Error: something

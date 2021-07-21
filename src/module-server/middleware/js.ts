@@ -11,7 +11,6 @@ import type {
 } from '@ampproject/remapping/dist/types/types';
 import MagicString from 'magic-string';
 import { jsExts } from '../extensions-and-detection';
-import { encode } from 'querystring';
 import * as esbuild from 'esbuild';
 import { createCodeFrame } from 'simple-code-frame';
 import * as colors from 'kolorist';
@@ -50,17 +49,15 @@ export const jsMiddleware = ({
         file = resolve(root, osPath);
         // Rollup-style Unix-normalized path "id":
         id = file.split(sep).join(posix.sep);
-        const qs = encode(
-          Object.fromEntries(
-            Object.entries(req.query).filter(
-              ([key]) => key !== 'import' && key !== 'inline-code',
-            ),
-          ) as any,
-        )
-          // Remove trailing =
-          // This is necessary for rollup-plugin-vue, which ads ?lang.ts at the end of the id,
-          // so the file gets processed by other transformers
-          .replace(/=$/, '');
+
+        const params = new URLSearchParams(req.query as Record<string, string>);
+        params.delete('import');
+        params.delete('inline-code');
+
+        // Remove trailing =
+        // This is necessary for rollup-plugin-vue, which ads ?lang.ts at the end of the id,
+        // so the file gets processed by other transformers
+        const qs = params.toString().replace(/=$/, '');
         if (qs) id += `?${qs}`;
       }
 
