@@ -64,7 +64,7 @@
     "es-module-lexer": "^0.7.1",
     "esbuild": "^0.12.15",
     "mime": "^2.5.2",
-    "postcss": "^8.3.5",
+    "postcss": "^8.3.6",
     "puppeteer": "^10.1.0",
     "rollup": "^2.53.2",
     "rollup-plugin-postcss": "^4.0.0",
