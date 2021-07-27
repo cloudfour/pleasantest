@@ -1,5 +1,17 @@
 # pleasantest
 
+## 1.0.0
+
+### Major Changes
+
+- [#186](https://github.com/cloudfour/pleasantest/pull/186) [`33691ba`](https://github.com/cloudfour/pleasantest/commit/33691bafe4a147290a72467cabcdfc26bef1e38d) Thanks [@calebeby](https://github.com/calebeby)! - Release 1.0
+
+  There are no breaking changes, we are just bumping the version to 1.0, so from now going forwards, we'll be following post-1.0 semver.
+
+### Patch Changes
+
+- [#184](https://github.com/cloudfour/pleasantest/pull/184) [`e02417e`](https://github.com/cloudfour/pleasantest/commit/e02417e3f0d21b8f060f218150fd8f092090f372) Thanks [@calebeby](https://github.com/calebeby)! - Remove unused dependency
+
 ## 0.8.0
 
 ### Minor Changes
