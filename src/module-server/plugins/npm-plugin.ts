@@ -47,7 +47,6 @@ export const npmPlugin = ({
         ? changeErrorMessage(error, (msg) => `${msg} (imported by ${importer})`)
         : error;
     });
-    if (!resolved) return;
     if (!jsExts.test(resolved.path))
       // Don't pre-bundle, use the full path to the file in node_modules
       // (ex: CSS files in node_modules)

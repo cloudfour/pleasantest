@@ -54,6 +54,7 @@ import type {
 } from '@ampproject/remapping/dist/types/types';
 import * as colors from 'kolorist';
 import { promises as fs } from 'fs';
+import { ErrorWithLocation } from './error-with-location';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */
 const popIndex = (array: any[], index: number) => {
@@ -66,24 +67,6 @@ const identifierPair = (id: string, importer?: string) => {
   if (importer) return `${id}\n${importer}`;
   return id;
 };
-
-class ErrorWithLocation extends Error {
-  line: number;
-  column?: number;
-  constructor({
-    message,
-    line,
-    column,
-  }: {
-    message: string;
-    line: number;
-    column?: number;
-  }) {
-    super(message);
-    this.line = line;
-    this.column = column;
-  }
-}
 
 type PluginContext = Omit<
   RollupPluginContext,
@@ -168,7 +151,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       }
 
       throw new ErrorWithLocation({
-        message: error as string,
+        message: `[${plugin?.name}] ${error}`,
         line: typeof pos === 'number' ? pos : pos.line,
         column: (pos as any).column,
       });
@@ -257,8 +240,11 @@ export const createPluginContainer = (plugins: Plugin[]) => {
           }
         } catch (error) {
           if (error instanceof ErrorWithLocation) {
-            let line = error.line;
-            let column = error.column || 0;
+            if (!error.filename) error.filename = id;
+            // If the error has a location,
+            // apply the source maps to get the original location
+            const line = error.line;
+            const column = error.column || 0;
             if (sourceMaps.length > 0) {
               const { SourceMapConsumer } = await import('source-map');
               const consumer = await new SourceMapConsumer(
@@ -270,28 +256,14 @@ export const createPluginContainer = (plugins: Plugin[]) => {
               });
               consumer.destroy();
               if (sourceLocation.line !== null) {
-                line = sourceLocation.line;
-                column = sourceLocation.column || 0;
-                if (sourceLocation.source) {
-                  originalCode = await fs.readFile(
-                    sourceLocation.source,
-                    'utf8',
-                  );
-                }
+                error.line = sourceLocation.line;
+                error.column =
+                  sourceLocation.column === null
+                    ? undefined
+                    : sourceLocation.column;
               }
+              error.filename = sourceLocation.source || id;
             }
-
-            const frame = createCodeFrame(originalCode, line - 1, column);
-            const message = `[${plugin.name}] ${colors.red(
-              colors.bold(error.message),
-            )}
-
-${colors.red(`${id}:${line}:${column + 1}`)}
-
-${frame}`;
-            const modifiedError = new Error(message);
-            modifiedError.stack = message;
-            throw modifiedError;
           }
 
           throw error;

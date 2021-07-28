@@ -1,6 +1,10 @@
 import { dirname, posix, relative, resolve, sep } from 'path';
 import type polka from 'polka';
-import type { SourceDescription } from 'rollup';
+import type {
+  PartialResolvedId,
+  ResolveIdResult,
+  SourceDescription,
+} from 'rollup';
 import type { Plugin } from '../plugin';
 import { createPluginContainer } from '../rollup-plugin-container';
 import { promises as fs } from 'fs';
@@ -15,6 +19,8 @@ import * as esbuild from 'esbuild';
 import { createCodeFrame } from 'simple-code-frame';
 import * as colors from 'kolorist';
 import { Console } from 'console';
+import { rejectBuild } from '../build-status-tracker';
+import { ErrorWithLocation } from '../error-with-location';
 
 interface JSMiddlewareOpts {
   root: string;
@@ -29,11 +35,38 @@ export const jsMiddleware = ({
   plugins,
   requestCache,
 }: JSMiddlewareOpts): polka.Middleware => {
+  interface ResolveCacheEntry {
+    buildId: number;
+    resolved: PartialResolvedId;
+  }
+  /**
+   * The resolve cache is used so that if something has already been resolved from a previous build,
+   * the buildId from the previous build gets used rather than the current buildId.
+   * That way, modules can get correctly deduped in the browser,
+   * and syntax/transform errors will get thrown from the _first_ runJS/loadJS that they were imported from.
+   */
+  const resolveCache = new Map<string, ResolveCacheEntry>();
+
+  const getResolveCacheKey = (spec: string, from: string) =>
+    `${spec}%%FROM%%${from}`;
+
+  const setInResolveCache = (
+    spec: string,
+    from: string,
+    buildId: number,
+    resolved: PartialResolvedId,
+  ) => resolveCache.set(getResolveCacheKey(spec, from), { buildId, resolved });
+
+  const getFromResolveCache = (spec: string, from: string) =>
+    resolveCache.get(getResolveCacheKey(spec, from));
+
   const rollupPlugins = createPluginContainer(plugins);
 
   rollupPlugins.buildStart();
 
   return async (req, res, next) => {
+    const buildId =
+      req.query['build-id'] !== undefined && Number(req.query['build-id']);
     try {
       // Normalized path starting with slash
       const path = posix.normalize(req.path);
@@ -53,6 +86,7 @@ export const jsMiddleware = ({
         const params = new URLSearchParams(req.query as Record<string, string>);
         params.delete('import');
         params.delete('inline-code');
+        params.delete('build-id');
 
         // Remove trailing =
         // This is necessary for rollup-plugin-vue, which ads ?lang.ts at the end of the id,
@@ -111,14 +145,37 @@ export const jsMiddleware = ({
       // Resolve all the imports and replace them, and inline the resulting resolved paths
       // This makes different ways of importing the same path (e.g. extensionless imports, etc.)
       // all dedupe to the same module so it is only executed once
-      code = await transformImports(code, id, {
+      code = await transformImports(code, id, map, {
         async resolveId(spec) {
+          const addBuildId = (specifier: string) => {
+            const delimiter = /\?/.test(specifier) ? '&' : '?';
+            return `${specifier}${delimiter}build-id=${localBuildId}`;
+          };
+
+          // Default to the buildId corresponding to this module
+          // But for any module which has previously been imported from another buildId,
+          // Use the previous buildId (for module deduplication in the browser)
+          let localBuildId = buildId;
           if (/^(data:|https?:|\/\/)/.test(spec)) return spec;
 
-          const resolved = await rollupPlugins.resolveId(spec, file);
+          const cached = getFromResolveCache(spec, file);
+          let resolved: ResolveIdResult;
+          if (cached) {
+            resolved = cached.resolved;
+            localBuildId = cached.buildId;
+          } else {
+            resolved = await rollupPlugins.resolveId(spec, file);
+            if (resolved && buildId)
+              setInResolveCache(
+                spec,
+                file,
+                buildId,
+                typeof resolved === 'object' ? resolved : { id: resolved },
+              );
+          }
           if (resolved) {
             spec = typeof resolved === 'object' ? resolved.id : resolved;
-            if (spec.startsWith('@npm/')) return `/${spec}`;
+            if (spec.startsWith('@npm/')) return addBuildId(`/${spec}`);
             if (/^(\/|\\|[a-z]:\\)/i.test(spec)) {
               // Change FS-absolute paths to relative
               spec = relative(dirname(file), spec).split(sep).join(posix.sep);
@@ -130,20 +187,20 @@ export const jsMiddleware = ({
 
               spec = relative(root, spec).split(sep).join(posix.sep);
               if (!/^(\/|[\w-]+:)/.test(spec)) spec = `/${spec}`;
-              return spec;
+              return addBuildId(spec);
             }
           }
 
-          // If it wasn't resovled, and doesn't have a js-like extension
-          // add the ?import query param so it is clear
+          // If it wasn't resolved, and doesn't have a js-like extension
+          // add the ?import query param to make it clear
           // that the request needs to end up as JS that can be imported
           if (!jsExts.test(spec)) {
             // If there is already a query parameter, add &import
             const delimiter = /\?/.test(spec) ? '&' : '?';
-            return `${spec}${delimiter}import`;
+            return addBuildId(`${spec}${delimiter}import`);
           }
 
-          return spec;
+          return addBuildId(spec);
         },
       });
 
@@ -153,29 +210,18 @@ export const jsMiddleware = ({
         'Content-Length': Buffer.byteLength(code, 'utf-8'),
       });
       res.end(code);
-
-      // Start a esbuild build (just for the sake of parsing)
-      // That way, if there is a parsing error in the code resulting from the rollup transforms,
-      // we can display an error/code frame in the console
-      // instead of just a generic message from the browser saying it couldn't parse
-      // We are *not awaiting* this because we don't want to slow down sending the HTTP response
-      esbuild.transform(code, { loader: 'js' }).catch((error) => {
-        const err = error.errors[0];
-        const { line, column } = err.location;
-        const frame = createCodeFrame(code as string, line - 1, column);
-        const message = `${colors.red(colors.bold(err.text))}
-
-${colors.red(`${id}:${line}:${(column as number) + 1}`)}
-
-${frame}
-`;
-
-        // Create a new console instance instead of using the global one
-        // Because the global one is overridden by Jest, and it adds a misleading second stack trace and code frame below it
-        const console = new Console(process.stdout, process.stderr);
-        console.error(message);
-      });
     } catch (error) {
+      if (buildId) {
+        rejectBuild(
+          Number(buildId),
+          error instanceof ErrorWithLocation
+            ? await error.toCodeFrame().catch(() => error)
+            : error,
+        );
+
+        res.statusCode = 500;
+        return res.end();
+      }
       next(error);
     }
   };
