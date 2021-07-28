@@ -55,7 +55,7 @@ interface Options {
 export const transformImports = async (
   code: string,
   id: string,
-  map: string | DecodedSourceMap | RawSourceMap,
+  map: string | DecodedSourceMap | RawSourceMap | undefined,
   { resolveImportMeta, resolveId, resolveDynamicImport }: Options = {},
 ) => {
   let imports;

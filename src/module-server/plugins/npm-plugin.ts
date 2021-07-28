@@ -58,7 +58,6 @@ export const npmPlugin = ({
     if (!id.startsWith(npmPrefix)) return;
     id = id.slice(npmPrefix.length);
     const resolved = await resolveFromNodeModules(id, root);
-    if (!resolved) return;
 
     const cachePath = join(
       cacheDir,

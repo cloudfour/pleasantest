@@ -15,10 +15,6 @@ import type {
 } from '@ampproject/remapping/dist/types/types';
 import MagicString from 'magic-string';
 import { jsExts } from '../extensions-and-detection';
-import * as esbuild from 'esbuild';
-import { createCodeFrame } from 'simple-code-frame';
-import * as colors from 'kolorist';
-import { Console } from 'console';
 import { rejectBuild } from '../build-status-tracker';
 import { ErrorWithLocation } from '../error-with-location';
 
@@ -27,6 +23,9 @@ interface JSMiddlewareOpts {
   plugins: Plugin[];
   requestCache: Map<string, SourceDescription>;
 }
+
+const getResolveCacheKey = (spec: string, from: string) =>
+  `${spec}%%FROM%%${from}`;
 
 // Minimal version of https://github.com/preactjs/wmr/blob/main/packages/wmr/src/wmr-middleware.js
 
@@ -46,9 +45,6 @@ export const jsMiddleware = ({
    * and syntax/transform errors will get thrown from the _first_ runJS/loadJS that they were imported from.
    */
   const resolveCache = new Map<string, ResolveCacheEntry>();
-
-  const getResolveCacheKey = (spec: string, from: string) =>
-    `${spec}%%FROM%%${from}`;
 
   const setInResolveCache = (
     spec: string,

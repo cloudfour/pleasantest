@@ -47,13 +47,10 @@ import type {
 } from 'rollup';
 import type { Plugin } from './plugin';
 import { combineSourceMaps } from './combine-source-maps';
-import { createCodeFrame } from 'simple-code-frame';
 import type {
   DecodedSourceMap,
   RawSourceMap,
 } from '@ampproject/remapping/dist/types/types';
-import * as colors from 'kolorist';
-import { promises as fs } from 'fs';
 import { ErrorWithLocation } from './error-with-location';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */
