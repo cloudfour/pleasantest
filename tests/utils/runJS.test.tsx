@@ -175,19 +175,19 @@ test(
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-          "Error parsing module with es-module-lexer
+                        "Error parsing module with es-module-lexer
 
-          <root>/tests/utils/runJS.test.tsx:###:###
+                        <root>/tests/utils/runJS.test.tsx:###:###
 
-            ### |     async ({ utils }) => {
-            ### |       const runPromise = utils.runJS(\`
-          > ### |         asdf())
-                |               ^
-            ### |       \`);
-            ### | 
-            ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
-          "
-        `);
+                          ### |     async ({ utils }) => {
+                          ### |       const runPromise = utils.runJS(\`
+                        > ### |         asdf())
+                              |               ^
+                          ### |       \`);
+                          ### | 
+                          ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
+                        "
+                    `);
     },
   ),
 );
@@ -268,19 +268,19 @@ test(
 
     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-        "[esbuild] Expected \\";\\" but found \\")\\"
+                    "[esbuild] Expected \\";\\" but found \\")\\"
 
-        <root>/tests/utils/runJS.test.tsx:###:###
+                    <root>/tests/utils/runJS.test.tsx:###:###
 
-          ### |   withBrowser(async ({ utils }) => {
-          ### |     const runPromise = utils.runJS(\`
-        > ### |       console.log('hi'))
-              |                        ^
-          ### |     \`);
-          ### | 
-          ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
-        "
-      `);
+                      ### |   withBrowser(async ({ utils }) => {
+                      ### |     const runPromise = utils.runJS(\`
+                    > ### |       console.log('hi'))
+                          |                        ^
+                      ### |     \`);
+                      ### | 
+                      ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
+                    "
+                `);
   }),
 );
 
@@ -293,15 +293,16 @@ test(
 
     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-        "[esbuild] The constant \\"someVariable\\" must be initialized
+            "[esbuild] The constant \\"someVariable\\" must be initialized
 
-        <root>/tests/utils/external-with-syntax-error.ts:###:###
+            <root>/tests/utils/external-with-syntax-error.ts:###:###
 
-        > # | const someVariable: string;
-            |       ^
-          # | 
-        "
-      `);
+              # | // @ts-expect-error: this is intentionally invalid
+            > # | const someVariable: string;
+                |       ^
+              # | 
+            "
+          `);
   }),
 );
 
