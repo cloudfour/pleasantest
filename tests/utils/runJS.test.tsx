@@ -268,19 +268,19 @@ test(
 
     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-                    "[esbuild] Expected \\";\\" but found \\")\\"
+        "[esbuild] Expected \\";\\" but found \\")\\"
 
-                    <root>/tests/utils/runJS.test.tsx:###:###
+        <root>/tests/utils/runJS.test.tsx:###:###
 
-                      ### |   withBrowser(async ({ utils }) => {
-                      ### |     const runPromise = utils.runJS(\`
-                    > ### |       console.log('hi'))
-                          |                        ^
-                      ### |     \`);
-                      ### | 
-                      ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
-                    "
-                `);
+          ### |   withBrowser(async ({ utils }) => {
+          ### |     const runPromise = utils.runJS(\`
+        > ### |       console.log('hi'))
+              |                        ^
+          ### |     \`);
+          ### | 
+          ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        "
+      `);
   }),
 );
 
