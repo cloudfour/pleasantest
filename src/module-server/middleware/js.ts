@@ -29,11 +29,11 @@ const getResolveCacheKey = (spec: string, from: string) =>
 
 // Minimal version of https://github.com/preactjs/wmr/blob/main/packages/wmr/src/wmr-middleware.js
 
-export const jsMiddleware = ({
+export const jsMiddleware = async ({
   root,
   plugins,
   requestCache,
-}: JSMiddlewareOpts): polka.Middleware => {
+}: JSMiddlewareOpts): Promise<polka.Middleware> => {
   interface ResolveCacheEntry {
     buildId: number;
     resolved: PartialResolvedId;
@@ -58,7 +58,8 @@ export const jsMiddleware = ({
 
   const rollupPlugins = createPluginContainer(plugins);
 
-  rollupPlugins.buildStart();
+  await rollupPlugins.options();
+  await rollupPlugins.buildStart();
 
   return async (req, res, next) => {
     const buildId =

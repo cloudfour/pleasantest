@@ -36,6 +36,7 @@
   - relative resolution fixed to handle '.' for ctx.resolveId
   - Source map handling added to transform hook
   - Error handling (with code frame, using source maps) added to transform hook
+  - Stubbed out options hook was added
   */
 
 import { resolve, dirname } from 'path';
@@ -212,11 +213,9 @@ export const createPluginContainer = (plugins: Plugin[]) => {
     ) {
       let code = originalCode;
       // TODO: if any of the transforms is missing sourcemaps, then there should be no source maps emitted
-      const sourceMaps: (DecodedSourceMap | RawSourceMap)[] = [];
-      if (inputMap)
-        sourceMaps.push(
-          typeof inputMap === 'string' ? JSON.parse(inputMap) : inputMap,
-        );
+      const sourceMaps: (DecodedSourceMap | RawSourceMap)[] = inputMap
+        ? [typeof inputMap === 'string' ? JSON.parse(inputMap) : inputMap]
+        : [];
       for (plugin of plugins) {
         if (!plugin.transform) continue;
         try {
@@ -271,6 +270,14 @@ export const createPluginContainer = (plugins: Plugin[]) => {
         code,
         map: combineSourceMaps(id, sourceMaps),
       };
+    },
+
+    async options() {
+      for (plugin of plugins) {
+        // Since we don't have "input options", we just pass {}
+        // This hook must be called for @rollup/plugin-babel
+        await plugin.options?.call(ctx as any, {});
+      }
     },
 
     async load(id: string): Promise<LoadResult> {

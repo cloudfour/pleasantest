@@ -65,7 +65,7 @@ export const createModuleServer = async ({
   const requestCache = new Map<string, SourceDescription>();
   const middleware: polka.Middleware[] = [
     indexHTMLMiddleware,
-    jsMiddleware({ root, plugins, requestCache }),
+    await jsMiddleware({ root, plugins, requestCache }),
     cssMiddleware({ root }),
     staticMiddleware({ root }),
   ];
