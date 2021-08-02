@@ -1,5 +1,5 @@
 // This makes it so that errors thrown by the module server get re-thrown inside of runJS/loadJS.
-// This is necessary because the network is between runJS getting called and the module server, so errors do not propagate
+// This is necessary because the network is between the runJS call and the module server, so errors do not propagate
 // By tracking which runJS/loadJS initiated the request for each file, the module server can know which runJS/loadJS needs to reject.
 // When runJS finishes, it will check to see if the buildStatuses map has any errors corresponding to its buildId.
 // If there are any errors, it throws the first one.
