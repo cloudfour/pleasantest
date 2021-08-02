@@ -47,7 +47,6 @@ export const npmPlugin = ({
         ? changeErrorMessage(error, (msg) => `${msg} (imported by ${importer})`)
         : error;
     });
-    if (!resolved) return;
     if (!jsExts.test(resolved.path))
       // Don't pre-bundle, use the full path to the file in node_modules
       // (ex: CSS files in node_modules)
@@ -59,7 +58,6 @@ export const npmPlugin = ({
     if (!id.startsWith(npmPrefix)) return;
     id = id.slice(npmPrefix.length);
     const resolved = await resolveFromNodeModules(id, root);
-    if (!resolved) return;
 
     const cachePath = join(
       cacheDir,

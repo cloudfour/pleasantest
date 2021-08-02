@@ -3,6 +3,7 @@ import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import { printErrorFrames } from '../test-utils';
 import vuePlugin from 'rollup-plugin-vue';
 import aliasPlugin from '@rollup/plugin-alias';
+import ansiRegex from 'ansi-regex';
 
 const createHeading = async ({
   utils,
@@ -144,21 +145,51 @@ test(
               thisVariableDoesntExist\`,
               ^"
       `);
-
-    // Syntax error
-    const error3 = await utils.runJS(`asdf()}`).catch((error) => error);
-
-    expect(await printErrorFrames(error3)).toMatchInlineSnapshot(`
-      "TypeError: Failed to load runJS code (most likely due to a transpilation error)
-      -------------------------------------------------------
-      tests/utils/runJS.test.tsx
-
-          const error3 = await utils.runJS(\`asdf()}\`).catch((error) => error);
-                         ^
-      -------------------------------------------------------
-      dist/cjs/index.cjs"
-      `);
   }),
+);
+
+test(
+  'Imports by different runJS calls point to the same values',
+  withBrowser(async ({ utils }) => {
+    await utils.runJS(`
+      import { render } from 'preact'
+      window.__preact_render = render
+    `);
+    await utils.runJS(`
+      import { render } from 'preact'
+      if (window.__preact_render !== render)
+        throw new Error('Importing the same thing multiple times resulted in different modules')
+    `);
+  }),
+);
+
+test(
+  "TransformImports throws stack frame if it can't parse the input",
+  withBrowser(
+    // Disable esbuild so that the invalid code will get through to the import transformer
+    { moduleServer: { esbuild: false } },
+    async ({ utils }) => {
+      const runPromise = utils.runJS(`
+        asdf())
+      `);
+
+      await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+                        "Error parsing module with es-module-lexer
+
+                        <root>/tests/utils/runJS.test.tsx:###:###
+
+                          ### |     async ({ utils }) => {
+                          ### |       const runPromise = utils.runJS(\`
+                        > ### |         asdf())
+                              |               ^
+                          ### |       \`);
+                          ### | 
+                          ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
+                        "
+                    `);
+    },
+  ),
 );
 
 test(
@@ -203,13 +234,106 @@ test(
   }),
 );
 
-test.todo(
-  'if an imported file has a syntax error the location is source mapped',
+const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
+
+const removeLineNumbers = (input: string) => {
+  const lineRegex = /^(\s*>?\s*)(\d+)/gm;
+  const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
+  return (
+    input
+      .replace(
+        lineRegex,
+        (_match, whitespace, numbers) =>
+          `${whitespace}${'#'.repeat(numbers.length)}`,
+      )
+      // Take out the file paths so the tests will pass on more than 1 person's machine
+      .replace(fileRegex, '<root>$1:###:###')
+  );
+};
+
+const formatErrorWithCodeFrame = <T extends any>(input: Promise<T>) =>
+  input.catch((error) => {
+    error.message = removeLineNumbers(stripAnsi(error.message));
+    error.stack = removeLineNumbers(stripAnsi(error.stack));
+    throw error;
+  });
+
+test(
+  'If the code string has a syntax error the location is source mapped',
+  withBrowser(async ({ utils }) => {
+    const runPromise = utils.runJS(`
+      console.log('hi'))
+    `);
+
+    await expect(formatErrorWithCodeFrame(runPromise)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+        "[esbuild] Expected \\";\\" but found \\")\\"
+
+        <root>/tests/utils/runJS.test.tsx:###:###
+
+          ### |   withBrowser(async ({ utils }) => {
+          ### |     const runPromise = utils.runJS(\`
+        > ### |       console.log('hi'))
+              |                        ^
+          ### |     \`);
+          ### | 
+          ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        "
+      `);
+  }),
 );
-test.todo(
-  'if the code string has a syntax error the location is source mapped',
+
+test(
+  'If an imported file has a syntax error the location is source mapped',
+  withBrowser(async ({ utils }) => {
+    const runPromise = utils.runJS(`
+      import './external-with-syntax-error'
+    `);
+
+    await expect(formatErrorWithCodeFrame(runPromise)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "[esbuild] The constant \\"someVariable\\" must be initialized
+
+            <root>/tests/utils/external-with-syntax-error.ts:###:###
+
+              # | // @ts-expect-error: this is intentionally invalid
+            > # | const someVariable: string;
+                |       ^
+              # | 
+            "
+          `);
+  }),
 );
-test.todo('resolution error if a package does not exist in node_modules');
+
+test(
+  'resolution error if a package does not exist in node_modules',
+  withBrowser(async ({ utils }) => {
+    const runPromise = formatErrorWithCodeFrame(
+      utils.runJS(`
+        import { foo } from 'something-not-existing'
+      `),
+    );
+
+    await expect(runPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not find something-not-existing in node_modules (imported by <root>/tests/utils/runJS.test.tsx:###:###)"`,
+    );
+  }),
+);
+
+test(
+  'resolution error if a relative path does not exist',
+  withBrowser(async ({ utils }) => {
+    const runPromise = utils.runJS(`
+      import { foo } from './bad-relative-path'
+    `);
+
+    await expect(
+      formatErrorWithCodeFrame(runPromise),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not resolve ./bad-relative-path (imported by <root>/tests/utils/runJS.test.tsx:###:###)"`,
+    );
+  }),
+);
 
 test(
   'Allows importing CSS into JS file',
@@ -224,9 +348,9 @@ test(
   }),
 );
 
-describe('CJS interop edge cases', () => {
+describe('Ecosystem interoperability', () => {
   test(
-    'Named exports implicitly created from default-only export',
+    'Named exports implicitly created from default-only export in CJS',
     withBrowser(async ({ utils }) => {
       // Prop-types is CJS and provides non-statically-analyzable named exports
       await utils.runJS(`
