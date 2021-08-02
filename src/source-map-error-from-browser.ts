@@ -49,14 +49,20 @@ export const sourceMapErrorFromBrowser = async (
 
     const { SourceMapConsumer } = await import('source-map');
     const consumer = await new SourceMapConsumer(map as any);
-    const sourceLocation = consumer.originalPositionFor({ line, column });
+    const sourceLocation = consumer.originalPositionFor({
+      line,
+      column: column - 1, // Source-map uses zero-based column numbers
+    });
     consumer.destroy();
-    if (sourceLocation.line === null || sourceLocation.column === null)
-      return stackItem.raw;
-    const mappedColumn = sourceLocation.column + 1;
-    const mappedLine = sourceLocation.line;
-    const mappedPath = sourceLocation.source || url.pathname;
-    return printStackLine(mappedPath, mappedLine, mappedColumn, stackItem.name);
+    return printStackLine(
+      join(process.cwd(), url.pathname),
+      sourceLocation.line ?? line,
+      sourceLocation.column === null
+        ? column
+        : // Convert back from zero-based column to 1-based
+          sourceLocation.column + 1,
+      stackItem.name,
+    );
   });
   const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
   const ErrorConstructor = specializedErrors[errorName] || Error;

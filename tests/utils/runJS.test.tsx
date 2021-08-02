@@ -1,9 +1,9 @@
 import { withBrowser } from 'pleasantest';
 import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
-import { printErrorFrames } from '../test-utils';
+import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
 import vuePlugin from 'rollup-plugin-vue';
 import aliasPlugin from '@rollup/plugin-alias';
-import ansiRegex from 'ansi-regex';
+import babel from '@rollup/plugin-babel';
 
 const createHeading = async ({
   utils,
@@ -175,21 +175,38 @@ test(
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-                        "Error parsing module with es-module-lexer
+          "Error parsing module with es-module-lexer
 
-                        <root>/tests/utils/runJS.test.tsx:###:###
+          <root>/tests/utils/runJS.test.tsx:###:###
 
-                          ### |     async ({ utils }) => {
-                          ### |       const runPromise = utils.runJS(\`
-                        > ### |         asdf())
-                              |               ^
-                          ### |       \`);
-                          ### | 
-                          ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
-                        "
-                    `);
+            ### |     async ({ utils }) => {
+            ### |       const runPromise = utils.runJS(\`
+          > ### |         asdf())
+                |               ^
+            ### |       \`);
+            ### | 
+            ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
+          "
+        `);
     },
   ),
+);
+
+test(
+  'Line/column offsets for source-mapped runtime error is correct even with esbuild disabled',
+  withBrowser({ moduleServer: { esbuild: false } }, async ({ utils }) => {
+    const error = await utils
+      .runJS('console.log(nothing)')
+      .catch((error) => error);
+    expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+      "ReferenceError: nothing is not defined
+      -------------------------------------------------------
+      tests/utils/runJS.test.tsx
+
+            .runJS('console.log(nothing)')
+                                ^"
+      `);
+  }),
 );
 
 test(
@@ -233,30 +250,6 @@ test(
       `);
   }),
 );
-
-const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
-
-const removeLineNumbers = (input: string) => {
-  const lineRegex = /^(\s*>?\s*)(\d+)/gm;
-  const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
-  return (
-    input
-      .replace(
-        lineRegex,
-        (_match, whitespace, numbers) =>
-          `${whitespace}${'#'.repeat(numbers.length)}`,
-      )
-      // Take out the file paths so the tests will pass on more than 1 person's machine
-      .replace(fileRegex, '<root>$1:###:###')
-  );
-};
-
-const formatErrorWithCodeFrame = <T extends any>(input: Promise<T>) =>
-  input.catch((error) => {
-    error.message = removeLineNumbers(stripAnsi(error.message));
-    error.stack = removeLineNumbers(stripAnsi(error.stack));
-    throw error;
-  });
 
 test(
   'If the code string has a syntax error the location is source mapped',
@@ -463,6 +456,40 @@ test(
           throw new Error('process.env.asdf not set correctly')
         if (import.meta.env.asdf !== '1234')
           throw new Error('import.meta.env.asdf not set correctly')
+      `);
+    },
+  ),
+);
+
+test(
+  '@rollup/plugin-babel works',
+  withBrowser(
+    {
+      moduleServer: {
+        esbuild: false,
+        plugins: [
+          babel({
+            extensions: ['.js', '.ts', '.tsx', '.mjs'],
+            babelHelpers: 'bundled',
+            presets: ['@babel/preset-typescript'],
+          }),
+        ],
+      },
+    },
+    async ({ utils }) => {
+      await utils.runJS("const foo: string = 'hello'");
+
+      // Check that source map from babel works correctly
+      const error = await utils
+        .runJS('console.log(nothing)')
+        .catch((error) => error);
+      expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+        "ReferenceError: nothing is not defined
+        -------------------------------------------------------
+        tests/utils/runJS.test.tsx
+
+              .runJS('console.log(nothing)')
+                                  ^"
       `);
     },
   ),

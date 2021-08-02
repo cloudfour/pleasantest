@@ -1,6 +1,7 @@
 import { parseStackTrace } from 'errorstacks';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import ansiRegex from 'ansi-regex';
 
 export const printErrorFrames = async (error?: Error) => {
   if (!error?.stack) return '';
@@ -45,3 +46,27 @@ export const printErrorFrames = async (error?: Error) => {
     `\n${'-'.repeat(55)}\n`,
   );
 };
+
+const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
+
+const removeLineNumbers = (input: string) => {
+  const lineRegex = /^(\s*>?\s*)(\d+)/gm;
+  const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
+  return (
+    input
+      .replace(
+        lineRegex,
+        (_match, whitespace, numbers) =>
+          `${whitespace}${'#'.repeat(numbers.length)}`,
+      )
+      // Take out the file paths so the tests will pass on more than 1 person's machine
+      .replace(fileRegex, '<root>$1:###:###')
+  );
+};
+
+export const formatErrorWithCodeFrame = <T extends any>(input: Promise<T>) =>
+  input.catch((error) => {
+    error.message = removeLineNumbers(stripAnsi(error.message));
+    error.stack = removeLineNumbers(stripAnsi(error.stack));
+    throw error;
+  });
