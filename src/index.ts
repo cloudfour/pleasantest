@@ -1,5 +1,5 @@
 import * as puppeteer from 'puppeteer';
-import { relative, join, isAbsolute, dirname, posix, sep, resolve } from 'path';
+import { relative, join, isAbsolute, dirname } from 'path';
 import type { BoundQueries } from './pptr-testing-library';
 import { getQueriesForElement } from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
@@ -11,16 +11,13 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 import type { PleasantestUser } from './user';
 import { pleasantestUser } from './user';
-import {
-  assertElementHandle,
-  printStackLine,
-  removeFuncFromStackTrace,
-} from './utils';
+import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 import type { ModuleServerOpts } from './module-server';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
 import { Console } from 'console';
 import { createBuildStatusTracker } from './module-server/build-status-tracker';
+import { sourceMapErrorFromBrowser } from './source-map-error-from-browser';
 
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
@@ -320,7 +317,7 @@ const createTab = async ({
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
     const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
-    const res = (await safeEvaluate(
+    const res = await safeEvaluate(
       runJS,
       new Function(
         '...args',
@@ -334,90 +331,13 @@ const createTab = async ({
             : e)`,
       ) as () => any,
       ...(Array.isArray(args) ? (args as any) : []),
-    )) as undefined | { message: string; stack: string };
+    );
 
     const errorsFromBuild = buildStatus.complete();
     // It only throws the first one but that is probably OK
     if (errorsFromBuild) throw errorsFromBuild[0];
 
-    if (res === undefined) return;
-    if (typeof res !== 'object') throw res;
-    const { message, stack } = res;
-    const parsedStack = parseStackTrace(stack);
-    const modifiedStack = parsedStack.map(async (stackItem) => {
-      if (stackItem.raw.startsWith(stack.slice(0, stack.indexOf('\n'))))
-        return null;
-      if (!stackItem.fileName) return stackItem.raw;
-      const fileName = stackItem.fileName;
-      const line = stackItem.line;
-      const column = stackItem.column;
-      if (!fileName.startsWith(`http://localhost:${port}`))
-        return stackItem.raw;
-      const url = new URL(fileName);
-      const osPath = url.pathname.slice(1).split(posix.sep).join(sep);
-      // Absolute file path
-      const file = resolve(process.cwd(), osPath);
-      // Rollup-style Unix-normalized path "id":
-      const id = file.split(sep).join(posix.sep);
-      const transformResult = requestCache.get(id);
-      const map = typeof transformResult === 'object' && transformResult.map;
-      if (!map) {
-        let p = url.pathname;
-        const npmPrefix = '/@npm/';
-        if (p.startsWith(npmPrefix))
-          p = join(process.cwd(), 'node_modules', p.slice(npmPrefix.length));
-        return printStackLine(p, line, column, stackItem.name);
-      }
-
-      const { SourceMapConsumer } = await import('source-map');
-      const consumer = await new SourceMapConsumer(map as any);
-      const sourceLocation = consumer.originalPositionFor({ line, column });
-      consumer.destroy();
-      if (sourceLocation.line === null || sourceLocation.column === null)
-        return stackItem.raw;
-      const mappedColumn = sourceLocation.column + 1;
-      const mappedLine = sourceLocation.line;
-      const mappedPath = sourceLocation.source || url.pathname;
-      return printStackLine(
-        mappedPath,
-        mappedLine,
-        mappedColumn,
-        stackItem.name,
-      );
-    });
-    const errorName = stack.slice(0, stack.indexOf(':')) || 'Error';
-    const specializedErrors = {
-      EvalError,
-      RangeError,
-      ReferenceError,
-      SyntaxError,
-      TypeError,
-      URIError,
-    } as any;
-    const ErrorConstructor: ErrorConstructor =
-      specializedErrors[errorName] || Error;
-    const error = new ErrorConstructor(message);
-
-    const finalStack = (await Promise.all(modifiedStack))
-      .filter(Boolean)
-      .join('\n');
-
-    // If the browser error did not provide a stack, use the stack trace from node
-    if (finalStack) {
-      error.stack = `${errorName}: ${message}\n${finalStack}`;
-    } else {
-      removeFuncFromStackTrace(error, runJS);
-      if (error.stack)
-        error.stack = error.stack
-          .split('\n')
-          .filter(
-            // This was appearing in stack traces and it messed up the Jest output
-            (line) => !(/runMicrotasks/.test(line) && /<anonymous>/.test(line)),
-          )
-          .join('\n');
-    }
-
-    throw error;
+    await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
   };
 
   const injectHTML: PleasantestUtils['injectHTML'] = async (html) => {
@@ -458,10 +378,21 @@ const createTab = async ({
     const fullPath = jsPath.startsWith('.')
       ? join(dirname(testPath), jsPath)
       : jsPath;
-    await safeEvaluate(
+    const buildStatus = createBuildStatusTracker();
+    const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
+    const res = await safeEvaluate(
       loadJS,
-      `import(${JSON.stringify(`http://localhost:${port}/${fullPath}`)})`,
+      `import(${JSON.stringify(url)})
+        .catch(e => e instanceof Error
+          ? { message: e.message, stack: e.stack }
+          : e)`,
     );
+
+    const errorsFromBuild = buildStatus.complete();
+    // It only throws the first one but that is probably OK
+    if (errorsFromBuild) throw errorsFromBuild[0];
+
+    await sourceMapErrorFromBrowser(res, requestCache, port, loadJS);
   };
 
   const utils: PleasantestUtils = {
