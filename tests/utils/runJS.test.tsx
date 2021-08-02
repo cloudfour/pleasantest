@@ -239,7 +239,6 @@ const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
 const removeLineNumbers = (input: string) => {
   const lineRegex = /^(\s*>?\s*)(\d+)/gm;
   const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
-  // console.log('remove line numbers', input, input.replace(lineRegex, ''));
   return (
     input
       .replace(
