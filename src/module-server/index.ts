@@ -48,7 +48,7 @@ export const createModuleServer = async ({
     else normalPlugins.push(plugin);
   }
 
-  const plugins: (Plugin | false | undefined)[] = [
+  const plugins: Plugin[] = [
     ...prePlugins,
 
     ...normalPlugins,
@@ -57,19 +57,19 @@ export const createModuleServer = async ({
     environmentVariablesPlugin(envVars),
     npmPlugin({ root, envVars }),
 
-    esbuildOptions && esbuildPlugin(esbuildOptions),
+    ...(esbuildOptions ? [esbuildPlugin(esbuildOptions)] : []),
     cssPlugin({ root }),
 
     ...postPlugins,
   ];
-  const filteredPlugins = plugins.filter(Boolean) as Plugin[];
   const requestCache = new Map<string, SourceDescription>();
   const middleware: polka.Middleware[] = [
     indexHTMLMiddleware,
-    await jsMiddleware({ root, plugins: filteredPlugins, requestCache }),
+    await jsMiddleware({ root, plugins, requestCache }),
     cssMiddleware({ root }),
     staticMiddleware({ root }),
   ];
+
   return {
     ...(await createServer({ middleware })),
     requestCache,

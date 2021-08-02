@@ -59,6 +59,17 @@ const createFs = async (input: string) => {
 };
 
 describe('resolving in node_modules', () => {
+  test('throws a useful error for a node_module that does not exist', async () => {
+    const fs = await createFs(`
+      ./node_modules/foo/package.json {}
+    `);
+    await expect(
+      fs.resolve('not-existing'),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not find not-existing in node_modules"`,
+    );
+  });
+
   test('resolves main field with higher priority than index.js', async () => {
     const fs = await createFs(`
       ./node_modules/foo/package.json {"main": "entry.js"}
@@ -66,6 +77,25 @@ describe('resolving in node_modules', () => {
       ./node_modules/foo/index.js
     `);
     expect(await fs.resolve('foo')).toBe('./node_modules/foo/entry.js');
+  });
+
+  test("throws a useful error if the main field points to something that doesn't exist", async () => {
+    const fs = await createFs(`
+      ./node_modules/foo/package.json {"main": "not-existing.js"}
+      ./node_modules/foo/index.js
+    `);
+    await expect(fs.resolve('foo')).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not resolve foo: ./node_modules/foo/not-existing.js does not exist"`,
+    );
+  });
+
+  test('throws a useful error if there is no main field or index.js', async () => {
+    const fs = await createFs(`
+      ./node_modules/foo/package.json {}
+    `);
+    await expect(fs.resolve('foo')).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not resolve foo: ./node_modules/foo exists but no package entrypoint was found"`,
+    );
   });
 
   test('resolves index.js', async () => {
@@ -142,6 +172,14 @@ describe('resolving in node_modules', () => {
 });
 
 describe('resolving relative paths', () => {
+  test('throws a useful error for a relative path that does not exist', async () => {
+    const fs = await createFs(`
+      ./asdf2.js
+    `);
+    await expect(
+      fs.resolve('./asdf'),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Could not resolve ./asdf"`);
+  });
   test('implicitly adds .js extension', async () => {
     const fs = await createFs(`
       ./other.js
@@ -168,7 +206,9 @@ describe('resolving relative paths', () => {
       ./other.mjs
       ./other.cjs
     `);
-    expect(await fs.resolve('./other')).toBe(undefined);
+    await expect(
+      fs.resolve('./other'),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Could not resolve ./other"`);
   });
 
   test('extensions can be loaded explicitly', async () => {
@@ -207,7 +247,9 @@ describe('resolving relative paths', () => {
       ./folder/index.mjs
       ./folder/index.cjs
     `);
-    expect(await fs.resolve('./other')).toBe(undefined);
+    await expect(
+      fs.resolve('./other'),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Could not resolve ./other"`);
   });
 
   test('resolves folder with package.json in it with main/module field, and ignores exports field', async () => {

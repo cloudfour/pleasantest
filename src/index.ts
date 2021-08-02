@@ -20,6 +20,7 @@ import type { ModuleServerOpts } from './module-server';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
 import { Console } from 'console';
+import { createBuildStatusTracker } from './module-server/build-status-tracker';
 
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
@@ -265,6 +266,16 @@ const createTab = async ({
     // If the text includes %c, then it probably came from the jest output being forwarded into the browser
     // So we don't need to print it _again_ in node, since it already came from node
     if (text.includes('%c')) return;
+    // This is intended so that transpilation errors from the module server,
+    // which will get a nice code frame in node,
+    // do not also log "Failed to load resource: the server responded with a status of 500"
+    if (
+      /Failed to load resource: the server responded with a status of 500/.test(
+        text,
+      ) &&
+      message.location().url?.includes(`http://localhost:${port}`)
+    )
+      return;
     const type = message.type();
     // Create a new console instance instead of using the global one
     // Because the global one is overridden by Jest, and it adds a misleading second stack trace and code frame below it
@@ -282,6 +293,7 @@ const createTab = async ({
 
   await page.goto(`http://localhost:${port}`);
 
+  /** Runs page.evaluate but it includes forgot-await detection */
   const safeEvaluate = async (
     caller: (...params: any) => any,
     ...args: Parameters<typeof page.evaluate>
@@ -304,9 +316,10 @@ const createTab = async ({
   const runJS: PleasantestUtils['runJS'] = async (code, args) => {
     // For some reason encodeURIComponent doesn't encode '
     const encodedCode = encodeURIComponent(code).replace(/'/g, '%27');
+    const buildStatus = createBuildStatusTracker();
     // This uses the testPath as the url so that if there are relative imports
     // in the inline code, the relative imports are resolved relative to the test file
-    const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}`;
+    const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
     const res = (await safeEvaluate(
       runJS,
       new Function(
@@ -322,13 +335,14 @@ const createTab = async ({
       ) as () => any,
       ...(Array.isArray(args) ? (args as any) : []),
     )) as undefined | { message: string; stack: string };
+
+    const errorsFromBuild = buildStatus.complete();
+    // It only throws the first one but that is probably OK
+    if (errorsFromBuild) throw errorsFromBuild[0];
+
     if (res === undefined) return;
     if (typeof res !== 'object') throw res;
-    let { message, stack } = res;
-    if (message.includes(`Failed to fetch dynamically imported module: ${url}`))
-      message =
-        'Failed to load runJS code (most likely due to a transpilation error)';
-
+    const { message, stack } = res;
     const parsedStack = parseStackTrace(stack);
     const modifiedStack = parsedStack.map(async (stackItem) => {
       if (stackItem.raw.startsWith(stack.slice(0, stack.indexOf('\n'))))

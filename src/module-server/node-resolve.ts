@@ -36,7 +36,7 @@ const exts = ['.js', '.ts', '.tsx', '.jsx'];
 export const resolveRelativeOrAbsolute = async (
   id: string,
   importer?: string,
-) => {
+): Promise<string> => {
   // LOAD_AS_FILE section in https://nodejs.org/api/modules.html#modules_all_together
   const resolved = importer ? pResolve(dirname(importer), id) : id;
   const result = await resolveAsFile(resolved);
@@ -44,8 +44,10 @@ export const resolveRelativeOrAbsolute = async (
 
   // LOAD_AS_DIRECTORY section in https://nodejs.org/api/modules.html#modules_all_together
   if ((await stat(resolved))?.isDirectory()) {
-    return resolveAsDirectory(resolved);
+    const result = await resolveAsDirectory(resolved);
+    if (result) return result;
   }
+  throw new Error(`Could not resolve ${id}`);
 };
 
 /** Given ./file, check for ./file.js (LOAD_AS_FILE) */
@@ -107,7 +109,7 @@ interface ResolveResult {
 export const resolveFromNodeModules = async (
   id: string,
   root: string,
-): Promise<ResolveResult | undefined> => {
+): Promise<ResolveResult> => {
   const cacheKey = resolveCacheKey(id, root);
   const cached = resolveCache.get(cacheKey);
   if (cached) return cached;
@@ -121,11 +123,7 @@ export const resolveFromNodeModules = async (
   const pkgDir = join(root, 'node_modules', ...packageName);
   const stats = await stat(pkgDir);
   if (!stats || !stats.isDirectory())
-    throw new Error(
-      `Could not resolve ${id} from ${root}: ${pkgDir} ${
-        stats ? 'is not a directory' : 'does not exist'
-      }`,
-    );
+    throw new Error(`Could not find ${id} in node_modules`);
 
   const pkgJson = await readPkgJson(pkgDir);
   const main = readMainFields(pkgJson, subPath, true);
@@ -138,6 +136,8 @@ export const resolveFromNodeModules = async (
   }
 
   if (result) {
+    if (!(await stat(result)))
+      throw new Error(`Could not resolve ${id}: ${result} does not exist`);
     const version = pkgJson.version;
     const normalizedPkgName = packageName.join('__');
     const idWithVersion = join(
@@ -148,6 +148,10 @@ export const resolveFromNodeModules = async (
     resolveCache.set(cacheKey, resolved);
     return resolved;
   }
+
+  throw new Error(
+    `Could not resolve ${id}: ${pkgDir} exists but no package entrypoint was found`,
+  );
 };
 
 const readMainFields = (pkgJson: any, subPath: string, useExports: boolean) => {

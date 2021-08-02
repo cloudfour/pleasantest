@@ -31,10 +31,11 @@
   */
 
 import { parse } from 'es-module-lexer';
-import { createCodeFrame } from 'simple-code-frame';
-import * as colors from 'kolorist';
-import { cssExts, jsExts } from './extensions-and-detection';
-import { extname } from 'path';
+import { ErrorWithLocation } from './error-with-location';
+import type {
+  DecodedSourceMap,
+  RawSourceMap,
+} from '@ampproject/remapping/dist/types/types';
 
 type MaybePromise<T> = Promise<T> | T;
 type ResolveFn = (
@@ -54,6 +55,7 @@ interface Options {
 export const transformImports = async (
   code: string,
   id: string,
+  map: string | DecodedSourceMap | RawSourceMap | undefined,
   { resolveImportMeta, resolveId, resolveDynamicImport }: Options = {},
 ) => {
   let imports;
@@ -65,22 +67,25 @@ export const transformImports = async (
     const linesUntilError = code.slice(0, error.idx).split('\n');
     const line = linesUntilError.length;
     const column = linesUntilError[linesUntilError.length - 1].length;
-    const frame = createCodeFrame(code, line - 1, column);
-    let message = `${colors.red(colors.bold(error.message))}
+    const modifiedError = new ErrorWithLocation({
+      message: `Error parsing module with es-module-lexer`,
+      line,
+      column,
+      filename: id,
+    });
 
-${colors.red(`${id}:${line}:${column + 1}`)}
-
-${frame}
-`;
-    if (!jsExts.test(id) && !cssExts.test(id))
-      message += `${colors.yellow(
-        `You may need to add plugins to the module server to handle ${
-          extname(id) ? `${extname(id)} files` : id
-        }`,
-      )}\n`;
-
-    const modifiedError = new Error(message);
-    modifiedError.stack = message;
+    if (map) {
+      const { SourceMapConsumer } = await import('source-map');
+      const consumer = await new SourceMapConsumer(map as any);
+      const sourceLocation = consumer.originalPositionFor({ line, column });
+      consumer.destroy();
+      if (sourceLocation.line !== null) {
+        modifiedError.line = sourceLocation.line;
+        modifiedError.column =
+          sourceLocation.column === null ? undefined : sourceLocation.column;
+      }
+      modifiedError.filename = sourceLocation.source || id;
+    }
     throw modifiedError;
   }
 
