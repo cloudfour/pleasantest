@@ -3,6 +3,7 @@ import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import { printErrorFrames } from '../test-utils';
 import vuePlugin from 'rollup-plugin-vue';
 import aliasPlugin from '@rollup/plugin-alias';
+import babel from '@rollup/plugin-babel';
 
 const createHeading = async ({
   utils,
@@ -157,6 +158,23 @@ test(
                          ^
       -------------------------------------------------------
       dist/cjs/index.cjs"
+      `);
+  }),
+);
+
+test(
+  'Line/column offsets for source-mapped runtime error is correct even with esbuild disabled',
+  withBrowser({ moduleServer: { esbuild: false } }, async ({ utils }) => {
+    const error = await utils
+      .runJS('console.log(nothing)')
+      .catch((error) => error);
+    expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+      "ReferenceError: nothing is not defined
+      -------------------------------------------------------
+      tests/utils/runJS.test.tsx
+
+            .runJS('console.log(nothing)')
+                                ^"
       `);
   }),
 );
@@ -339,6 +357,40 @@ test(
           throw new Error('process.env.asdf not set correctly')
         if (import.meta.env.asdf !== '1234')
           throw new Error('import.meta.env.asdf not set correctly')
+      `);
+    },
+  ),
+);
+
+test(
+  '@rollup/plugin-babel works',
+  withBrowser(
+    {
+      moduleServer: {
+        esbuild: false,
+        plugins: [
+          babel({
+            extensions: ['.js', '.ts', '.tsx', '.mjs'],
+            babelHelpers: 'bundled',
+            presets: ['@babel/preset-typescript'],
+          }),
+        ],
+      },
+    },
+    async ({ utils }) => {
+      await utils.runJS("const foo: string = 'hello'");
+
+      // Check that source map from babel works correctly
+      const error = await utils
+        .runJS('console.log(nothing)')
+        .catch((error) => error);
+      expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+        "ReferenceError: nothing is not defined
+        -------------------------------------------------------
+        tests/utils/runJS.test.tsx
+
+              .runJS('console.log(nothing)')
+                                  ^"
       `);
     },
   ),

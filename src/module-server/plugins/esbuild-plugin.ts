@@ -24,6 +24,7 @@ export const esbuildPlugin = (
         ...esbuildOptions,
       })
       .catch((error) => {
+        if (!('errors' in error)) throw error;
         const err = error.errors[0];
         this.error(err.text, {
           line: err.location.line,
