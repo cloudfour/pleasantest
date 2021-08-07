@@ -22,7 +22,7 @@
     "@testing-library/dom": "8.1.0",
     "@testing-library/jest-dom": "5.14.1",
     "@types/jest": "26.0.24",
-    "@types/node": "12.20.18",
+    "@types/node": "12.20.19",
     "@types/polka": "0.5.3",
     "@types/puppeteer": "5.4.4",
     "@vue/compiler-sfc": "3.1.5",
