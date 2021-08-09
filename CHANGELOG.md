@@ -1,5 +1,17 @@
 # pleasantest
 
+## 1.1.0
+
+### Minor Changes
+
+- [#199](https://github.com/cloudfour/pleasantest/pull/199) [`8e26bea`](https://github.com/cloudfour/pleasantest/commit/8e26bea8bcbc49a794c623472f9905d53d3c5872) Thanks [@calebeby](https://github.com/calebeby)! - Make loadJS share error mapping logic with runJS
+
+* [#190](https://github.com/cloudfour/pleasantest/pull/190) [`9fb149d`](https://github.com/cloudfour/pleasantest/commit/9fb149dae6f5b83c16a2b3047d71fdbd1d0d54c7) Thanks [@calebeby](https://github.com/calebeby)! - Improve error message output for resolution errors and syntax errors/transform errors
+
+### Patch Changes
+
+- [#197](https://github.com/cloudfour/pleasantest/pull/197) [`537fbef`](https://github.com/cloudfour/pleasantest/commit/537fbefebd3e60fd92d4610f879e3e12f2617ae3) Thanks [@calebeby](https://github.com/calebeby)! - Fix column offsets when esbuild is disabled
+
 ## 1.0.0
 
 ### Major Changes
