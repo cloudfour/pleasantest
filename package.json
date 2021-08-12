@@ -44,7 +44,7 @@
     "react-dom": "17.0.2",
     "remark-cli": "10.0.0",
     "remark-lint-no-dead-urls": "1.1.0",
-    "remark-validate-links": "10.0.4",
+    "remark-validate-links": "11.0.0",
     "resolve.exports": "1.0.2",
     "rollup-plugin-dts": "3.0.2",
     "rollup-plugin-prettier": "2.1.0",
