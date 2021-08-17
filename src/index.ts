@@ -18,6 +18,8 @@ import { cleanupClientRuntimeServer } from './module-server/client-runtime-serve
 import { Console } from 'console';
 import { createBuildStatusTracker } from './module-server/build-status-tracker';
 import { sourceMapErrorFromBrowser } from './source-map-error-from-browser';
+import type { AsyncHookTracker } from './async-hooks';
+import { createAsyncHookTracker } from './async-hooks';
 
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
@@ -109,7 +111,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const testPath = testFile ? relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const { state, cleanupServer, ...ctx } = await createTab({
+    const { state, cleanupServer, asyncHookTracker, ...ctx } = await createTab({
       testPath,
       options,
     });
@@ -125,7 +127,14 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
 
     try {
       await testFn(ctx);
+      const forgotAwaitError = asyncHookTracker.close();
+      if (forgotAwaitError) throw forgotAwaitError;
     } catch (error) {
+      const forgotAwaitError = asyncHookTracker.close();
+      if (forgotAwaitError) {
+        await cleanup(false);
+        throw forgotAwaitError;
+      }
       const messageForBrowser: undefined | unknown[] =
         // This is how we attach the elements to the error from testing-library
         error?.messageForBrowser ||
@@ -220,10 +229,12 @@ const createTab = async ({
   PleasantestContext & {
     state: { isTestFinished: boolean };
     cleanupServer: () => Promise<void>;
+    asyncHookTracker: AsyncHookTracker;
   }
 > => {
   /** Used to provide helpful warnings if things execute after the test finishes (usually means they forgot to await) */
   const state = { isTestFinished: false };
+  const asyncHookTracker = createAsyncHookTracker();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
   const page = await browserContext.newPage();
@@ -310,90 +321,93 @@ const createTab = async ({
     });
   };
 
-  const runJS: PleasantestUtils['runJS'] = async (code, args) => {
-    // For some reason encodeURIComponent doesn't encode '
-    const encodedCode = encodeURIComponent(code).replace(/'/g, '%27');
-    const buildStatus = createBuildStatusTracker();
-    // This uses the testPath as the url so that if there are relative imports
-    // in the inline code, the relative imports are resolved relative to the test file
-    const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
-    const res = await safeEvaluate(
-      runJS,
-      new Function(
-        '...args',
-        `return import(${JSON.stringify(url)})
-        .then(async m => {
-          if (m.default) await m.default(...args)
-        })
-        .catch(e =>
-          e instanceof Error
+  const runJS: PleasantestUtils['runJS'] = (code, args) =>
+    asyncHookTracker.addHook(async () => {
+      // For some reason encodeURIComponent doesn't encode '
+      const encodedCode = encodeURIComponent(code).replace(/'/g, '%27');
+      const buildStatus = createBuildStatusTracker();
+      // This uses the testPath as the url so that if there are relative imports
+      // in the inline code, the relative imports are resolved relative to the test file
+      const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
+      // TODO
+      // asyncHookTracker.addHook(() => {});
+      const res = await page.evaluate(
+        new Function(
+          '...args',
+          `return import(${JSON.stringify(url)})
+            .then(async m => {
+              if (m.default) await m.default(...args)
+            })
+            .catch(e =>
+             e instanceof Error
+               ? { message: e.message, stack: e.stack }
+               : e)`,
+        ) as () => any,
+        ...(Array.isArray(args) ? (args as any) : []),
+      );
+
+      const errorsFromBuild = buildStatus.complete();
+      // It only throws the first one but that is probably OK
+      if (errorsFromBuild) throw errorsFromBuild[0];
+
+      await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
+    }, runJS);
+  const injectHTML: PleasantestUtils['injectHTML'] = (html) =>
+    asyncHookTracker.addHook(
+      () =>
+        page.evaluate((html) => {
+          document.body.innerHTML = html;
+        }, html),
+      injectHTML,
+    );
+
+  const injectCSS: PleasantestUtils['injectCSS'] = (css) =>
+    asyncHookTracker.addHook(
+      () =>
+        page.evaluate((css) => {
+          const styleTag = document.createElement('style');
+          styleTag.innerHTML = css;
+          document.head.append(styleTag);
+        }, css),
+      injectCSS,
+    );
+
+  // TODO: continue migrating these to use the hook tracker
+
+  const loadCSS: PleasantestUtils['loadCSS'] = (cssPath) =>
+    asyncHookTracker.addHook(async () => {
+      const fullPath = isAbsolute(cssPath)
+        ? relative(process.cwd(), cssPath)
+        : join(dirname(testPath), cssPath);
+      await safeEvaluate(
+        loadCSS,
+        `import(${JSON.stringify(
+          `http://localhost:${port}/${fullPath}?import`,
+        )})`,
+      );
+    });
+
+  const loadJS: PleasantestUtils['loadJS'] = (jsPath) =>
+    asyncHookTracker.addHook(async () => {
+      const fullPath = jsPath.startsWith('.')
+        ? join(dirname(testPath), jsPath)
+        : jsPath;
+      const buildStatus = createBuildStatusTracker();
+      const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
+      const res = await safeEvaluate(
+        loadJS,
+        `import(${JSON.stringify(url)})
+          .catch(e => e instanceof Error
             ? { message: e.message, stack: e.stack }
             : e)`,
-      ) as () => any,
-      ...(Array.isArray(args) ? (args as any) : []),
-    );
+      );
 
-    const errorsFromBuild = buildStatus.complete();
-    // It only throws the first one but that is probably OK
-    if (errorsFromBuild) throw errorsFromBuild[0];
+      const errorsFromBuild = buildStatus.complete();
+      // It only throws the first one but that is probably OK
+      if (errorsFromBuild) throw errorsFromBuild[0];
 
-    await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
-  };
-
-  const injectHTML: PleasantestUtils['injectHTML'] = async (html) => {
-    await safeEvaluate(
-      injectHTML,
-      (html) => {
-        document.body.innerHTML = html;
-      },
-      html,
-    );
-  };
-
-  const injectCSS: PleasantestUtils['injectCSS'] = async (css) => {
-    await safeEvaluate(
-      injectCSS,
-      (css) => {
-        const styleTag = document.createElement('style');
-        styleTag.innerHTML = css;
-        document.head.append(styleTag);
-      },
-      css,
-    );
-  };
-
-  const loadCSS: PleasantestUtils['loadCSS'] = async (cssPath) => {
-    const fullPath = isAbsolute(cssPath)
-      ? relative(process.cwd(), cssPath)
-      : join(dirname(testPath), cssPath);
-    await safeEvaluate(
-      loadCSS,
-      `import(${JSON.stringify(
-        `http://localhost:${port}/${fullPath}?import`,
-      )})`,
-    );
-  };
-
-  const loadJS: PleasantestUtils['loadJS'] = async (jsPath) => {
-    const fullPath = jsPath.startsWith('.')
-      ? join(dirname(testPath), jsPath)
-      : jsPath;
-    const buildStatus = createBuildStatusTracker();
-    const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
-    const res = await safeEvaluate(
-      loadJS,
-      `import(${JSON.stringify(url)})
-        .catch(e => e instanceof Error
-          ? { message: e.message, stack: e.stack }
-          : e)`,
-    );
-
-    const errorsFromBuild = buildStatus.complete();
-    // It only throws the first one but that is probably OK
-    if (errorsFromBuild) throw errorsFromBuild[0];
-
-    await sourceMapErrorFromBrowser(res, requestCache, port, loadJS);
-  };
+      await sourceMapErrorFromBrowser(res, requestCache, port, loadJS);
+    });
 
   const utils: PleasantestUtils = {
     runJS,
@@ -403,14 +417,14 @@ const createTab = async ({
     loadJS,
   };
 
-  const screen = getQueriesForElement(page, state);
+  const screen = getQueriesForElement(page, asyncHookTracker);
 
   // The | null is so you can pass directly the result of page.$() which returns null if not found
   const within: PleasantestContext['within'] = (
     element: puppeteer.ElementHandle | null,
   ) => {
     assertElementHandle(element, within);
-    return getQueriesForElement(page, state, element);
+    return getQueriesForElement(page, asyncHookTracker, element);
   };
 
   return {
@@ -418,8 +432,9 @@ const createTab = async ({
     utils,
     page,
     within,
-    user: await pleasantestUser(page, state),
+    user: await pleasantestUser(page, asyncHookTracker),
     state,
+    asyncHookTracker,
     cleanupServer: () => closeServer(),
   };
 };
