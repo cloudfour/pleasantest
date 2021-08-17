@@ -35,9 +35,8 @@ export const createAsyncHookTracker = (): AsyncHookTracker => {
     );
     removeFuncFromStackTrace(forgotAwaitError, captureFunction);
     hooks.add(forgotAwaitError);
-    let returned;
     try {
-      returned = await func();
+      const returned = await func();
       if (!isClosed) hooks.delete(forgotAwaitError);
       return returned;
     } catch (error) {
