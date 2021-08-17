@@ -7,7 +7,7 @@ test('forgot await detection works even if other async stuff happens afterwards'
     await utils.injectHTML('<button>Asdf</button>');
     const buttonEl = await screen.getByRole('button');
     user.click(buttonEl);
-    await expect(buttonEl).toHaveTextContent(/asdf/i);
+    await screen.getByRole('button');
   })().catch((error) => error);
   expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
     "Error: Cannot interact with browser after test finishes. Did you forget to await?

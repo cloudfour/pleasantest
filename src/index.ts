@@ -11,7 +11,7 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 import type { PleasantestUser } from './user';
 import { pleasantestUser } from './user';
-import { assertElementHandle, removeFuncFromStackTrace } from './utils';
+import { assertElementHandle } from './utils';
 import type { ModuleServerOpts } from './module-server';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
@@ -301,26 +301,6 @@ const createTab = async ({
 
   await page.goto(`http://localhost:${port}`);
 
-  /** Runs page.evaluate but it includes forgot-await detection */
-  const safeEvaluate = async (
-    caller: (...params: any) => any,
-    ...args: Parameters<typeof page.evaluate>
-  ) => {
-    const forgotAwaitError = removeFuncFromStackTrace(
-      new Error(
-        `Cannot interact with browser using ${caller.name} after test finishes. Did you forget to await?`,
-      ),
-      caller,
-    );
-    return page.evaluate(...args).catch((error) => {
-      if (state.isTestFinished && /target closed/i.test(error.message)) {
-        throw forgotAwaitError;
-      }
-
-      throw error;
-    });
-  };
-
   const runJS: PleasantestUtils['runJS'] = (code, args) =>
     asyncHookTracker.addHook(async () => {
       // For some reason encodeURIComponent doesn't encode '
@@ -329,8 +309,6 @@ const createTab = async ({
       // This uses the testPath as the url so that if there are relative imports
       // in the inline code, the relative imports are resolved relative to the test file
       const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
-      // TODO
-      // asyncHookTracker.addHook(() => {});
       const res = await page.evaluate(
         new Function(
           '...args',
@@ -352,6 +330,7 @@ const createTab = async ({
 
       await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
     }, runJS);
+
   const injectHTML: PleasantestUtils['injectHTML'] = (html) =>
     asyncHookTracker.addHook(
       () =>
@@ -372,20 +351,17 @@ const createTab = async ({
       injectCSS,
     );
 
-  // TODO: continue migrating these to use the hook tracker
-
   const loadCSS: PleasantestUtils['loadCSS'] = (cssPath) =>
     asyncHookTracker.addHook(async () => {
       const fullPath = isAbsolute(cssPath)
         ? relative(process.cwd(), cssPath)
         : join(dirname(testPath), cssPath);
-      await safeEvaluate(
-        loadCSS,
+      await page.evaluate(
         `import(${JSON.stringify(
           `http://localhost:${port}/${fullPath}?import`,
         )})`,
       );
-    });
+    }, loadCSS);
 
   const loadJS: PleasantestUtils['loadJS'] = (jsPath) =>
     asyncHookTracker.addHook(async () => {
@@ -394,8 +370,7 @@ const createTab = async ({
         : jsPath;
       const buildStatus = createBuildStatusTracker();
       const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
-      const res = await safeEvaluate(
-        loadJS,
+      const res = await page.evaluate(
         `import(${JSON.stringify(url)})
           .catch(e => e instanceof Error
             ? { message: e.message, stack: e.stack }
@@ -407,7 +382,7 @@ const createTab = async ({
       if (errorsFromBuild) throw errorsFromBuild[0];
 
       await sourceMapErrorFromBrowser(res, requestCache, port, loadJS);
-    });
+    }, loadJS);
 
   const utils: PleasantestUtils = {
     runJS,
