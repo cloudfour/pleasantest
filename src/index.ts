@@ -111,12 +111,11 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
   const testPath = testFile ? relative(process.cwd(), testFile) : thisFile;
 
   return async () => {
-    const { state, cleanupServer, asyncHookTracker, ...ctx } = await createTab({
+    const { cleanupServer, asyncHookTracker, ...ctx } = await createTab({
       testPath,
       options,
     });
     const cleanup = async (leaveOpen: boolean) => {
-      state.isTestFinished = true;
       if (!leaveOpen || options.headless) {
         await ctx.page.close();
       }
@@ -227,13 +226,10 @@ const createTab = async ({
   options: WithBrowserOpts;
 }): Promise<
   PleasantestContext & {
-    state: { isTestFinished: boolean };
     cleanupServer: () => Promise<void>;
     asyncHookTracker: AsyncHookTracker;
   }
 > => {
-  /** Used to provide helpful warnings if things execute after the test finishes (usually means they forgot to await) */
-  const state = { isTestFinished: false };
   const asyncHookTracker = createAsyncHookTracker();
   const browser = await connectToBrowser('chromium', headless);
   const browserContext = await browser.createIncognitoBrowserContext();
@@ -408,7 +404,6 @@ const createTab = async ({
     page,
     within,
     user: await pleasantestUser(page, asyncHookTracker),
-    state,
     asyncHookTracker,
     cleanupServer: () => closeServer(),
   };
