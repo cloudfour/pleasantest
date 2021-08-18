@@ -383,6 +383,7 @@ const createTab = async ({
     const res = await safeEvaluate(
       loadJS,
       `import(${JSON.stringify(url)})
+        .then(mod => {})
         .catch(e => e instanceof Error
           ? { message: e.message, stack: e.stack }
           : e)`,

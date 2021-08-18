@@ -1,7 +1,14 @@
 import { withBrowser } from 'pleasantest';
 import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
 
-test.todo('loads from .ts file with transpiling');
+test(
+  'loads and executes .ts file with transpiling',
+  withBrowser(async ({ utils, page }) => {
+    expect(await page.evaluate(() => window.foo)).toBeUndefined();
+    await utils.loadJS('./external-with-side-effect.ts');
+    expect(await page.evaluate(() => window.foo)).toEqual('hi');
+  }),
+);
 
 test(
   'if the file throws an error the error is source mapped',
