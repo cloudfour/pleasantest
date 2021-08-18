@@ -368,6 +368,7 @@ const createTab = async ({
       const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
       const res = await page.evaluate(
         `import(${JSON.stringify(url)})
+          .then(mod => {})
           .catch(e => e instanceof Error
             ? { message: e.message, stack: e.stack }
             : e)`,

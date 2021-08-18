@@ -1,5 +1,11 @@
 # pleasantest
 
+## 1.1.1
+
+### Patch Changes
+
+- [#217](https://github.com/cloudfour/pleasantest/pull/217) [`93058ed`](https://github.com/cloudfour/pleasantest/commit/93058ed1a0ffc8b9aa9f78ac7a9671cbcd58e9a0) Thanks [@calebeby](https://github.com/calebeby)! - Fix regression with loadJS always throwing
+
 ## 1.1.0
 
 ### Minor Changes
