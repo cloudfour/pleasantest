@@ -20,7 +20,9 @@ afterAll(async () => {
 });
 
 const createFs = async (input: string) => {
-  const dir = await fs.mkdtemp(join(tmpdir(), 'pleasantest-create-fs-'));
+  const dir = await fs.realpath(
+    await fs.mkdtemp(join(tmpdir(), 'pleasantest-create-fs-')),
+  );
   createdPaths.push(dir);
   const paths = input
     .trim()
@@ -168,6 +170,30 @@ describe('resolving in node_modules', () => {
     expect(await fs.resolve('preact/hooks')).toBe(
       './node_modules/preact/dist/hooks/index.js',
     );
+  });
+
+  test('resolves multiple versions of a package correctly', async () => {
+    // A and B depend on different versions of C
+    // So they each have a different copy of C in their node_modules
+    const fs = await createFs(`
+      ./node_modules/a/package.json {}
+      ./node_modules/a/index.js
+      ./node_modules/a/node_modules/c/package.json {}
+      ./node_modules/a/node_modules/c/index.js
+      ./node_modules/b/package.json {}
+      ./node_modules/b/index.js
+      ./node_modules/b/node_modules/c/package.json {}
+      ./node_modules/b/node_modules/c/index.js
+      ./node_modules/c/package.json {}
+      ./node_modules/c/index.js {}
+    `);
+    expect(await fs.resolve('c', { from: './node_modules/b/index.js' })).toBe(
+      './node_modules/b/node_modules/c/index.js',
+    );
+    // Expect(await fs.resolve('c', { from: './node_modules/a/index.js' })).toBe(
+    //   './node_modules/a/node_modules/c/index.js',
+    // );
+    // Expect(await fs.resolve('c')).toBe('./node_modules/c/index.js');
   });
 });
 

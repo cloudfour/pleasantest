@@ -7,7 +7,7 @@ import * as esbuild from 'esbuild';
 import { parse } from 'cjs-module-lexer';
 // @ts-expect-error @types/node@12 doesn't like this import
 import { createRequire } from 'module';
-import { isBareImport, npmPrefix } from './extensions-and-detection';
+import { isBareImport } from './extensions-and-detection';
 let npmCache: RollupCache | undefined;
 
 /**
@@ -110,8 +110,9 @@ export { default } from '${mod}'`;
 const pluginNodeResolve = (): Plugin => ({
   name: 'node-resolve',
   resolveId(id) {
-    if (isBareImport(id)) return { id: npmPrefix + id, external: true };
-    // If requests already have the npm prefix, mark them as external
-    if (id.startsWith(npmPrefix)) return { id, external: true };
+    if (isBareImport(id)) return { id, external: true };
+    // if (isBareImport(id)) return { id: npmPrefix + id, external: true };
+    // // If requests already have the npm prefix, mark them as external
+    // if (id.startsWith(npmPrefix)) return { id, external: true };
   },
 });

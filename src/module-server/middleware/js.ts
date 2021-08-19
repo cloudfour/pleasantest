@@ -67,11 +67,12 @@ export const jsMiddleware = async ({
     try {
       // Normalized path starting with slash
       const path = posix.normalize(req.path);
+      const params = new URLSearchParams(req.query as Record<string, string>);
       let id: string;
       let file: string;
       if (path.startsWith('/@npm/')) {
         id = path.slice(1); // Remove leading slash
-        file = ''; // This should never be read
+        file = params.get('resolvedPath') || '';
       } else {
         // Remove leading slash, and convert slashes to os-specific slashes
         const osPath = path.slice(1).split(posix.sep).join(sep);
@@ -79,18 +80,17 @@ export const jsMiddleware = async ({
         file = resolve(root, osPath);
         // Rollup-style Unix-normalized path "id":
         id = file.split(sep).join(posix.sep);
-
-        const params = new URLSearchParams(req.query as Record<string, string>);
-        params.delete('import');
-        params.delete('inline-code');
-        params.delete('build-id');
-
-        // Remove trailing =
-        // This is necessary for rollup-plugin-vue, which ads ?lang.ts at the end of the id,
-        // so the file gets processed by other transformers
-        const qs = params.toString().replace(/=$/, '');
-        if (qs) id += `?${qs}`;
       }
+
+      params.delete('import');
+      params.delete('inline-code');
+      params.delete('build-id');
+
+      // Remove trailing =
+      // This is necessary for rollup-plugin-vue, which ads ?lang.ts at the end of the id,
+      // so the file gets processed by other transformers
+      const qs = params.toString().replace(/=$/, '');
+      if (qs) id += `?${qs}`;
 
       res.setHeader('Content-Type', 'application/javascript;charset=utf-8');
       const resolved = await rollupPlugins.resolveId(id);

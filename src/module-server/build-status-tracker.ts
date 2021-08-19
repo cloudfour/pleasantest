@@ -18,7 +18,7 @@ export const rejectBuild = (buildId: number, error: Error) => {
   if (statusArray) statusArray.push(error);
   // Uncaught promise rejection!
   // Hope that Jest will catch it and fail the test, otherwise it is just logged by Node
-  else Promise.reject(error);
+  // else Promise.reject(error);
 };
 
 export const createBuildStatusTracker = () => {
