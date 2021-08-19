@@ -190,10 +190,10 @@ describe('resolving in node_modules', () => {
     expect(await fs.resolve('c', { from: './node_modules/b/index.js' })).toBe(
       './node_modules/b/node_modules/c/index.js',
     );
-    // Expect(await fs.resolve('c', { from: './node_modules/a/index.js' })).toBe(
-    //   './node_modules/a/node_modules/c/index.js',
-    // );
-    // Expect(await fs.resolve('c')).toBe('./node_modules/c/index.js');
+    expect(await fs.resolve('c', { from: './node_modules/a/index.js' })).toBe(
+      './node_modules/a/node_modules/c/index.js',
+    );
+    expect(await fs.resolve('c')).toBe('./node_modules/c/index.js');
   });
 });
 
