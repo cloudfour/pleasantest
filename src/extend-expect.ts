@@ -1,4 +1,6 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
+import type { AsyncHookTracker } from './async-hooks';
+import { activeAsyncHookTrackers } from './async-hooks';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import { deserialize, serialize } from './serialize';
 import {
@@ -40,184 +42,169 @@ const isJSHandle = (input: unknown): input is JSHandle => {
   return input.asElement && input.dispose && input.evaluate;
 };
 
-expect.extend(
-  Object.fromEntries(
-    methods.map((methodName) => {
-      const matcher = async function (
-        this: jest.MatcherUtils,
-        elementHandle: ElementHandle | null,
-        ...matcherArgs: unknown[]
-      ) {
-        const serverPromise = createClientRuntimeServer();
-        if (!isElementHandle(elementHandle)) {
-          // Special case: expect(null).not.toBeInTheDocument() should pass
-          if (methodName === 'toBeInTheDocument' && this.isNot) {
-            // This is actually passing but since it is isNot it has to return false
-            return { pass: false };
-          }
-
-          const message = [
-            this.utils.matcherHint(
-              `${this.isNot ? '.not' : ''}.${methodName}`,
-              'received',
-              '',
-            ),
-            '',
-            `${this.utils.RECEIVED_COLOR(
-              'received',
-            )} value must be an HTMLElement or an SVGElement.`,
-            isPromise(elementHandle)
-              ? `Received a ${this.utils.RECEIVED_COLOR(
-                  'Promise',
-                )}. Did you forget to await?`
-              : this.utils.printWithType(
-                  'Received',
-                  elementHandle,
-                  this.utils.printReceived,
-                ),
-          ].join('\n');
-          const error = new Error(message);
-
-          // Manipulate the stack trace and remove this function
-          // That way Jest will show a code frame from the user's code, not ours
-          // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          Error.captureStackTrace(error, matcher);
-          throw error;
+const matchers: jest.ExpectExtendMap = Object.fromEntries(
+  methods.map((methodName) => {
+    const matcher = async function (
+      this: jest.MatcherUtils,
+      elementHandle: ElementHandle | null,
+      ...matcherArgs: unknown[]
+    ): Promise<jest.CustomMatcherResult> {
+      const serverPromise = createClientRuntimeServer();
+      if (!isElementHandle(elementHandle)) {
+        // Special case: expect(null).not.toBeInTheDocument() should pass
+        if (methodName === 'toBeInTheDocument' && this.isNot) {
+          // This is actually passing but since it is isNot it has to return false
+          return { pass: false, message: () => '' };
         }
 
-        for (const arg of matcherArgs) {
-          if (
-            typeof arg === 'object' &&
-            typeof (arg as any)?.asymmetricMatch === 'function'
-          ) {
-            const error = new Error(
-              `Pleasantest does not support using asymmetric matchers in browser-based matchers
+        const message = [
+          this.utils.matcherHint(
+            `${this.isNot ? '.not' : ''}.${methodName}`,
+            'received',
+            '',
+          ),
+          '',
+          `${this.utils.RECEIVED_COLOR(
+            'received',
+          )} value must be an HTMLElement or an SVGElement.`,
+          isPromise(elementHandle)
+            ? `Received a ${this.utils.RECEIVED_COLOR(
+                'Promise',
+              )}. Did you forget to await?`
+            : this.utils.printWithType(
+                'Received',
+                elementHandle,
+                this.utils.printReceived,
+              ),
+        ].join('\n');
+        throw removeFuncFromStackTrace(new Error(message), matcher);
+      }
+
+      for (const arg of matcherArgs) {
+        if (
+          typeof arg === 'object' &&
+          typeof (arg as any)?.asymmetricMatch === 'function'
+        ) {
+          const error = new Error(
+            `Pleasantest does not support using asymmetric matchers in browser-based matchers
 
 Received ${this.utils.printReceived(arg)}`,
-            );
-
-            // Manipulate the stack trace and remove this function
-            // That way Jest will show a code frame from the user's code, not ours
-            // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-            Error.captureStackTrace(error, matcher);
-            throw error;
-          }
+          );
+          throw removeFuncFromStackTrace(error, matcher);
         }
+      }
 
-        const forgotAwait = removeFuncFromStackTrace(
-          new Error(
-            `Cannot execute assertion ${methodName} after test finishes. Did you forget to await?`,
-          ),
-          matcher,
-        );
-        /** Handle error case for Target Closed error (forgot to await) */
-        const handleExecutionAfterTestFinished = (error: any) => {
-          if (/target closed/i.test(error.message)) {
-            throw forgotAwait;
-          }
+      const { port } = await serverPromise;
 
-          throw error;
-        };
+      const ctxString = JSON.stringify(this); // Contains stuff like isNot and promise
+      const result = await elementHandle.evaluateHandle(
+        // Using new Function to avoid babel transpiling the import
+        // @ts-expect-error pptr's types don't like new Function
+        new Function(
+          'element',
+          '...matcherArgs',
+          `return import("http://localhost:${port}/@pleasantest/jest-dom")
+            .then(({ jestContext, deserialize, ...jestDom }) => {
+            const context = { ...(${ctxString}), ...jestContext }
+            try {
+              const deserialized = matcherArgs
+              .slice(1)
+              .map(a => typeof a === 'string' ? deserialize(a) : a)
+              return jestDom.${methodName}.call(context, element, ...deserialized)
+            } catch (error) {
+              return { thrown: true, error }
+            }
+          })`,
+        ),
+        elementHandle,
+        ...matcherArgs.map((arg) => (isJSHandle(arg) ? arg : serialize(arg))),
+      );
 
-        const { port } = await serverPromise;
+      // Whether the matcher threw (this is different from the matcher failing)
+      // The matcher failing means that it returned a result for Jest to throw
+      // But a matcher throwing means that the input was invalid or something
+      const thrownError = await result.evaluate((result) => result.thrown);
 
-        const ctxString = JSON.stringify(this); // Contains stuff like isNot and promise
-        const result = await elementHandle
+      // We have to evaluate the message right away
+      // because Jest does not accept a promise from the returned message property
+      const message = await result.evaluate(
+        thrownError
+          ? (matcherResult) => matcherResult.error.message
+          : (matcherResult) => matcherResult.message(),
+      );
+      const deserializedMessage = runJestUtilsInNode(message, this as any);
+      const { messageWithElementsRevived, messageWithElementsStringified } =
+        await elementHandle
           .evaluateHandle(
-            // Using new Function to avoid babel transpiling the import
             // @ts-expect-error pptr's types don't like new Function
             new Function(
-              'element',
-              '...matcherArgs',
+              'el',
+              'message',
               `return import("http://localhost:${port}/@pleasantest/jest-dom")
-              .then(({ jestContext, deserialize, ...jestDom }) => {
-                const context = { ...(${ctxString}), ...jestContext }
-                try {
-                  const deserialized = matcherArgs
-                    .slice(1)
-                    .map(a => typeof a === 'string' ? deserialize(a) : a)
-                  return jestDom.${methodName}.call(context, element, ...deserialized)
-                } catch (error) {
-                  return { thrown: true, error }
-                }
-              })`,
-            ),
-            elementHandle,
-            ...matcherArgs.map((arg) =>
-              isJSHandle(arg) ? arg : serialize(arg),
-            ),
-          )
-          .catch(handleExecutionAfterTestFinished);
-
-        // Whether the matcher threw (this is different from the matcher failing)
-        // The matcher failing means that it returned a result for Jest to throw
-        // But a matcher throwing means that the input was invalid or something
-        const thrownError = await result.evaluate((result) => result.thrown);
-
-        // We have to evaluate the message right away
-        // because Jest does not accept a promise from the returned message property
-        const message = await result.evaluate(
-          thrownError
-            ? (matcherResult) => matcherResult.error.message
-            : (matcherResult) => matcherResult.message(),
-        );
-        const deserializedMessage = runJestUtilsInNode(message, this as any);
-        const { messageWithElementsRevived, messageWithElementsStringified } =
-          await elementHandle
-            .evaluateHandle(
-              // @ts-expect-error pptr's types don't like new Function
-              new Function(
-                'el',
-                'message',
-                `return import("http://localhost:${port}/@pleasantest/jest-dom")
-              .then(({ reviveElementsInString, printElement }) => {
-                const messageWithElementsRevived = reviveElementsInString(message)
-                const messageWithElementsStringified = messageWithElementsRevived
+                .then(({ reviveElementsInString, printElement }) => {
+                  const messageWithElementsRevived = reviveElementsInString(message)
+                  const messageWithElementsStringified = messageWithElementsRevived
                   .map(el => {
                     if (el instanceof Element) return printElement(el)
-                    return el
+                      return el
                   })
                   .join('')
-                return { messageWithElementsRevived, messageWithElementsStringified }
-              })`,
-              ),
-              deserializedMessage,
-            )
-            .then(async (returnHandle) => {
-              const {
+                  return { messageWithElementsRevived, messageWithElementsStringified }
+                })`,
+            ),
+            deserializedMessage,
+          )
+          .then(async (returnHandle) => {
+            const {
+              messageWithElementsRevived,
+              messageWithElementsStringified,
+            } = Object.fromEntries(await returnHandle.getProperties());
+            return {
+              messageWithElementsStringified:
+                await messageWithElementsStringified.jsonValue(),
+              messageWithElementsRevived: await jsHandleToArray(
                 messageWithElementsRevived,
-                messageWithElementsStringified,
-              } = Object.fromEntries(await returnHandle.getProperties());
-              return {
-                messageWithElementsStringified:
-                  await messageWithElementsStringified.jsonValue(),
-                messageWithElementsRevived: await jsHandleToArray(
-                  messageWithElementsRevived,
-                ),
-              };
-            });
-        if (thrownError) {
-          const error = new Error(messageWithElementsStringified as any);
-          // @ts-expect-error messageForBrowser is a property we added to Error
-          error.messageForBrowser = messageWithElementsRevived;
+              ),
+            };
+          });
+      if (thrownError) {
+        const error = new Error(messageWithElementsStringified as any);
+        // @ts-expect-error messageForBrowser is a property we added to Error
+        error.messageForBrowser = messageWithElementsRevived;
 
-          // Manipulate the stack trace and remove this function
-          // That way Jest will show a code frame from the user's code, not ours
-          // https://kentcdodds.com/blog/improve-test-error-messages-of-your-abstractions
-          Error.captureStackTrace(error, matcher);
-          throw error;
-        }
+        throw removeFuncFromStackTrace(error, matcher);
+      }
 
-        return {
-          ...((await result.jsonValue()) as any),
-          message: () => messageWithElementsStringified,
-          messageForBrowser: messageWithElementsRevived,
-        };
+      return {
+        ...((await result.jsonValue()) as any),
+        message: () => messageWithElementsStringified,
+        messageForBrowser: messageWithElementsRevived,
       };
+    };
 
-      return [methodName, matcher];
-    }),
-  ),
+    const matcherWrapper = async function (
+      this: jest.MatcherUtils,
+      elementHandle: ElementHandle | null,
+      ...matcherArgs: unknown[]
+    ): Promise<jest.CustomMatcherResult> {
+      const asyncHookTracker: AsyncHookTracker | false =
+        activeAsyncHookTrackers.size === 1 &&
+        activeAsyncHookTrackers[Symbol.iterator]().next().value;
+      if (asyncHookTracker) {
+        const res = await asyncHookTracker.addHook(
+          () => matcher.call(this, elementHandle, ...matcherArgs),
+          matchers[methodName],
+        );
+        // AddHook resolves to undefined if the function throws after the async hook tracker closes
+        // Because it needs to not trigger an unhandled promise rejection
+        if (res === undefined) return { pass: !this.isNot, message: () => '' };
+        return res;
+      }
+      return matcher.call(this, elementHandle, ...matcherArgs);
+    };
+
+    return [methodName, matcherWrapper];
+  }),
 );
 
 const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
@@ -255,6 +242,8 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
     .replace(/\\u[\dA-Fa-f]{4}/g, (match) => JSON.parse(`"${match}"`))
     .replace(/\\./g, (match) => JSON.parse(`"${match}"`));
 };
+
+expect.extend(matchers);
 
 // These type definitions are incomplete, only including methods we've tested
 // More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
