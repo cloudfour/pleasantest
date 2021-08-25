@@ -1,4 +1,5 @@
 import type { ElementHandle, JSHandle, Page } from 'puppeteer';
+import type { AsyncHookTracker } from './async-hooks';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import {
   assertElementHandle,
@@ -31,31 +32,16 @@ export interface PleasantestUser {
   ): Promise<void>;
 }
 
-const forgotAwaitMsg =
-  'Cannot interact with browser after test finishes. Did you forget to await?';
-
 /** Wraps each user method to catch errors that happen when user forgets to await */
 const wrapWithForgotAwait = (
   user: PleasantestUser,
-  state: { isTestFinished: boolean },
+  asyncHookTracker: AsyncHookTracker,
 ) => {
   for (const key of Object.keys(user) as (keyof PleasantestUser)[]) {
     const original = user[key];
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
-    const wrapper = async (...args: any[]) => {
-      const forgotAwaitError = removeFuncFromStackTrace(
-        new Error(forgotAwaitMsg),
-        wrapper,
-      );
-
-      try {
-        return await (original as any)(...args);
-      } catch (error) {
-        throw state.isTestFinished && /target closed/i.test(error.message)
-          ? forgotAwaitError
-          : error;
-      }
-    };
+    const wrapper = (...args: any[]) =>
+      asyncHookTracker.addHook<any>(() => (original as any)(...args), wrapper);
 
     user[key] = wrapper;
   }
@@ -63,7 +49,7 @@ const wrapWithForgotAwait = (
 
 export const pleasantestUser = async (
   page: Page,
-  state: { isTestFinished: boolean },
+  asyncHookTracker: AsyncHookTracker,
 ) => {
   const { port } = await createClientRuntimeServer();
   const runWithUtils = <Args extends any[], Return extends unknown>(
@@ -219,7 +205,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
       }
     },
     async clear(el, { force = false } = {}) {
-      assertElementHandle(el, user.clear);
+      assertElementHandle(el, () => user.clear);
       await el
         .evaluateHandle(
           runWithUtils((utils, el, force: boolean) => {
@@ -306,7 +292,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
       await el.select(...((await valuesArrayHandle.jsonValue()) as any));
     },
   };
-  wrapWithForgotAwait(user, state);
+  wrapWithForgotAwait(user, asyncHookTracker);
   return user;
 };
 

@@ -42,37 +42,50 @@ export const npmPlugin = ({
   // Rewrite bare imports to have @npm/ prefix
   async resolveId(id, importer) {
     if (!isBareImport(id)) return;
-    const resolved = await resolveFromNodeModules(id, root).catch((error) => {
-      throw importer
-        ? changeErrorMessage(error, (msg) => `${msg} (imported by ${importer})`)
-        : error;
-    });
+    const resolved = await resolveFromNodeModules(id, importer, root).catch(
+      (error) => {
+        throw importer
+          ? changeErrorMessage(
+              error,
+              (msg) => `${msg} (imported by ${importer})`,
+            )
+          : error;
+      },
+    );
     if (!jsExts.test(resolved.path))
       // Don't pre-bundle, use the full path to the file in node_modules
       // (ex: CSS files in node_modules)
       return resolved.path;
 
-    return npmPrefix + id;
+    return `${npmPrefix}${id}?resolvedPath=${encodeURIComponent(
+      resolved.path,
+    )}&idWithVersion=${encodeURIComponent(resolved.idWithVersion)}`;
   },
-  async load(id) {
-    if (!id.startsWith(npmPrefix)) return;
-    id = id.slice(npmPrefix.length);
-    const resolved = await resolveFromNodeModules(id, root);
+  async load(fullId) {
+    if (!fullId.startsWith(npmPrefix)) return;
+    fullId = fullId.slice(npmPrefix.length);
+    const params = new URLSearchParams(fullId.slice(fullId.indexOf('?')));
+    const [id] = fullId.split('?');
+    let resolvedPath = params.get('resolvedPath');
+    let idWithVersion = params.get('idWithVersion');
+    if (!resolvedPath || !idWithVersion) {
+      const resolveResult = await resolveFromNodeModules(id, undefined, root);
+      resolvedPath = resolveResult.path;
+      idWithVersion = resolveResult.idWithVersion;
+    }
 
     const cachePath = join(
       cacheDir,
       '@npm',
-      `${resolved.idWithVersion}-${hash(envVars)}.js`,
+      `${idWithVersion}-${hash(envVars)}.js`,
     );
     const cached = await getFromCache(cachePath);
     if (cached) return cached;
-    const result = await bundleNpmModule(resolved.path, id, false, envVars);
+    const result = await bundleNpmModule(resolvedPath, id, false, envVars);
     // Queue up a second-pass optimized/minified build
-    bundleNpmModule(resolved.path, id, true, envVars).then(
-      (optimizedResult) => {
-        setInCache(cachePath, optimizedResult);
-      },
-    );
+    bundleNpmModule(resolvedPath, id, true, envVars).then((optimizedResult) => {
+      setInCache(cachePath, optimizedResult);
+    });
     setInCache(cachePath, result);
     return result;
   },

@@ -1,4 +1,4 @@
-import { dirname, join, posix, resolve as pResolve } from 'path';
+import { dirname, join, posix, relative, resolve as pResolve } from 'path';
 import { promises as fs } from 'fs';
 import { resolve, legacy as resolveLegacy } from 'resolve.exports';
 import {
@@ -9,7 +9,11 @@ import {
 // Only used for node_modules
 const resolveCache = new Map<string, ResolveResult>();
 
-const resolveCacheKey = (id: string, root: string) => `${id}\0\0${root}`;
+const resolveCacheKey = (
+  id: string,
+  importer: string | undefined,
+  root: string,
+) => `${id}\n${importer}\n${root}`;
 
 /**
  * Attempts to implement a combination of:
@@ -22,7 +26,7 @@ export const nodeResolve = async (
   importer: string,
   root: string,
 ) => {
-  if (isBareImport(id)) return resolveFromNodeModules(id, root);
+  if (isBareImport(id)) return resolveFromNodeModules(id, importer, root);
   if (isRelativeOrAbsoluteImport(id))
     return resolveRelativeOrAbsolute(id, importer);
 };
@@ -108,9 +112,10 @@ interface ResolveResult {
 
 export const resolveFromNodeModules = async (
   id: string,
+  importer: string | undefined,
   root: string,
 ): Promise<ResolveResult> => {
-  const cacheKey = resolveCacheKey(id, root);
+  const cacheKey = resolveCacheKey(id, importer, root);
   const cached = resolveCache.get(cacheKey);
   if (cached) return cached;
   const pathChunks = id.split(posix.sep);
@@ -120,10 +125,29 @@ export const resolveFromNodeModules = async (
   // Path within imported module
   const subPath = join(...pathChunks.slice(isNpmNamespace ? 2 : 1));
 
-  const pkgDir = join(root, 'node_modules', ...packageName);
-  const stats = await stat(pkgDir);
-  if (!stats || !stats.isDirectory())
-    throw new Error(`Could not find ${id} in node_modules`);
+  const realRoot = await fs.realpath(root).catch(() => root);
+
+  // Walk up folder by folder until a folder is found with <folder>/node_modules/<pkgName>
+  // i.e. for 'asdf' from a/b/c.js look at
+  // a/b/node_modules/asdf,
+  // a/node_modules/asdf,
+  // node_modules/asdf,
+
+  let pkgDir: string | undefined;
+  let scanDir = importer
+    ? await fs
+        .realpath(importer)
+        .then((realImporter) => relative(realRoot, realImporter))
+        .catch(() => relative(root, importer))
+    : '.';
+  while (!pkgDir || !(await stat(pkgDir))?.isDirectory()) {
+    if (scanDir === '.' || scanDir.startsWith('..')) {
+      throw new Error(`Could not find ${id} in node_modules`);
+    }
+    // Not found; go up a level and try again
+    scanDir = dirname(scanDir);
+    pkgDir = join(root, scanDir, 'node_modules', ...packageName);
+  }
 
   const pkgJson = await readPkgJson(pkgDir);
   const main = readMainFields(pkgJson, subPath, true);
@@ -144,7 +168,10 @@ export const resolveFromNodeModules = async (
       version ? `${normalizedPkgName}@${version}` : normalizedPkgName,
       subPath,
     );
-    const resolved: ResolveResult = { path: result, idWithVersion };
+    const resolved: ResolveResult = {
+      path: await fs.realpath(result),
+      idWithVersion,
+    };
     resolveCache.set(cacheKey, resolved);
     return resolved;
   }
