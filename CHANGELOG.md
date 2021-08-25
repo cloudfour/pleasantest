@@ -1,5 +1,17 @@
 # pleasantest
 
+## 1.2.0
+
+### Minor Changes
+
+- [#216](https://github.com/cloudfour/pleasantest/pull/216) [`0c25d10`](https://github.com/cloudfour/pleasantest/commit/0c25d10f8ee3e9d4bffed307e601d8ecb7f67d31) Thanks [@calebeby](https://github.com/calebeby)! - Improve forgot-await detection
+
+* [#219](https://github.com/cloudfour/pleasantest/pull/219) [`f0ee064`](https://github.com/cloudfour/pleasantest/commit/f0ee0645d9f0fbd2a5edaaaf06d13987d644d6cb) Thanks [@calebeby](https://github.com/calebeby)! - Improve node_modules resolver (now it is able to resolve multiple package versions and it supports pnpm)
+
+- [#205](https://github.com/cloudfour/pleasantest/pull/205) [`6fba724`](https://github.com/cloudfour/pleasantest/commit/6fba724cd23f612e4bf51db0898653826f5b1ad7) Thanks [@renovate](https://github.com/apps/renovate)! - Update Puppeteer to 10.2.0
+
+  Chromium version is now 93
+
 ## 1.1.1
 
 ### Patch Changes
