@@ -36,6 +36,29 @@ test(
 );
 
 test(
+  'allows passing functions to runJS',
+  withBrowser(async ({ utils }) => {
+    const mockFuncA = jest.fn(() => 5);
+    const mockFuncB = jest.fn();
+
+    await utils.runJS(
+      `
+      export default async (mockFuncA, mockFuncB) => {
+        const val = await mockFuncA('hello world')
+        if (val !== 5) throw new Error('Did not get return value');
+        await mockFuncB()
+      }
+    `,
+      [mockFuncA, mockFuncB],
+    );
+
+    expect(mockFuncA).toHaveBeenCalledTimes(1);
+    expect(mockFuncA).toHaveBeenCalledWith('hello world');
+    expect(mockFuncB).toHaveBeenCalledTimes(1);
+  }),
+);
+
+test(
   'allows passing ElementHandles and serializable values into browser',
   withBrowser(async ({ utils, screen }) => {
     const heading = await createHeading({ utils, screen });
