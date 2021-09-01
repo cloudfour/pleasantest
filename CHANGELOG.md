@@ -1,5 +1,11 @@
 # pleasantest
 
+## 1.3.0
+
+### Minor Changes
+
+- [#234](https://github.com/cloudfour/pleasantest/pull/234) [`bf53e31`](https://github.com/cloudfour/pleasantest/commit/bf53e310b0480eeaf19451c5cde02d19dfb4edd1) Thanks [@gerardo-rodriguez](https://github.com/gerardo-rodriguez)! - Allow functions to be passed to runJS
+
 ## 1.2.0
 
 ### Minor Changes
