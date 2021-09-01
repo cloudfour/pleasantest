@@ -297,11 +297,30 @@ const createTab = async ({
 
   await page.goto(`http://localhost:${port}`);
 
+  // eslint-disable-next-line @cloudfour/typescript-eslint/ban-types
+  const functionArgs: Function[] = [];
+
   const runJS: PleasantestUtils['runJS'] = (code, args) =>
     asyncHookTracker.addHook(async () => {
+      await page
+        .exposeFunction('pleasantest_callFunction', (id, args) =>
+          functionArgs[id](...args),
+        )
+        .catch((error) => {
+          if (!error.message.includes('already exists')) throw error;
+        });
       // For some reason encodeURIComponent doesn't encode '
       const encodedCode = encodeURIComponent(code).replace(/'/g, '%27');
       const buildStatus = createBuildStatusTracker();
+
+      const argsWithFuncsAsObjs = args?.map((arg) => {
+        if (typeof arg === 'function') {
+          const id = functionArgs.push(arg) - 1;
+          return { isFunction: true, id };
+        }
+        return arg;
+      });
+
       // This uses the testPath as the url so that if there are relative imports
       // in the inline code, the relative imports are resolved relative to the test file
       const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
@@ -310,14 +329,24 @@ const createTab = async ({
           '...args',
           `return import(${JSON.stringify(url)})
             .then(async m => {
-              if (m.default) await m.default(...args)
+              const argsWithFuncs = args.map(arg => {
+                if (typeof arg === 'object' && arg && arg.isFunction) {
+                  return async (...args) => {
+                    return await window.pleasantest_callFunction(arg.id, args);
+                  }
+                }
+                return arg
+              })
+              if (m.default) await m.default(...argsWithFuncs)
             })
             .catch(e =>
              e instanceof Error
                ? { message: e.message, stack: e.stack }
                : e)`,
         ) as () => any,
-        ...(Array.isArray(args) ? (args as any) : []),
+        ...(Array.isArray(argsWithFuncsAsObjs)
+          ? (argsWithFuncsAsObjs as any)
+          : []),
       );
 
       const errorsFromBuild = buildStatus.complete();
