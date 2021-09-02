@@ -1,6 +1,7 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
@@ -73,6 +74,7 @@ const config = {
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
     removeCloneNodePlugin,
+    rollupPluginDomAccessibilityApi(),
     terser({
       ecma: 2019,
       // Jest-dom uses function names for error messages

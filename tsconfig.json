@@ -11,6 +11,7 @@
       "pleasantest": ["./src"],
       "puppeteer": ["./node_modules/@types/puppeteer"]
     },
+    "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "importsNotUsedAsValues": "error",
