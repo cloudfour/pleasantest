@@ -5,45 +5,6 @@ import {
 } from 'pleasantest';
 
 test(
-  'hidden elements are excluded',
-  withBrowser(async ({ utils, page }) => {
-    // https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion
-    await utils.injectHTML(`
-      <button>A</button>
-      <button style="display: none">B</button>
-      <button style="visibility: hidden">C</button>
-      <button hidden>D</button>
-      <button aria-hidden>E</button>
-      <button aria-hidden="true">F</button>
-      <button aria-hidden="false">G</button>
-      <div>
-        <button>H</button>
-      </div>
-      <div style="display: none">
-        <button>I</button>
-      </div>
-      <div aria-hidden="true">
-        <button>J</button>
-      </div>
-      <div style="visibility: hidden">
-        <button>K</button>
-      </div>
-      <div style="visibility: hidden">
-        <button style="visibility: visible">L</button>
-      </div>
-    `);
-    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
-    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
-      button "A"
-      button "E"
-      button "G"
-      button "H"
-      button "L"
-    `);
-  }),
-);
-
-test(
   'basic use cases',
   withBrowser(async ({ utils, page }) => {
     await utils.injectHTML(`
@@ -101,5 +62,44 @@ test(
     expect(
       await getAccessibilityTree(body, { includeDescriptions: false }),
     ).toMatchInlineSnapshot(`button "click me"`);
+  }),
+);
+
+test(
+  'hidden elements are excluded',
+  withBrowser(async ({ utils, page }) => {
+    // https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion
+    await utils.injectHTML(`
+      <button>A</button>
+      <button style="display: none">B</button>
+      <button style="visibility: hidden">C</button>
+      <button hidden>D</button>
+      <button aria-hidden>E</button>
+      <button aria-hidden="true">F</button>
+      <button aria-hidden="false">G</button>
+      <div>
+        <button>H</button>
+      </div>
+      <div style="display: none">
+        <button>I</button>
+      </div>
+      <div aria-hidden="true">
+        <button>J</button>
+      </div>
+      <div style="visibility: hidden">
+        <button>K</button>
+      </div>
+      <div style="visibility: hidden">
+        <button style="visibility: visible">L</button>
+      </div>
+    `);
+    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      button "A"
+      button "E"
+      button "G"
+      button "H"
+      button "L"
+    `);
   }),
 );
