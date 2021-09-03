@@ -103,3 +103,24 @@ test(
     `);
   }),
 );
+
+test(
+  'labels which element is focused',
+  withBrowser(async ({ utils, page, user, screen }) => {
+    await utils.injectHTML(`
+      <button>Click me!</button>
+    `);
+
+    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
+
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(
+      `button "Click me!"`,
+    );
+
+    await user.click(await screen.getByRole('button'));
+
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(
+      `button "Click me!" (focused)`,
+    );
+  }),
+);

@@ -50,6 +50,7 @@ export const getAccessibilityTree = (
   if (printSelf) {
     const name = computeAccessibleName(element);
     if (name) text += ` "${name}"`;
+    if (document.activeElement === element) text += ` (focused)`;
     if (includeDescriptions) {
       const description = computeAccessibleDescription(element);
       if (description) text += `\n  ↳ description: "${description}"`;
