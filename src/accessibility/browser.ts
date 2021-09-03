@@ -9,43 +9,44 @@ const indent = (text: string, indenter = '  ') =>
   indenter + text.split('\n').join(`\n${indenter}`);
 
 const enum AccessibilityState {
-  /** This element is accessible and its descendents could be accessible */
-  Accessible,
-  /** This element is innaccessible, but its descendents could be accessible */
-  InaccessibleSelf,
-  /** Both this element and its descendents are inaccessible */
-  InaccessibleSelfAndDescendents,
+  /** This element is included in the accessibility tree and its descendents could be included */
+  SelfIncludedInTree,
+  /** This element is excluded from the accessibility tree, but its descendents could be included */
+  SelfExcludedFromTree,
+  /** Both this element and its descendents are excluded from the accessibility tree */
+  SelfAndDescendentsExcludedFromTree,
 }
 
 // TODO in PR: what about role="presentation" or role="none"? Should they be excluded?
-// The spec says "it depends on the implementation" basically I think
-const getAccessibilityState = (element: Element): AccessibilityState => {
+const getElementAccessibilityState = (element: Element): AccessibilityState => {
   const computedStyle = getComputedStyle(element);
   if (
     (element as HTMLElement).hidden ||
     element.getAttribute('aria-hidden') === 'true' ||
     computedStyle.display === 'none'
   )
-    return AccessibilityState.InaccessibleSelfAndDescendents;
+    return AccessibilityState.SelfAndDescendentsExcludedFromTree;
 
   // An element can have visibility: 'hidden' but its descendents can override visibility
   if (computedStyle.visibility === 'hidden')
-    return AccessibilityState.InaccessibleSelf;
+    return AccessibilityState.SelfExcludedFromTree;
 
-  return AccessibilityState.Accessible;
+  return AccessibilityState.SelfIncludedInTree;
 };
 
 export const getAccessibilityTree = (
   element: Element,
   opts: AccessibilityTreeOptions,
 ): string => {
-  const accessibilityState = getAccessibilityState(element);
-  if (accessibilityState === AccessibilityState.InaccessibleSelfAndDescendents)
+  const accessibilityState = getElementAccessibilityState(element);
+  if (
+    accessibilityState === AccessibilityState.SelfAndDescendentsExcludedFromTree
+  )
     return '';
   const { includeDescriptions = true, includeText = false } = opts;
   const role = getRole(element);
   const printSelf =
-    role && accessibilityState === AccessibilityState.Accessible;
+    role && accessibilityState === AccessibilityState.SelfIncludedInTree;
   let text = (printSelf && role) || '';
   if (printSelf) {
     const name = computeAccessibleName(element);
