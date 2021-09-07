@@ -6,7 +6,7 @@ const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 
 export interface AccessibilityTreeOptions {
   /**
-   * Whether the accessibile description of elements should be included in the tree.
+   * Whether the accessible description of elements should be included in the tree.
    * https://www.w3.org/TR/wai-aria-1.2/#dfn-accessible-description
    * (default: true)
    */
