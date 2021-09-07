@@ -17,7 +17,7 @@ test(
         <div role="button" tabindex="-1">foo &gt bar</div>
       </main>
     `);
-    const body: ElementHandle = await page.evaluateHandle(() => document.body);
+    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
       main
         button "Add to cart"
