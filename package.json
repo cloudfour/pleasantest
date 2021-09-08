@@ -88,7 +88,11 @@
           ]
         }
       ],
-      "@cloudfour/typescript-eslint/no-non-null-assertion": "off"
+      "@cloudfour/typescript-eslint/no-non-null-assertion": "off",
+      "no-warning-comments": "off",
+      "max-params": "off",
+      "complexity": "off",
+      "max-depth": "off"
     }
   },
   "prettier": {
