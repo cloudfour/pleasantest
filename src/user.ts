@@ -91,6 +91,7 @@ export const pleasantestUser = async (
           runWithUtils((utils, clickEl, force: boolean) => {
             utils.assertAttached(clickEl);
             if (!force) {
+              utils.assertTargetSize(clickEl);
               utils.assertVisible(clickEl);
               const clickElRect = clickEl.getBoundingClientRect();
               // See if there is an element covering the center of the click target element

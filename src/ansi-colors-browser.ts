@@ -16,21 +16,24 @@ export const ansiColorsLog = (...input: unknown[]) => {
       continue;
     }
 
-    str += segment.replace(ansiRegex(), (escapeCode) => {
-      // \u001b is unicode for <ESC>
-      // eslint-disable-next-line no-control-regex
-      const parsedEscapeCode = /\u001B\[(\d*)m/.exec(escapeCode);
-      if (!parsedEscapeCode) return ''; // Unrecognized escape code, remove it
-      const escapeCodeNum = Number(parsedEscapeCode[1]); // Capture group
-      const cssObj = ansiCodes[escapeCodeNum];
-      if (!cssObj) return '';
-      Object.assign(styleStack, cssObj);
-      const cssStr = Object.entries(styleStack)
-        .map(([key, val]) => (val === 'inherit' ? '' : `${key}: ${val};`))
-        .join('');
-      stylesAndSubstitutions.push(cssStr);
-      return '%c';
-    });
+    str += segment
+      // @todo add a comment
+      .replace(/\u0085/g, '\n')
+      .replace(ansiRegex(), (escapeCode) => {
+        // \u001b is unicode for <ESC>
+        // eslint-disable-next-line no-control-regex
+        const parsedEscapeCode = /\u001B\[(\d*)m/.exec(escapeCode);
+        if (!parsedEscapeCode) return ''; // Unrecognized escape code, remove it
+        const escapeCodeNum = Number(parsedEscapeCode[1]); // Capture group
+        const cssObj = ansiCodes[escapeCodeNum];
+        if (!cssObj) return '';
+        Object.assign(styleStack, cssObj);
+        const cssStr = Object.entries(styleStack)
+          .map(([key, val]) => (val === 'inherit' ? '' : `${key}: ${val};`))
+          .join('');
+        stylesAndSubstitutions.push(cssStr);
+        return '%c';
+      });
   }
 
   return [str, ...stylesAndSubstitutions];

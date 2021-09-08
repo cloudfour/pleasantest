@@ -45,6 +45,19 @@ ${el}`;
   }
 };
 
+export const assertTargetSize = (el: Element) => {
+  const { width, height } = el.getBoundingClientRect();
+
+  console.log(width, height);
+
+  if (width < 44 || height < 44) {
+    throw error`Cannot click element that is too small.
+Target size of element does not meet W3C recommendation of 44 x 44 pixels: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+Element was ${width} x ${height} pixels
+${el}`;
+  }
+};
+
 // This is used to generate the arrays that are used
 // to produce messages with live elements in the browser,
 // and stringified elements in node
@@ -53,11 +66,18 @@ ${el}`;
 // returns { error: ['something bad happened', el]}
 export const error = (
   literals: TemplateStringsArray,
-  ...placeholders: (Element | string)[]
+  ...placeholders: (Element | string | number | boolean)[]
 ) => ({
-  error: literals.reduce((acc, val, i) => {
-    if (i !== 0) acc.push(placeholders[i - 1]);
-    if (val !== '') acc.push(val);
-    return acc;
-  }, [] as (string | Element)[]),
+  error: literals
+    .reduce((acc, val, i) => {
+      if (i !== 0) acc.push(placeholders[i - 1]);
+      if (val !== '') acc.push(val);
+      return acc;
+    }, [] as (string | Element | number | boolean)[])
+    .map((item) => {
+      if (typeof item === 'string') {
+        return item.replace(/\n/g, '\u0085');
+      }
+      return item;
+    }),
 });

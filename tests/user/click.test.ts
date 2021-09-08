@@ -168,3 +168,15 @@ describe('actionability checks', () => {
     }),
   );
 });
+
+test.only(
+  'target size for click',
+  withBrowser.headed(async ({ utils, screen, user }) => {
+    await utils.injectHTML(`
+      <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
+    `);
+
+    const button = await screen.getByRole('button', { name: /hi/i });
+    await user.click(button);
+  }),
+);
