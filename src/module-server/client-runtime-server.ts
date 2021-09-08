@@ -31,6 +31,8 @@ const clientRuntimeMiddleware =
         ? 'jest-dom.js'
         : req.path === '/@pleasantest/user-util'
         ? 'user-util.js'
+        : req.path === '/@pleasantest/accessibility'
+        ? 'accessibility.js'
         : 'pptr-testing-library-client.js',
     );
     const text = await fs.readFile(filePath, 'utf8');

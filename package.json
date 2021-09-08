@@ -29,6 +29,7 @@
     "ansi-regex": "6.0.0",
     "aria-query": "*",
     "babel-plugin-un-cjs": "2.5.0",
+    "dom-accessibility-api": "0.5.7",
     "errorstacks": "2.3.2",
     "esbuild-jest": "0.5.0",
     "eslint": "7.32.0",
@@ -53,7 +54,7 @@
     "sass": "1.39.0",
     "simple-code-frame": "1.1.1",
     "smoldash": "0.11.0",
-    "typescript": "4.3.5",
+    "typescript": "4.4.2",
     "vue": "3.2.6"
   },
   "dependencies": {
@@ -87,7 +88,11 @@
           ]
         }
       ],
-      "@cloudfour/typescript-eslint/no-non-null-assertion": "off"
+      "@cloudfour/typescript-eslint/no-non-null-assertion": "off",
+      "no-warning-comments": "off",
+      "max-params": "off",
+      "complexity": "off",
+      "max-depth": "off"
     }
   },
   "prettier": {
