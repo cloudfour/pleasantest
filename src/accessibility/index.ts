@@ -45,6 +45,8 @@ export const getAccessibilityTree = async (
   };
 };
 
+// This tells Jest how to print the accessibility tree (without adding extra quotes)
+// https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
 expect.addSnapshotSerializer({
   serialize: (val, config, indentation, depth, refs, printer) => {
     const v = val[accessibilityTreeSymbol];
