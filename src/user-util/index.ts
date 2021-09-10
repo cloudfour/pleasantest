@@ -53,7 +53,8 @@ export const assertTargetSize = (
 
   const display = getComputedStyle(el).display;
 
-  // Per the W3C recommendation, ignore inline elements because they are likely in a sentence
+  // Per the W3C recommendation, inline elements are excluded
+  // See: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
   if (display === 'inline') {
     return;
   }
