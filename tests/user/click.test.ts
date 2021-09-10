@@ -192,7 +192,7 @@ test(
     await utils.injectHTML(`
       <p>This is text <a href="#">with a link</a></p>
     `);
-    // Elements inside of text don't have the 44px × 44px minimum, per W3C recommendation
+    // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
     const link: puppeteeer.ElementHandle<HTMLElement> = await screen.getByRole(
       'link',
     );
