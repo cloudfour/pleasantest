@@ -17,7 +17,7 @@ export const ansiColorsLog = (...input: unknown[]) => {
     }
 
     str += segment
-      // @todo add a comment
+      // Convert back from "next-line" character into regular newline for display in browser
       .replace(/\u0085/g, '\n')
       .replace(ansiRegex(), (escapeCode) => {
         // \u001b is unicode for <ESC>

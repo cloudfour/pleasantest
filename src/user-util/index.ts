@@ -45,16 +45,32 @@ ${el}`;
   }
 };
 
-export const assertTargetSize = (el: Element) => {
+export const assertTargetSize = (
+  el: Element,
+  targetSize: number | true | undefined,
+) => {
   const { width, height } = el.getBoundingClientRect();
 
-  console.log(width, height);
+  const display = getComputedStyle(el).display;
 
-  if (width < 44 || height < 44) {
+  // Per the W3C recommendation, ignore inline elements because they are likely in a sentence
+  if (display === 'inline') {
+    return;
+  }
+
+  const size = typeof targetSize === 'number' ? targetSize : 44;
+
+  if (width < size || height < size) {
+    const targetSizeMsg =
+      typeof targetSize === 'number'
+        ? `Target size of element is smaller than ${size}px × ${size}px`
+        : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
+
     throw error`Cannot click element that is too small.
-Target size of element does not meet W3C recommendation of 44 x 44 pixels: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-Element was ${width} x ${height} pixels
-${el}`;
+${targetSizeMsg}
+Element was ${width}px × ${height}px
+${el}
+You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
   }
 };
 
@@ -76,6 +92,8 @@ export const error = (
     }, [] as (string | Element | number | boolean)[])
     .map((item) => {
       if (typeof item === 'string') {
+        // We are using the "next line" character instead of a regular newline
+        // so Jest does not gray out lines of the message after the first line
         return item.replace(/\n/g, '\u0085');
       }
       return item;

@@ -69,13 +69,11 @@ test(
   'throws an error that the element is being covered',
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page);
-    await expect(user.click(first)).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Could not click element:
-            <div id=\\"first\\">First Box</div>
-
-            Element was covered by:
-            <div id=\\"second\\">Second Box</div>"
-          `);
+    await expect(
+      user.click(first, { targetSize: false }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not click element:<div id=\\"first\\">First Box</div>Element was covered by:<div id=\\"second\\">Second Box</div>"`,
+    );
 
     // Since it threw neither element should have been clicked
     await expect(first).toBeInTheDocument();
@@ -101,7 +99,7 @@ test(
   withBrowser(async ({ utils, page, user }) => {
     const [first, second] = await setupOverlappingElements(utils, page, false);
 
-    await user.click(first);
+    await user.click(first, { targetSize: false });
     await expect(first).not.toBeInTheDocument();
     await expect(second).toBeInTheDocument();
   }),
@@ -122,7 +120,7 @@ test(
       name: /this is some text/i,
     });
 
-    await user.click(button);
+    await user.click(button, { targetSize: false });
   }),
 );
 
@@ -134,18 +132,18 @@ describe('actionability checks', () => {
       const button = await screen.getByRole('button', { name: /hi/i });
       // Remove element from the DOM but still keep a reference to it
       await button.evaluate((b) => b.remove());
-      await expect(user.click(button)).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <button>hi</button>"
-            `);
+      await expect(
+        user.click(button, { targetSize: false }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not attached to the DOM:<button>hi</button>"`,
+      );
       // Puppeteer's .click doesn't work on detached elements,
       // so even with { force: true } we will not attempt to click
-      await expect(user.click(button, { force: true })).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <button>hi</button>"
-            `);
+      await expect(
+        user.click(button, { force: true }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not attached to the DOM:<button>hi</button>"`,
+      );
     }),
   );
 
@@ -158,25 +156,61 @@ describe('actionability checks', () => {
 
       const button = await screen.getByRole('button', { name: /hi/i });
 
-      await expect(user.click(button)).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not visible (it is near zero opacity):
-              <button style=\\"opacity: 0\\">hi</button>"
-            `);
+      await expect(
+        user.click(button, { targetSize: false }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not visible (it is near zero opacity):<button style=\\"opacity: 0\\">hi</button>"`,
+      );
       // With { force: true } it should skip the visibility check
       await user.click(button, { force: true });
     }),
   );
 });
 
-test.only(
-  'target size for click',
-  withBrowser.headed(async ({ utils, screen, user }) => {
+test(
+  'throws error if target size is too small',
+  withBrowser(async ({ utils, screen, user }) => {
     await utils.injectHTML(`
       <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
     `);
 
     const button = await screen.getByRole('button', { name: /hi/i });
-    await user.click(button);
+
+    await expect(user.click(button)).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Cannot click element that is too small.Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.htmlElement was 2px × 2px<button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"`,
+    );
+
+    await user.click(button, { targetSize: 2 });
+
+    await expect(
+      user.click(button, { targetSize: 46 }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Cannot click element that is too small.Target size of element is smaller than 46px × 46pxElement was 2px × 2px<button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"`,
+    );
+
+    await utils.injectHTML(`
+      <p>This is text <a href="#">with a link</a></p>
+    `);
+    // Elements inside of text don't have the 44px × 44px minimum, per W3C recommendation
+    const link: puppeteeer.ElementHandle<HTMLElement> = await screen.getByRole(
+      'link',
+    );
+
+    await user.click(link);
+  }),
+);
+
+test(
+  'withBrowser custom target size',
+  withBrowser({ user: { targetSize: 46 } }, async ({ utils, screen, user }) => {
+    await utils.injectHTML(`
+      <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
+    `);
+
+    const button = await screen.getByRole('button', { name: /hi/i });
+
+    await expect(user.click(button)).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Cannot click element that is too small.Target size of element is smaller than 46px × 46pxElement was 2px × 2px<button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"`,
+    );
   }),
 );
