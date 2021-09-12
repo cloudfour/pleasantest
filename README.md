@@ -1,5 +1,7 @@
 # Pleasantest
 
+[![NPM version](http://img.shields.io/npm/v/pleasantest.svg)](https://www.npmjs.org/package/pleasantest) [![Build Status](https://github.com/cloudfour/pleasantest/workflows/Node.js%20CI/badge.svg)](https://github.com/cloudfour/pleasantest/actions/workflows/ci.yml) [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
+
 Pleasantest is a library that allows you test web applications using real browsers in your Jest tests. Pleasantest is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
 
 ## Pleasantest Goals
