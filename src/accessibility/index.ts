@@ -12,8 +12,8 @@ export interface AccessibilityTreeOptions {
    */
   includeDescriptions?: boolean;
   /**
-   * Whether to include text that is not part of an element's accessible name/description
-   * (default: false)
+   * Whether to include text that is not being used as an element's name
+   * (default: true)
    */
   includeText?: boolean;
 }
