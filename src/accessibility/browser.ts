@@ -8,6 +8,8 @@ import type { AccessibilityTreeOptions } from '.';
 const indent = (text: string, indenter = '  ') =>
   indenter + text.split('\n').join(`\n${indenter}`);
 
+// This data was extracted from the aria-query library
+//  https://github.com/A11yance/aria-query/blob/main/scripts/roles.json
 const rolesWithChildrenPresentation = new Set([
   'button',
   'checkbox',
