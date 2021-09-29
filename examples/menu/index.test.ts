@@ -88,13 +88,17 @@ test(
         navigation
           heading "Company"
             link "Company"
+              text "Company"
           list
             listitem
               link "Products"
+                text "Products"
             listitem
               link "About"
+                text "About"
             listitem
               link "Log In"
+                text "Log In"
       `);
 
     await utils.runJS(`
@@ -112,6 +116,7 @@ test(
         navigation
           heading "Company"
             link "Company"
+              text "Company"
           list
             listitem
               button "Products"
@@ -119,6 +124,7 @@ test(
               button "About"
             listitem
               link "Log In"
+                text "Log In"
       `);
     // Login should still be a link, since it does not trigger a menu to open
     const loginBtn = await screen.getByRole('link', { name: /log in/i });

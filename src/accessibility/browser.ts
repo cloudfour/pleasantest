@@ -8,6 +8,26 @@ import type { AccessibilityTreeOptions } from '.';
 const indent = (text: string, indenter = '  ') =>
   indenter + text.split('\n').join(`\n${indenter}`);
 
+// This data was extracted from the aria-query library
+//  https://github.com/A11yance/aria-query/blob/main/scripts/roles.json
+const rolesWithChildrenPresentation = new Set([
+  'button',
+  'checkbox',
+  'doc-pagebreak',
+  'img',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'meter',
+  'option',
+  'progressbar',
+  'radio',
+  'scrollbar',
+  'separator',
+  'slider',
+  'switch',
+  'tab',
+]);
+
 const enum AccessibilityState {
   /** This element is included in the accessibility tree and its descendents could be included */
   SelfIncludedInTree,
@@ -43,7 +63,7 @@ export const getAccessibilityTree = (
     accessibilityState === AccessibilityState.SelfAndDescendentsExcludedFromTree
   )
     return '';
-  const { includeDescriptions = true, includeText = false } = opts;
+  const { includeDescriptions = true, includeText = true } = opts;
   const role = getRole(element);
   const printSelf =
     role && accessibilityState === AccessibilityState.SelfIncludedInTree;
@@ -58,6 +78,13 @@ export const getAccessibilityTree = (
     }
   }
   const printedChildren = [];
+
+  // Some roles have a `childrenArePresentational` attribute which means all of
+  // their children should be excluded from the accessibility tree.
+  // For example, a button should not have its button text displayed, since it's
+  // already used as the accessible name.
+  // https://www.w3.org/TR/wai-aria-1.1/#childrenArePresentational
+  if (role && rolesWithChildrenPresentation.has(role)) return text;
   for (const node of element.childNodes) {
     let printedChild;
     if (node instanceof Element) {
@@ -65,6 +92,7 @@ export const getAccessibilityTree = (
     } else if (includeText) {
       const trimmedText = node.nodeValue?.trim();
       if (!trimmedText) continue;
+
       printedChild = `text "${trimmedText}"`;
     }
     if (printedChild) printedChildren.push(printedChild);

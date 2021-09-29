@@ -22,6 +22,7 @@ test(
       main
         button "Add to cart"
         heading "hiiii"
+          text "hiiii"
         button "foo > bar"
     `);
     await utils.injectHTML(`
@@ -33,7 +34,9 @@ test(
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
       list
         listitem
+          text "something"
         listitem
+          text "something else"
     `);
     expect(await getAccessibilityTree(body, { includeText: true }))
       .toMatchInlineSnapshot(`
@@ -45,23 +48,55 @@ test(
       `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
+      <button aria-describedby="click-me-description"><div>click me</div></button>
+      <button aria-describedby="click-me-description"><h1>click me</h1></button>
       <div id="click-me-description">extended description</div>
     `);
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
       button "click me"
         ↳ description: "extended description"
+      button "click me"
+        ↳ description: "extended description"
+      button "click me"
+        ↳ description: "extended description"
+      text "extended description"
     `);
     expect(await getAccessibilityTree(body, { includeText: true }))
       .toMatchInlineSnapshot(`
         button "click me"
           ↳ description: "extended description"
-          text "click me"
+        button "click me"
+          ↳ description: "extended description"
+        button "click me"
+          ↳ description: "extended description"
         text "extended description"
       `);
 
-    expect(
-      await getAccessibilityTree(body, { includeDescriptions: false }),
-    ).toMatchInlineSnapshot(`button "click me"`);
+    expect(await getAccessibilityTree(body, { includeDescriptions: false }))
+      .toMatchInlineSnapshot(`
+      button "click me"
+      button "click me"
+      button "click me"
+      text "extended description"
+    `);
+
+    await utils.injectHTML(`
+      <label>
+        Label Text
+        <input type="text"/>
+      </label>
+
+      <label for="input">Label Text</label>
+      <input type="text" id="input"/>
+    `);
+
+    expect(await getAccessibilityTree(body, { includeText: true }))
+      .toMatchInlineSnapshot(`
+        text "Label Text"
+        textbox "Label Text"
+        text "Label Text"
+        textbox "Label Text"
+      `);
   }),
 );
 
