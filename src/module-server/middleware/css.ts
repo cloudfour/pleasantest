@@ -1,8 +1,7 @@
 import { posix, relative, resolve, sep } from 'path';
 import type polka from 'polka';
 import { promises as fs } from 'fs';
-import { cssPlugin } from '../plugins/css';
-import type { PluginContext, TransformPluginContext } from 'rollup';
+import { transformCSS } from '../plugins/css';
 import { cssExts } from '../extensions-and-detection';
 
 interface CSSMiddlewareOpts {
@@ -16,13 +15,11 @@ interface CSSMiddlewareOpts {
  * Use cases: CSS included via <link> tags, CSS included via @import
  * TODO: consider using this for loadCSS
  */
-export const cssMiddleware = ({
-  root,
-}: CSSMiddlewareOpts): polka.Middleware => {
-  const cssPlug = cssPlugin({ root, returnCSS: true });
-
-  return async (req, res, next) => {
+export const cssMiddleware =
+  ({ root }: CSSMiddlewareOpts): polka.Middleware =>
+  async (req, res, next) => {
     try {
+      // TODO: use passed in loaders/handlers to determine extensions
       if (!cssExts.test(req.path)) return next();
       // Normalized path starting with slash
       const path = posix.normalize(req.path);
@@ -38,34 +35,12 @@ export const cssMiddleware = ({
         .join(posix.sep)}`;
 
       res.setHeader('Content-Type', 'text/css;charset=utf-8');
-      let code = await fs.readFile(file, 'utf-8');
-
-      if (cssPlug.transform) {
-        const ctx: Partial<PluginContext> = {
-          warn(...args) {
-            console.log(`[${cssPlug.name}]`, ...args);
-          },
-          error(error) {
-            if (typeof error === 'string') throw new Error(error);
-            throw error;
-          },
-        };
-        // We need to call the transform hook, but get the CSS out of it before it converts it to JS
-        const result = await cssPlug.transform.call(
-          ctx as TransformPluginContext,
-          code,
-          id,
-        );
-        if (
-          typeof result !== 'object' ||
-          result === null ||
-          result.meta?.css === undefined
-        )
-          return next();
-        code = result.meta.css;
-      }
-
-      if (!code) return next();
+      // TODO: handle errors here using buildId thing
+      const { code } = await transformCSS(
+        await fs.readFile(file, 'utf-8'),
+        id,
+        root,
+      );
 
       res.writeHead(200, {
         'Content-Length': Buffer.byteLength(code, 'utf-8'),
@@ -75,4 +50,3 @@ export const cssMiddleware = ({
       next(error);
     }
   };
-};

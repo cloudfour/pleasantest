@@ -17,6 +17,7 @@ const external = [
   'rollup',
   '@rollup/plugin-commonjs',
   'esbuild',
+  /sass/,
   /postcss/,
   /mime/,
 ];

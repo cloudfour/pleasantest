@@ -1,3 +1,4 @@
+import { assert } from 'console';
 import * as path from 'path';
 import { withBrowser } from 'pleasantest';
 
@@ -34,7 +35,55 @@ test(
 );
 
 test(
-  'sass/preprocessor file',
+  'processes with postcss',
+  withBrowser(async ({ utils, screen }) => {
+    await utils.injectHTML(`
+      <h1>I'm a heading</h1>
+    `);
+    const heading = await screen.getByText(/i'm a heading/i);
+
+    await expect(heading).toBeVisible();
+
+    await utils.loadCSS('./external-needs-postcss.css');
+
+    await expect(heading).not.toBeVisible();
+  }),
+);
+
+test.only(
+  'Allows using CSS Modules through postcss',
+  // TODO: make it an option or file extension, not default
+  withBrowser(async ({ utils }) => {
+    const importResult = await utils.loadCSS('./external-css-modules.css');
+
+    // Using an if statement instead of expect because Jest's types don't support type narrowing assertions
+    if (typeof importResult !== 'object') throw new Error('Expected an object');
+
+    expect(importResult).toHaveProperty(
+      'default',
+      expect.objectContaining({ foo: expect.any(String) }),
+    );
+    expect(importResult).toHaveProperty('foo');
+    expect(importResult.default.foo).toEqual(importResult.foo);
+    expect(importResult.foo.length).toBeGreaterThan(5);
+    expect(importResult.foo).toMatch(/^_foo_[\d_a-z]{0,8}$/);
+  }),
+);
+
+test.only(
+  'Allows using CSS Modules through postcss imported from JS file',
+  withBrowser(async ({ utils }) => {
+    await utils.runJS(`
+      // import * as cssModule from './external-css-modules.css'
+      // console.log(cssModule)
+      // console.oog('hi')
+      throw 1
+    `);
+  }),
+);
+
+test(
+  'sass file',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML(`
       <h1>I'm a heading</h1>

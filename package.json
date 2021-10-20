@@ -25,6 +25,7 @@
     "@types/node": "12.20.27",
     "@types/polka": "0.5.3",
     "@types/puppeteer": "5.4.4",
+    "@types/sass": "^1.16.1",
     "@vue/compiler-sfc": "3.2.19",
     "ansi-regex": "6.0.0",
     "aria-query": "*",
@@ -38,6 +39,9 @@
     "liquidjs": "9.25.1",
     "magic-string": "0.25.7",
     "polka": "0.5.2",
+    "postcss": "^8.3.9",
+    "postcss-modules": "^4.2.2",
+    "postcss-simple-vars": "^6.0.3",
     "preact": "10.5.14",
     "prettier": "2.4.1",
     "prop-types": "15.7.2",
@@ -63,10 +67,8 @@
     "es-module-lexer": "^0.7.1",
     "esbuild": "^0.12.25",
     "mime": "^2.5.2",
-    "postcss": "^8.3.8",
     "puppeteer": "^10.4.0",
     "rollup": "^2.57.0",
-    "rollup-plugin-postcss": "^4.0.1",
     "source-map": "0.8.0-beta.0"
   },
   "eslintConfig": {

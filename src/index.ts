@@ -46,10 +46,18 @@ export interface PleasantestUtils {
   injectHTML(html: string): Promise<void>;
 
   /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. */
-  loadCSS(cssPath: string): Promise<void>;
+  loadCSS(cssPath: string): Promise<CSSModuleExport | undefined>;
   /** Load a JS (or TS, JSX) file into the browser. Pass a path that will be resolved from your test file. */
   loadJS(jsPath: string): Promise<void>;
 }
+
+type CSSModuleExport = {
+  default: {
+    [className: string]: string;
+  };
+} & {
+  [className: string]: string;
+};
 
 export interface PleasantestContext {
   /** DOM Testing Library queries that are bound to the document */
@@ -381,11 +389,12 @@ const createTab = async ({
       const fullPath = isAbsolute(cssPath)
         ? relative(process.cwd(), cssPath)
         : join(dirname(testPath), cssPath);
-      await page.evaluate(
+      const result = await page.evaluate(
         `import(${JSON.stringify(
           `http://localhost:${port}/${fullPath}?import`,
         )})`,
       );
+      return result as CSSModuleExport;
     }, loadCSS);
 
   const loadJS: PleasantestUtils['loadJS'] = (jsPath) =>
