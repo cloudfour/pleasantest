@@ -16,7 +16,7 @@
     "@changesets/changelog-github": "0.4.1",
     "@changesets/cli": "2.17.0",
     "@cloudfour/eslint-plugin": "17.1.0",
-    "@rollup/plugin-alias": "3.1.5",
+    "@rollup/plugin-alias": "3.1.8",
     "@rollup/plugin-babel": "5.3.0",
     "@rollup/plugin-node-resolve": "13.0.5",
     "@testing-library/dom": "8.6.0",
