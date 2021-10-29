@@ -180,6 +180,7 @@ test(
       `"Cannot click element that is too small.Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.htmlElement was 2px × 2px<button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"`,
     );
 
+    // This confirms a passing test when setting a custom target size
     await user.click(button, { targetSize: 2 });
 
     await expect(
@@ -191,7 +192,7 @@ test(
     await utils.injectHTML(`
       <p>This is text <a href="#">with a link</a></p>
     `);
-    // Elements inside of text don't have the 44px × 44px minimum, per W3C recommendation
+    // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
     const link: puppeteeer.ElementHandle<HTMLElement> = await screen.getByRole(
       'link',
     );
