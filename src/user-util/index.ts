@@ -84,18 +84,9 @@ export const error = (
   literals: TemplateStringsArray,
   ...placeholders: (Element | string | number | boolean)[]
 ) => ({
-  error: literals
-    .reduce((acc, val, i) => {
-      if (i !== 0) acc.push(placeholders[i - 1]);
-      if (val !== '') acc.push(val);
-      return acc;
-    }, [] as (string | Element | number | boolean)[])
-    .map((item) => {
-      if (typeof item === 'string') {
-        // We are using the "next line" character instead of a regular newline
-        // so Jest does not gray out lines of the message after the first line
-        return item.replace(/\n/g, '\u0085');
-      }
-      return item;
-    }),
+  error: literals.reduce((acc, val, i) => {
+    if (i !== 0) acc.push(placeholders[i - 1]);
+    if (val !== '') acc.push(val);
+    return acc;
+  }, [] as (string | Element | number | boolean)[]),
 });
