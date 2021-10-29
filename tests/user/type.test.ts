@@ -165,18 +165,18 @@ describe('actionability checks', () => {
       await utils.injectHTML('<input />');
       const input = await screen.getByRole('textbox');
       await input.evaluate((input) => input.remove());
-      await expect(user.type(input, 'hello')).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <input />"
-            `);
+      await expect(
+        user.type(input, 'hello'),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not attached to the DOM:<input />"`,
+      );
       // Puppeteer's .type silently fails/refuses to type in an unattached element
       // So our .type won't type in an unattached element even with { force: true }
-      await expect(user.type(input, 'hello', { force: true })).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <input />"
-            `);
+      await expect(
+        user.type(input, 'hello', { force: true }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not attached to the DOM:<input />"`,
+      );
     }),
   );
   test(
@@ -184,11 +184,11 @@ describe('actionability checks', () => {
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<input style="opacity: 0" />`);
       const input = await screen.getByRole('textbox');
-      await expect(user.type(input, 'some text')).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not visible (it is near zero opacity):
-              <input style=\\"opacity: 0\\" />"
-            `);
+      await expect(
+        user.type(input, 'some text'),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot perform action on element that is not visible (it is near zero opacity):<input style=\\"opacity: 0\\" />"`,
+      );
       // With { force: true } it should skip the visibility check
       await user.type(input, 'some text', { force: true });
       await expect(input).toHaveValue('some text');
@@ -199,12 +199,11 @@ describe('actionability checks', () => {
     withBrowser(async ({ user, utils, screen }) => {
       await utils.injectHTML(`<div>Hi</div>`);
       const div = await screen.getByText('Hi');
-      await expect(user.type(div, '5678')).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot type in element that is not typeable:
-              <div>Hi</div>
-              Element must be an <input> or <textarea> or an element with the contenteditable attribute."
-            `);
+      await expect(
+        user.type(div, '5678'),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"Cannot type in element that is not typeable:<div>Hi</div>Element must be an <input> or <textarea> or an element with the contenteditable attribute."`,
+      );
     }),
   );
 });
