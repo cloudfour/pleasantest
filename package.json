@@ -35,7 +35,7 @@
     "eslint": "7.32.0",
     "jest": "27.3.0",
     "kolorist": "1.5.0",
-    "liquidjs": "9.28.2",
+    "liquidjs": "9.28.4",
     "magic-string": "0.25.7",
     "polka": "0.5.2",
     "preact": "10.5.15",
