@@ -53,11 +53,12 @@ test(
       </select>,
     `);
     const selectEl = await screen.getByRole('combobox');
-    await expect(
-      user.selectOptions(selectEl, ['2', '3']),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Cannot select multiple options on a <select> element without the \`multiple\` attribute:<select>[...]</select>"`,
-    );
+    await expect(user.selectOptions(selectEl, ['2', '3'])).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+            "Cannot select multiple options on a <select> element without the \`multiple\` attribute:
+
+            <select>[...]</select>"
+          `);
     await expect(selectEl).toHaveValue('1'); // Default is still selected
   }),
 );
