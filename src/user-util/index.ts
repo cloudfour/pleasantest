@@ -62,6 +62,48 @@ export const assertTargetSize = (
   const size = typeof targetSize === 'number' ? targetSize : 44;
 
   if (width < size || height < size) {
+    if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+      const labelSize = el.labels?.[0]?.getBoundingClientRect();
+
+      // Checkbox did not have label
+      if (!labelSize) {
+        const targetSizeMsg =
+          typeof targetSize === 'number'
+            ? `Target size of checkbox is smaller than ${size}px × ${size}px`
+            : 'Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
+
+        throw error`Cannot click checkbox that is too small.
+${targetSizeMsg}
+Element was ${width}px × ${height}px
+${el}
+You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
+You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
+      }
+
+      // If label is valid
+      if (labelSize.width >= size && labelSize.height >= size) {
+        return;
+      }
+
+      // Checkbox and label was too small
+      const targetSizeMsg =
+        typeof targetSize === 'number'
+          ? `Target size of element is smaller than ${size}px × ${size}px`
+          : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
+
+      throw error`Cannot click checkbox that is too small.
+${targetSizeMsg}
+Checkbox was ${width}px × ${height}px
+${el}
+Label associated with the checkbox was ${labelSize.width}px × ${
+        labelSize.height
+      }px
+${el.labels![0]}
+You can increase the target size by making the label or checkbox larger than ${size}px × ${size}px.
+You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
+    }
+
+    // Non-checkbox case
     const targetSizeMsg =
       typeof targetSize === 'number'
         ? `Target size of element is smaller than ${size}px × ${size}px`

@@ -209,6 +209,67 @@ test(
     );
 
     await user.click(link);
+
+    {
+      await utils.injectHTML(`
+        <label style="padding: 1em">
+          <input type="checkbox" name="test-checkbox" /> Test checkbox
+        </label>
+      `);
+
+      const checkbox: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('checkbox');
+
+      await user.click(checkbox);
+    }
+
+    {
+      await utils.injectHTML(`
+        <label>
+          <input type="checkbox" name="test-checkbox" /> Test checkbox
+        </label>
+      `);
+
+      const checkbox: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('checkbox');
+
+      await expect(user.click(checkbox)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click checkbox that is too small.
+              Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Checkbox was 13px × 13px
+              <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
+              Label associated with the checkbox was 115.4453125px × 18px
+              <label>
+                
+                        
+                <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
+                 Test checkbox
+                      
+              </label>
+              You can increase the target size by making the label or checkbox larger than 44px × 44px.
+              You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+            `);
+    }
+
+    {
+      await utils.injectHTML(`
+        <input type="checkbox" name="test-checkbox" />
+      `);
+
+      const checkbox: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('checkbox');
+
+      await expect(user.click(checkbox)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click checkbox that is too small.
+              Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Element was 13px × 13px
+              <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
+              You can increase the target size of the checkbox by adding a label that is larger than 44px × 44px
+              You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+            `);
+    }
   }),
 );
 
