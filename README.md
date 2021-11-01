@@ -1,4 +1,10 @@
-# Pleasantest
+<h1 align="center">
+	<br>
+	<img width="400" src="pleasantest-logo.svg" alt="Pleasantest">
+	<br>
+	<br>
+	<br>
+</h1>
 
 [![NPM version](http://img.shields.io/npm/v/pleasantest.svg)](https://www.npmjs.org/package/pleasantest) [![Build Status](https://github.com/cloudfour/pleasantest/workflows/Node.js%20CI/badge.svg)](https://github.com/cloudfour/pleasantest/actions/workflows/ci.yml) [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
 
