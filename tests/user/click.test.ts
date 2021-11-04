@@ -225,7 +225,7 @@ test(
 
     {
       await utils.injectHTML(`
-        <label>
+        <label style="display:block; width: 120px; height: 20px">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
         </label>
       `);
@@ -239,8 +239,8 @@ test(
               Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-              Label associated with the checkbox was 115.4453125px × 18px
-              <label>
+              Label associated with the checkbox was 120px × 20px
+              <label style=\\"display:block; width: 120px; height: 20px\\">
                 
                         
                 <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
