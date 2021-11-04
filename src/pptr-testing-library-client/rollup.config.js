@@ -2,7 +2,8 @@ import babel from '@rollup/plugin-babel';
 import * as path from 'path';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
-import { rollupPluginAriaQuery } from '../../rollup-plugin-aria-query';
+import { rollupPluginAriaQuery } from '../rollup-plugin-aria-query';
+import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
@@ -54,6 +55,7 @@ const config = {
   input: ['src/pptr-testing-library-client/index.ts'],
   plugins: [
     rollupPluginAriaQuery(),
+    rollupPluginDomAccessibilityApi(),
     stubPlugin,
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
@@ -62,7 +64,7 @@ const config = {
   ],
   external: [],
   treeshake: { moduleSideEffects: 'no-external' },
-  output: { file: 'dist/pptr-testing-library-client.js' },
+  output: { file: 'dist/pptr-testing-library-client.js', preferConst: true },
 };
 
 export default config;

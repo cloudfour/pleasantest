@@ -36,7 +36,7 @@ export const assertElementHandle: (
 ) => asserts input is ElementHandle = (
   input,
   fn,
-  messageStart = `element must be an ElementHandle\n\n`,
+  messageStart = `element parameter must be an ElementHandle\n\n`,
 ) => {
   const type =
     input === null ? 'null' : isPromise(input) ? 'Promise' : typeof input;

@@ -1,5 +1,10 @@
 import type { PleasantestUtils } from 'pleasantest';
-import { withBrowser, devices } from 'pleasantest';
+import {
+  experimentalGetAccessibilityTree,
+  withBrowser,
+  devices,
+} from 'pleasantest';
+
 import { Liquid } from 'liquidjs';
 import * as path from 'path';
 const iPhone = devices['iPhone 11'];
@@ -75,23 +80,52 @@ test(
     await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
     // Before JS initializes the menus should be links
-    let aboutBtn = await screen.getByRole('link', { name: /about/i });
-    await expect(aboutBtn).toHaveAttribute('href');
-    await expect(
-      await screen.queryByRole('button', { name: /about/i }),
-    ).not.toBeInTheDocument();
+    expect(
+      await experimentalGetAccessibilityTree(
+        await screen.getByRole('navigation'),
+      ),
+    ).toMatchInlineSnapshot(`
+        navigation
+          heading "Company"
+            link "Company"
+              text "Company"
+          list
+            listitem
+              link "Products"
+                text "Products"
+            listitem
+              link "About"
+                text "About"
+            listitem
+              link "Log In"
+                text "Log In"
+      `);
 
     await utils.runJS(`
       import { init } from '.'
       init()
     `);
 
-    // The menus should be upgraded to buttons
-    aboutBtn = await screen.getByRole('button', { name: /about/i });
-    await expect(
-      await screen.queryByRole('link', { name: /about/i }),
-    ).not.toBeInTheDocument();
-
+    // The menus should be upgraded to buttons,
+    const aboutBtn = await screen.getByRole('button', { name: /about/i });
+    expect(
+      await experimentalGetAccessibilityTree(
+        await screen.getByRole('navigation'),
+      ),
+    ).toMatchInlineSnapshot(`
+        navigation
+          heading "Company"
+            link "Company"
+              text "Company"
+          list
+            listitem
+              button "Products"
+            listitem
+              button "About"
+            listitem
+              link "Log In"
+                text "Log In"
+      `);
     // Login should still be a link, since it does not trigger a menu to open
     const loginBtn = await screen.getByRole('link', { name: /log in/i });
     await expect(loginBtn).toHaveAttribute('href');
@@ -110,6 +144,7 @@ test(
     const productsBtn = await screen.getByRole('button', { name: /products/i });
     // First click: opens about menu
     await user.click(aboutBtn);
+
     await expect(await screen.getByText(aboutText)).toBeVisible();
     // Second click: closes about menu
     await user.click(aboutBtn);

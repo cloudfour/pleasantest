@@ -10,7 +10,7 @@ module.exports = (api) => {
           loose: true,
         },
       ],
-      '@babel/preset-typescript',
+      ['@babel/preset-typescript', { optimizeConstEnums: true }],
     ],
     plugins: isRollup ? ['babel-plugin-un-cjs'] : [],
   };

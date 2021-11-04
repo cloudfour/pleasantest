@@ -1,6 +1,7 @@
 import jestDomConfig from './src/jest-dom/rollup.config';
 import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config';
 import userUtilsConfig from './src/user-util/rollup.config';
+import accessibilityConfig from './src/accessibility/rollup.config';
 
 import dts from 'rollup-plugin-dts';
 import babel from '@rollup/plugin-babel';
@@ -61,6 +62,7 @@ const typesConfig = {
 export default [
   mainConfig,
   userUtilsConfig,
+  accessibilityConfig,
   jestDomConfig,
   pptrTestingLibraryConfig,
   typesConfig,

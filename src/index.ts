@@ -457,3 +457,5 @@ export const devices = puppeteer.devices;
 afterAll(async () => {
   await cleanupClientRuntimeServer();
 });
+
+export { getAccessibilityTree as experimentalGetAccessibilityTree } from './accessibility';

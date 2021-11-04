@@ -6,10 +6,10 @@ test(
     // @ts-expect-error This is testing the runtime behavior of the wrong type being passed
     await expect(user.selectOptions(5, ['1', '3'])).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "element must be an ElementHandle
+        "element parameter must be an ElementHandle
 
-            Received number"
-          `);
+        Received number"
+      `);
   }),
 );
 
