@@ -143,7 +143,7 @@ test(
   'labels which element is focused',
   withBrowser(async ({ utils, page, user, screen }) => {
     await utils.injectHTML(`
-      <button>Click me!</button>
+      <button style="padding: 20px">Click me!</button>
     `);
 
     const body = await page.evaluateHandle<ElementHandle>(() => document.body);
