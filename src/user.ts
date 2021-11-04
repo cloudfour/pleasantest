@@ -41,6 +41,8 @@ const wrapWithForgotAwait = (
     const original = user[key];
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
     const wrapper = async (...args: any[]) =>
+      // The await is necessary so `wrapper` is in the stack trace,
+      // so captureStackTrace works correctly
       // eslint-disable-next-line no-return-await
       await asyncHookTracker.addHook<any>(
         () => (original as any)(...args),
