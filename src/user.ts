@@ -40,8 +40,17 @@ const wrapWithForgotAwait = (
   for (const key of Object.keys(user) as (keyof PleasantestUser)[]) {
     const original = user[key];
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
-    const wrapper = (...args: any[]) =>
-      asyncHookTracker.addHook<any>(() => (original as any)(...args), wrapper);
+    const wrapper = async (...args: any[]) => {
+      try {
+        return await asyncHookTracker.addHook<any>(
+          () => (original as any)(...args),
+          wrapper,
+        );
+      } catch (error) {
+        removeFuncFromStackTrace(error, wrapper);
+        throw error;
+      }
+    };
 
     user[key] = wrapper;
   }
