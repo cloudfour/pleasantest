@@ -62,7 +62,7 @@
     "cjs-module-lexer": "^1.2.2",
     "es-module-lexer": "^0.9.3",
     "esbuild": "^0.13.12",
-    "mime": "^2.5.2",
+    "mime": "^2.6.0",
     "postcss": "^8.3.11",
     "puppeteer": "^10.4.0",
     "rollup": "^2.57.0",
