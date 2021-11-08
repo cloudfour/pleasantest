@@ -13,7 +13,8 @@ export const rollupPluginAriaQuery = () => ({
 const getAriaQueryCode = async () => {
   const q = await import('aria-query');
   return `export const roles = ${stringify(q.roles)};
-export const elementRoles = ${stringify(q.elementRoles)};`;
+export const elementRoles = ${stringify(q.elementRoles)};
+export const roleElements = ${stringify(q.roleElements)};`;
 };
 
 const stringify = (input) => {
