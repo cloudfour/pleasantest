@@ -324,6 +324,12 @@ Ensures that the element is visible to a user. Currently, the following checks a
 - Element has a size (its [bounding box](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect) has a non-zero width and height)
 - Element's opacity is greater than 0.05 (opacity of parent elements are considered)
 
+#### Target size
+
+Ensures that the clickable region of an element is large enough to easily be activated by users, even users with reduced fine motor skills or while using a touch input device.
+
+Element must be at least 44px wide and at least 44px tall to pass the target size check ([configurable](./docs/errors/target-size.md)).
+
 ## Full Example
 
 There is a menu example in the [examples folder](./examples/menu/index.test.ts)
@@ -360,6 +366,8 @@ Call Signatures:
   - `plugins`: Array of Rollup, Vite, or WMR plugins to add.
   - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
   - `esbuild`: [`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`: Options to pass to esbuild. Set to false to disable esbuild.
+- `user`: User API options object (all properties are optional). They will be applied when calling `user.*` methods.
+  - `targetSize`: (`number | boolean`) Set the minimum target size for `user.click`. Set to `false` to disable target size checks. This option can also be passed to individual `user.click` calls in the 2nd parameter.
 
 You can configure the default options (applied to all tests in current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
 
@@ -369,6 +377,9 @@ import { configureDefaults } from 'pleasantest'
 configureDefaults({
   device: /* ... */,
   moduleServer: {
+    /* ... */
+  },
+  user: {
     /* ... */
   },
   /* ... */
@@ -492,11 +503,13 @@ See the [`PleasantestUtils`](#utilities-api-pleasantestutils) documentation.
 
 The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `PleasantestContext`](#pleasantestcontextuser-pleasantestuser).
 
-#### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
+#### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean, targetSize?: number | boolean }): Promise<void>`
 
 Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleclickoptions). The difference is that `PleasantestUser.click` checks that the target element is an element that actually can be clicked before clicking it!
 
-**Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
+**Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible) or which have too small of a [**target size**](#target-size). You can override the visibility and target size checks by passing `{ force: true }`.
+
+The target size check can be disabled or configured by passing the `targetSize` option in the second parameter. Passing `false` disables the check; passing a number sets the minimum width/height of elements (in px).
 
 Additionally, it refuses to click an element if there is another element covering it. `{ force: true }` overrides this behavior.
 

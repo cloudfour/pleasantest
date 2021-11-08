@@ -45,6 +45,15 @@ ${el}`;
   }
 };
 
+// Why is this hardcoded?
+//   So that the snapshots do not fail when a new version is released and all the error messages change
+// Why is this not pointing to `main`?
+//   So that if the docs are moved around or renamed in the future, the links in previous PT versions still work
+// Does this need to be updated before every release?
+//   No, only when the docs are changed
+const docsVersion = 'v2.0.0';
+const customizeDocsMessage = `You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/${docsVersion}/docs/errors/target-size.md`;
+
 export const assertTargetSize = (
   el: Element,
   targetSize: number | true | undefined,
@@ -77,7 +86,7 @@ ${targetSizeMsg}
 Element was ${width}px × ${height}px
 ${el}
 You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
-You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
+${customizeDocsMessage}`;
       }
 
       // If label is valid
@@ -100,7 +109,7 @@ Label associated with the checkbox was ${labelSize.width}px × ${
       }px
 ${el.labels![0]}
 You can increase the target size by making the label or checkbox larger than ${size}px × ${size}px.
-You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
+${customizeDocsMessage}`;
     }
 
     // Non-checkbox case
@@ -113,7 +122,7 @@ You can customize the minimum target size by passing the user.targetSize option 
 ${targetSizeMsg}
 Element was ${width}px × ${height}px
 ${el}
-You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click`;
+${customizeDocsMessage}`;
   }
 };
 

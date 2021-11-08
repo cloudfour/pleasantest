@@ -186,7 +186,7 @@ test(
             Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
             Element was 2px × 2px
             <button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>
-            You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+            You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
     // This confirms a passing test when setting a custom target size
@@ -204,7 +204,7 @@ test(
             Target size of element is smaller than 46px × 46px
             Element was 45px × 45px
             <button style=\\"width: 45px; height: 45px; border: none; padding: 0px;\\">hi</button>
-            You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+            You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
     await utils.injectHTML(`
@@ -259,7 +259,7 @@ test(
                       
               </label>
               You can increase the target size by making the label or checkbox larger than 44px × 44px.
-              You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
     }
 
@@ -279,7 +279,7 @@ test(
               Element was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               You can increase the target size of the checkbox by adding a label that is larger than 44px × 44px
-              You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
     }
   }),
@@ -300,7 +300,7 @@ test(
             Target size of element is smaller than 46px × 46px
             Element was 2px × 2px
             <button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>
-            You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
+            You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
   }),
 );
