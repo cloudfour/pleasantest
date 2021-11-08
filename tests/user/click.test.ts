@@ -177,7 +177,8 @@ test(
       <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
     `);
 
-    const button = await screen.getByRole('button', { name: /hi/i });
+    const button: puppeteeer.ElementHandle<HTMLButtonElement> =
+      await screen.getByRole('button', { name: /hi/i });
 
     await expect(user.click(button)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
@@ -191,26 +192,35 @@ test(
     // This confirms a passing test when setting a custom target size
     await user.click(button, { targetSize: 2 });
 
+    // Customizing the target size should catch elements that pass based on the default target size
+    // The error message should also change when a custom target size is set
+    await button.evaluate((button) => {
+      button.style.width = '45px';
+      button.style.height = '45px';
+    });
     await expect(user.click(button, { targetSize: 46 })).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Cannot click element that is too small.
             Target size of element is smaller than 46px × 46px
-            Element was 2px × 2px
-            <button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>
+            Element was 45px × 45px
+            <button style=\\"width: 45px; height: 45px; border: none; padding: 0px;\\">hi</button>
             You can customize the minimum target size by passing the user.targetSize option to configureDefaults or withBrowser or user.click"
           `);
 
     await utils.injectHTML(`
       <p>This is text <a href="#">with a link</a></p>
     `);
-    // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
-    const link: puppeteeer.ElementHandle<HTMLElement> = await screen.getByRole(
-      'link',
-    );
-
-    await user.click(link);
 
     {
+      // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
+      const link: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('link');
+
+      await user.click(link);
+    }
+
+    {
+      // Small checkboxes with large-enough labels should pass
       await utils.injectHTML(`
         <label style="padding: 1em">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
@@ -224,6 +234,7 @@ test(
     }
 
     {
+      // Small checkboxes with small labels should fail
       await utils.injectHTML(`
         <label style="display:block; width: 120px; height: 20px">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
@@ -253,6 +264,7 @@ test(
     }
 
     {
+      // Small checkboxes with no label should fail
       await utils.injectHTML(`
         <input type="checkbox" name="test-checkbox" />
       `);
