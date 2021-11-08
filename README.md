@@ -328,7 +328,7 @@ Ensures that the element is visible to a user. Currently, the following checks a
 
 Ensures that the clickable region of an element is large enough to easily be activated by users, even users with reduced fine motor skills or while using a touch input device.
 
-Element must be at least 44px wide and at least 44px tall to pass the target size check ([configurable](./docs/errors/target-size.md)).
+Element must be at least 44px wide and at least 44px tall to pass the target size check (configurable via `user.targetSize` option in `WithBrowserOpts` or `targetSize` option for `user.click`).
 
 ## Full Example
 
