@@ -507,7 +507,7 @@ The user API allows you to perform actions on behalf of the user. If you have us
 
 Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleclickoptions). The difference is that `PleasantestUser.click` checks that the target element is an element that actually can be clicked before clicking it!
 
-**Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible) or which have too small of a [**target size**](#target-size). You can override the visibility and target size checks by passing `{ force: true }`.
+**Actionability checks**: It refuses to click elements that are not [**attached**](#attached), not [**visible**](#visible) or which have too small of a [**target size**](#target-size). You can override the visibility and target size checks by passing `{ force: true }`.
 
 The target size check can be disabled or configured by passing the `targetSize` option in the second parameter. Passing `false` disables the check; passing a number sets the minimum width/height of elements (in px).
 
