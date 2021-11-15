@@ -70,19 +70,19 @@ export const assertTargetSize = (
 
   const size = typeof targetSize === 'number' ? targetSize : 44;
 
+  const targetSizeMsg = (element = 'element') =>
+    typeof targetSize === 'number'
+      ? `Target size of ${element} is smaller than ${size}px × ${size}px`
+      : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
+
   if (width < size || height < size) {
     if (el instanceof HTMLInputElement && el.type === 'checkbox') {
       const labelSize = el.labels?.[0]?.getBoundingClientRect();
 
       // Checkbox did not have label
       if (!labelSize) {
-        const targetSizeMsg =
-          typeof targetSize === 'number'
-            ? `Target size of checkbox is smaller than ${size}px × ${size}px`
-            : 'Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
         throw error`Cannot click checkbox that is too small.
-${targetSizeMsg}
+${targetSizeMsg('checkbox')}
 Element was ${width}px × ${height}px
 ${el}
 You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
@@ -95,13 +95,8 @@ ${customizeDocsMessage}`;
       }
 
       // Checkbox and label was too small
-      const targetSizeMsg =
-        typeof targetSize === 'number'
-          ? `Target size of element is smaller than ${size}px × ${size}px`
-          : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
       throw error`Cannot click checkbox that is too small.
-${targetSizeMsg}
+${targetSizeMsg()}
 Checkbox was ${width}px × ${height}px
 ${el}
 Label associated with the checkbox was ${labelSize.width}px × ${
@@ -113,13 +108,8 @@ ${customizeDocsMessage}`;
     }
 
     // Non-checkbox case
-    const targetSizeMsg =
-      typeof targetSize === 'number'
-        ? `Target size of element is smaller than ${size}px × ${size}px`
-        : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
     throw error`Cannot click element that is too small.
-${targetSizeMsg}
+${targetSizeMsg()}
 Element was ${width}px × ${height}px
 ${el}
 ${customizeDocsMessage}`;
