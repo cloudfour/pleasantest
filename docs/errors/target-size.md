@@ -2,7 +2,7 @@
 
 ## Background/Intent
 
-This error is intended to encourage developers and designers to use target sizes that are large enough for users to easily click.
+This error is intended to encourage developers and designers to use target sizes that are large enough for users to easily click or touch.
 
 An element's **target size** is the size of the clickable/tappable region that activates the element. Having a large-enough target size ensures that users can easily click/tap elements, especially in cases where low-input-precision devices (like touchscreens) are used, and for users who may have difficulty aiming cursors due to fine motor movement challenges.
 
