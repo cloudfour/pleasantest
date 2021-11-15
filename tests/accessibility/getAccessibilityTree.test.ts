@@ -40,12 +40,12 @@ test(
     `);
     expect(await getAccessibilityTree(body, { includeText: true }))
       .toMatchInlineSnapshot(`
-        list
-          listitem
-            text "something"
-          listitem
-            text "something else"
-      `);
+      list
+        listitem
+          text "something"
+        listitem
+          text "something else"
+    `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
       <button aria-describedby="click-me-description"><div>click me</div></button>
@@ -63,14 +63,14 @@ test(
     `);
     expect(await getAccessibilityTree(body, { includeText: true }))
       .toMatchInlineSnapshot(`
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        text "extended description"
-      `);
+      button "click me"
+        ↳ description: "extended description"
+      button "click me"
+        ↳ description: "extended description"
+      button "click me"
+        ↳ description: "extended description"
+      text "extended description"
+    `);
 
     expect(await getAccessibilityTree(body, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
@@ -92,11 +92,11 @@ test(
 
     expect(await getAccessibilityTree(body, { includeText: true }))
       .toMatchInlineSnapshot(`
-        text "Label Text"
-        textbox "Label Text"
-        text "Label Text"
-        textbox "Label Text"
-      `);
+      text "Label Text"
+      textbox "Label Text"
+      text "Label Text"
+      textbox "Label Text"
+    `);
   }),
 );
 
