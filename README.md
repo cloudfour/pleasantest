@@ -365,9 +365,9 @@ Call Signatures:
 - `moduleServer`: Module Server options object (all properties are optional). They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
   - `plugins`: Array of Rollup, Vite, or WMR plugins to add.
   - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
-  - `esbuild`: [`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`: Options to pass to esbuild. Set to false to disable esbuild.
+  - `esbuild`: ([`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`) Options to pass to esbuild. Set to false to disable esbuild.
 - `user`: User API options object (all properties are optional). They will be applied when calling `user.*` methods.
-  - `targetSize`: (`number | boolean`) Set the minimum target size for `user.click`. Set to `false` to disable target size checks. This option can also be passed to individual `user.click` calls in the 2nd parameter.
+  - `targetSize`: (`number | boolean`, default `44`): Set the minimum target size for `user.click`. Set to `false` to disable target size checks. This option can also be passed to individual `user.click` calls in the 2nd parameter.
 
 You can configure the default options (applied to all tests in current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
 
