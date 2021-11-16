@@ -68,8 +68,11 @@ export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
 
   if (width < size || height < size) {
     // Checkbox element messaging
-    if (el instanceof HTMLInputElement && el.type === 'checkbox') {
-      return checkboxTargetSize({ el, targetSize });
+    if (
+      el instanceof HTMLInputElement &&
+      (el.type === 'checkbox' || el.type === 'radio')
+    ) {
+      return checkInputTargetSize({ el, targetSize });
     }
 
     // General element messaging
@@ -81,7 +84,7 @@ ${customizeDocsMessage}`;
   }
 };
 
-const checkboxTargetSize = ({
+const checkInputTargetSize = ({
   el,
   targetSize,
 }: {
@@ -97,7 +100,9 @@ const checkboxTargetSize = ({
 ${getTargetSizeMessage({ el, targetSize })}
 ${getDimensionsMessage(el)}
 ${el}
-You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
+You can increase the target size of the ${getElementDescriptor(
+      el,
+    )} by adding a label that is larger than ${size}px × ${size}px
 ${customizeDocsMessage}`;
   }
 
@@ -111,11 +116,13 @@ ${customizeDocsMessage}`;
 ${getTargetSizeMessage({ el, targetSize })}
 ${getDimensionsMessage(el)}
 ${el}
-Label associated with the checkbox was ${labelSize.width}px × ${
-    labelSize.height
-  }px
+Label associated with the ${getElementDescriptor(el)} was ${
+    labelSize.width
+  }px × ${labelSize.height}px
 ${el.labels![0]}
-You can increase the target size by making the label or checkbox larger than ${size}px × ${size}px.
+You can increase the target size by making the label or ${getElementDescriptor(
+    el,
+  )} larger than ${size}px × ${size}px.
 ${customizeDocsMessage}`;
 };
 
@@ -167,7 +174,7 @@ const getTargetSize = (targetSize: TargetSize) =>
   typeof targetSize === 'number' ? targetSize : 44;
 
 const getElementDescriptor = (el: Element) =>
-  el instanceof HTMLInputElement ? el.type : 'element';
+  el instanceof HTMLInputElement ? `${el.type} input` : 'element';
 
 const capitalizeText = (text: string) =>
   text.charAt(0).toUpperCase() + text.slice(1);

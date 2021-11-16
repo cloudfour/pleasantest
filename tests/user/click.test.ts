@@ -171,6 +171,65 @@ describe('actionability checks', () => {
 });
 
 test(
+  'target size check should pass',
+  withBrowser(async ({ utils, screen, user }) => {
+    //
+    // Custom target size
+    //
+    {
+      // Start with a tiny button
+      await utils.injectHTML(`
+        <button style="width: 3px; height: 3px; border: none; padding: 0;">hi</button>
+      `);
+
+      const button: puppeteeer.ElementHandle<HTMLButtonElement> =
+        await screen.getByRole('button', { name: /hi/i });
+
+      // Confirms a passing test when setting a custom target size
+      await user.click(button, { targetSize: 2 });
+    }
+
+    //
+    // Inline element
+    //
+    {
+      // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
+      await utils.injectHTML(`
+        <p>This is text <a href="#">with a link</a></p>
+      `);
+
+      const link: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('link');
+
+      await user.click(link);
+    }
+
+    //
+    // Checkbox & radio inputs with larger labels
+    //
+    {
+      // Small inputs with large-enough labels should pass
+      await utils.injectHTML(`
+        <label style="padding: 1em">
+          <input type="checkbox" name="test-checkbox" /> Test checkbox
+        </label>
+        <label style="padding: 1em">
+          <input type="radio" name="test-radio" /> Test radio
+        </label>
+      `);
+
+      const checkbox: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('checkbox');
+      const radio: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('radio');
+
+      await user.click(checkbox);
+      await user.click(radio);
+    }
+  }),
+);
+
+test(
   'throws error if target size is too small',
   withBrowser(async ({ utils, screen, user }) => {
     await utils.injectHTML(`
@@ -189,9 +248,6 @@ test(
             You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
-    // This confirms a passing test when setting a custom target size
-    await user.click(button, { targetSize: 2 });
-
     // Customizing the target size should catch elements that pass based on the default target size
     // The error message should also change when a custom target size is set
     await button.evaluate((button) => {
@@ -207,32 +263,9 @@ test(
             You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
-    await utils.injectHTML(`
-      <p>This is text <a href="#">with a link</a></p>
-    `);
-
-    {
-      // Inline elements don't have the 44px × 44px minimum, per W3C recommendation
-      const link: puppeteeer.ElementHandle<HTMLElement> =
-        await screen.getByRole('link');
-
-      await user.click(link);
-    }
-
-    {
-      // Small checkboxes with large-enough labels should pass
-      await utils.injectHTML(`
-        <label style="padding: 1em">
-          <input type="checkbox" name="test-checkbox" /> Test checkbox
-        </label>
-      `);
-
-      const checkbox: puppeteeer.ElementHandle<HTMLElement> =
-        await screen.getByRole('checkbox');
-
-      await user.click(checkbox);
-    }
-
+    //
+    // Checkbox input with small label
+    //
     {
       // Small checkboxes with small labels should fail
       await utils.injectHTML(`
@@ -246,11 +279,11 @@ test(
 
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click checkbox that is too small.
-              Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Checkbox was 13px × 13px
+              "Cannot click checkbox input that is too small.
+              Target size of checkbox input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-              Label associated with the checkbox was 120px × 20px
+              Label associated with the checkbox input was 120px × 20px
               <label style=\\"display:block; width: 120px; height: 20px\\">
                 
                         
@@ -258,11 +291,14 @@ test(
                  Test checkbox
                       
               </label>
-              You can increase the target size by making the label or checkbox larger than 44px × 44px.
+              You can increase the target size by making the label or checkbox input larger than 44px × 44px.
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
     }
 
+    //
+    // Checkbox input with no label
+    //
     {
       // Small checkboxes with no label should fail
       await utils.injectHTML(`
@@ -274,11 +310,67 @@ test(
 
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click checkbox that is too small.
-              Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Checkbox was 13px × 13px
+              "Cannot click checkbox input that is too small.
+              Target size of checkbox input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-              You can increase the target size of the checkbox by adding a label that is larger than 44px × 44px
+              You can increase the target size of the checkbox input by adding a label that is larger than 44px × 44px
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
+    }
+
+    //
+    // Radio input with small label
+    //
+    {
+      // Small radio inputs with small labels should fail
+      await utils.injectHTML(`
+        <label style="display:block; width: 120px; height: 20px">
+          <input type="radio" name="test-radio" /> Test radio
+        </label>
+      `);
+
+      const radio: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('radio');
+
+      await expect(user.click(radio)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click radio input that is too small.
+              Target size of radio input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Radio input was 13px × 13px
+              <input type=\\"radio\\" name=\\"test-radio\\" />
+              Label associated with the radio input was 120px × 20px
+              <label style=\\"display:block; width: 120px; height: 20px\\">
+                
+                        
+                <input type=\\"radio\\" name=\\"test-radio\\" />
+                 Test radio
+                      
+              </label>
+              You can increase the target size by making the label or radio input larger than 44px × 44px.
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
+    }
+
+    //
+    // Radio input with no label
+    //
+    {
+      // Small radio inputs with no label should fail
+      await utils.injectHTML(`
+        <input type="radio" name="test-radio" />
+      `);
+
+      const radio: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('radio');
+
+      await expect(user.click(radio)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click radio input that is too small.
+              Target size of radio input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Radio input was 13px × 13px
+              <input type=\\"radio\\" name=\\"test-radio\\" />
+              You can increase the target size of the radio input by adding a label that is larger than 44px × 44px
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
     }
