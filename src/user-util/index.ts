@@ -57,11 +57,9 @@ const customizeDocsMessage = `You can customize this check by setting the target
 type TargetSize = number | true | undefined;
 
 export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
-  const display = getComputedStyle(el).display;
-
-  // Per the W3C recommendation, inline elements are excluded
+  // Per W3C recommendation, inline elements are excluded from a min target size
   // See: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-  if (display === 'inline') {
+  if (getComputedStyle(el).display === 'inline') {
     return;
   }
 
@@ -69,19 +67,14 @@ export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
   const size = getTargetSize(targetSize);
 
   if (width < size || height < size) {
-    // Checkbox element
+    // Checkbox element messaging
     if (el instanceof HTMLInputElement && el.type === 'checkbox') {
       return checkboxTargetSize({ el, targetSize });
     }
 
-    // General element
-    const targetSizeMsg =
-      typeof targetSize === 'number'
-        ? `Target size of element is smaller than ${size}px × ${size}px`
-        : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
-    throw error`Cannot click element that is too small.
-${targetSizeMsg}
+    // General element messaging
+    throw error`${getClickMessage(el)}
+${getTargetSizeMessage({ el, targetSize })}
 Element was ${width}px × ${height}px
 ${el}
 ${customizeDocsMessage}`;
@@ -95,21 +88,14 @@ const checkboxTargetSize = ({
   el: HTMLInputElement;
   targetSize: TargetSize;
 }) => {
-  console.log(el.labels?.[0]?.getBoundingClientRect());
-
   const labelSize = el.labels?.[0]?.getBoundingClientRect();
   const { width, height } = el.getBoundingClientRect();
   const size = getTargetSize(targetSize);
 
   // Checkbox did not have label
   if (!labelSize) {
-    const targetSizeMsg =
-      typeof targetSize === 'number'
-        ? `Target size of checkbox is smaller than ${size}px × ${size}px`
-        : 'Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
-    throw error`Cannot click checkbox that is too small.
-${targetSizeMsg}
+    throw error`${getClickMessage(el)}
+${getTargetSizeMessage({ el, targetSize })}
 Element was ${width}px × ${height}px
 ${el}
 You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
@@ -118,21 +104,12 @@ ${customizeDocsMessage}`;
 
   // If label is valid
   if (labelSize.width >= size && labelSize.height >= size) {
-    console.log('ABOUT to rETURN');
-
     return;
   }
 
-  console.log('NO NOT HERE');
-
   // Checkbox and label was too small
-  const targetSizeMsg =
-    typeof targetSize === 'number'
-      ? `Target size of element is smaller than ${size}px × ${size}px`
-      : 'Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html';
-
-  throw error`Cannot click checkbox that is too small.
-${targetSizeMsg}
+  throw error`${getClickMessage(el)}
+${getTargetSizeMessage({ el, targetSize })}
 Checkbox was ${width}px × ${height}px
 ${el}
 Label associated with the checkbox was ${labelSize.width}px × ${
@@ -141,6 +118,29 @@ Label associated with the checkbox was ${labelSize.width}px × ${
 ${el.labels![0]}
 You can increase the target size by making the label or checkbox larger than ${size}px × ${size}px.
 ${customizeDocsMessage}`;
+};
+
+const getElementDescriptor = (el: Element) =>
+  el instanceof HTMLInputElement ? el.type : 'element';
+
+const getClickMessage = (el: Element) =>
+  `Cannot click ${getElementDescriptor(el)} that is too small.`;
+
+const getTargetSizeMessage = ({
+  el,
+  targetSize,
+}: {
+  el: Element;
+  targetSize: TargetSize;
+}) => {
+  const size = getTargetSize(targetSize);
+  return typeof targetSize === 'number'
+    ? `Target size of ${getElementDescriptor(
+        el,
+      )} is smaller than ${size}px × ${size}px`
+    : `Target size of ${getElementDescriptor(
+        el,
+      )} does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html`;
 };
 
 const getTargetSize = (targetSize: TargetSize) =>

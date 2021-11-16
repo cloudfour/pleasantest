@@ -247,7 +247,7 @@ test(
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click checkbox that is too small.
-              Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               Label associated with the checkbox was 120px × 20px
