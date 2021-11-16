@@ -53,6 +53,7 @@ ${el}`;
 //   No, only when the docs are changed
 const docsVersion = 'v2.0.0';
 const customizeDocsMessage = `You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/${docsVersion}/docs/errors/target-size.md`;
+const errorMessage = 'Cannot click element that is too small.';
 
 type TargetSize = number | true | undefined;
 
@@ -67,16 +68,20 @@ export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
   const size = getTargetSize(targetSize);
 
   if (width < size || height < size) {
-    // Checkbox element messaging
+    // Custom messaging for inputs that should have labels (e.g. type="radio").
+    // Inputs that don't have labels (e.g. type="submit") are checked by the
+    // general element check.
     if (
       el instanceof HTMLInputElement &&
-      (el.type === 'checkbox' || el.type === 'radio')
+      el.type !== 'submit' &&
+      el.type !== 'button' &&
+      el.type !== 'reset'
     ) {
-      return checkInputTargetSize({ el, targetSize });
+      return checkInputEl({ el, targetSize });
     }
 
     // General element messaging
-    throw error`${getClickMessage(el)}
+    throw error`${errorMessage}
 ${getTargetSizeMessage({ el, targetSize })}
 ${getDimensionsMessage(el)}
 ${el}
@@ -84,7 +89,8 @@ ${customizeDocsMessage}`;
   }
 };
 
-const checkInputTargetSize = ({
+/** Handles inputs that should have labels */
+const checkInputEl = ({
   el,
   targetSize,
 }: {
@@ -94,9 +100,9 @@ const checkInputTargetSize = ({
   const labelSize = el.labels?.[0]?.getBoundingClientRect();
   const size = getTargetSize(targetSize);
 
-  // Checkbox did not have label
+  // Element did not have label
   if (!labelSize) {
-    throw error`${getClickMessage(el)}
+    throw error`${errorMessage}
 ${getTargetSizeMessage({ el, targetSize })}
 ${getDimensionsMessage(el)}
 ${el}
@@ -111,8 +117,8 @@ ${customizeDocsMessage}`;
     return;
   }
 
-  // Checkbox and label was too small
-  throw error`${getClickMessage(el)}
+  // Element and label was too small
+  throw error`${errorMessage}
 ${getTargetSizeMessage({ el, targetSize })}
 ${getDimensionsMessage(el)}
 ${el}
@@ -142,9 +148,6 @@ export const error = (
     return acc;
   }, [] as (string | Element | number | boolean)[]),
 });
-
-const getClickMessage = (el: Element) =>
-  `Cannot click ${getElementDescriptor(el)} that is too small.`;
 
 const getTargetSizeMessage = ({
   el,

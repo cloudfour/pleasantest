@@ -230,23 +230,63 @@ test(
             You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
+    //
+    // Inputs that don't use labels
+    //
     {
       await utils.injectHTML(`
       <input type="button" name="test-button" value="Test button" />
+      <input type="submit" name="test-submit" value="Test submit" />
+      <input type="reset" name="test-reset" value="Test reset" />
       `);
 
+      // For input type="button"
       const button: puppeteeer.ElementHandle<HTMLElement> =
-        await screen.getByRole('button');
+        await screen.getByRole('button', { name: /test button/i });
 
       await expect(user.click(button)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click button input that is too small.
+              "Cannot click element that is too small.
               Button input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Button input was 81.21875px × 21.5px
               <input
                 type=\\"button\\"
                 name=\\"test-button\\"
                 value=\\"Test button\\"
+              />
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
+
+      // For input type="submit"
+      const submit: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('button', { name: /test submit/i });
+
+      await expect(user.click(submit)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click element that is too small.
+              Submit input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Submit input was 83.4140625px × 21.5px
+              <input
+                type=\\"submit\\"
+                name=\\"test-submit\\"
+                value=\\"Test submit\\"
+              />
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
+
+      // For input type="reset"
+      const reset: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('button', { name: /test reset/i });
+
+      await expect(user.click(reset)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click element that is too small.
+              Reset input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Reset input was 73.7890625px × 21.5px
+              <input
+                type=\\"reset\\"
+                name=\\"test-reset\\"
+                value=\\"Test reset\\"
               />
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
@@ -268,7 +308,7 @@ test(
 
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click checkbox input that is too small.
+              "Cannot click element that is too small.
               Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
@@ -299,7 +339,7 @@ test(
 
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click checkbox input that is too small.
+              "Cannot click element that is too small.
               Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
@@ -324,7 +364,7 @@ test(
 
       await expect(user.click(radio)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click radio input that is too small.
+              "Cannot click element that is too small.
               Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Radio input was 13px × 13px
               <input type=\\"radio\\" name=\\"test-radio\\" />
@@ -355,7 +395,7 @@ test(
 
       await expect(user.click(radio)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click radio input that is too small.
+              "Cannot click element that is too small.
               Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Radio input was 13px × 13px
               <input type=\\"radio\\" name=\\"test-radio\\" />
