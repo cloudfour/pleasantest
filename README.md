@@ -326,7 +326,7 @@ Ensures that the element is visible to a user. Currently, the following checks a
 
 #### Target size
 
-Ensures that the clickable region of an element is large enough to easily be activated by users, even users with reduced fine motor skills or while using a touch input device.
+> [The intent of this success criteria is to ensure that target sizes are large enough for users to easily activate them, even if the user is accessing content on a small handheld touch screen device, has limited dexterity, or has trouble activating small targets for other reasons. For instance, mice and similar pointing devices can be hard to use for these users, and a larger target will help them activate the target.](https://www.w3.org/WAI/WCAG21/Understanding/target-size.html)
 
 Per the [W3C Web Content Accessibility Guidelines (WCAG) 2.1](https://www.w3.org/TR/WCAG21/#target-size), the element must be at least 44px wide and at least 44px tall to pass the target size check (configurable via `user.targetSize` option in `WithBrowserOpts` or `targetSize` option for `user.click`).
 
