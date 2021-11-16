@@ -276,7 +276,7 @@ test(
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click checkbox that is too small.
               Target size of checkbox does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Element was 13px × 13px
+              Checkbox was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               You can increase the target size of the checkbox by adding a label that is larger than 44px × 44px
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"

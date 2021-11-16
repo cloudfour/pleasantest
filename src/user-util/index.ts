@@ -75,7 +75,7 @@ export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
     // General element messaging
     throw error`${getClickMessage(el)}
 ${getTargetSizeMessage({ el, targetSize })}
-Element was ${width}px × ${height}px
+${getDimensionsMessage(el)}
 ${el}
 ${customizeDocsMessage}`;
   }
@@ -89,14 +89,13 @@ const checkboxTargetSize = ({
   targetSize: TargetSize;
 }) => {
   const labelSize = el.labels?.[0]?.getBoundingClientRect();
-  const { width, height } = el.getBoundingClientRect();
   const size = getTargetSize(targetSize);
 
   // Checkbox did not have label
   if (!labelSize) {
     throw error`${getClickMessage(el)}
 ${getTargetSizeMessage({ el, targetSize })}
-Element was ${width}px × ${height}px
+${getDimensionsMessage(el)}
 ${el}
 You can increase the target size of the checkbox by adding a label that is larger than ${size}px × ${size}px
 ${customizeDocsMessage}`;
@@ -110,7 +109,7 @@ ${customizeDocsMessage}`;
   // Checkbox and label was too small
   throw error`${getClickMessage(el)}
 ${getTargetSizeMessage({ el, targetSize })}
-Checkbox was ${width}px × ${height}px
+${getDimensionsMessage(el)}
 ${el}
 Label associated with the checkbox was ${labelSize.width}px × ${
     labelSize.height
@@ -120,8 +119,22 @@ You can increase the target size by making the label or checkbox larger than ${s
 ${customizeDocsMessage}`;
 };
 
-const getElementDescriptor = (el: Element) =>
-  el instanceof HTMLInputElement ? el.type : 'element';
+// This is used to generate the arrays that are used
+// to produce messages with live elements in the browser,
+// and stringified elements in node
+// example usage:
+// error`something bad happened: ${el}`
+// returns { error: ['something bad happened', el]}
+export const error = (
+  literals: TemplateStringsArray,
+  ...placeholders: (Element | string | number | boolean)[]
+) => ({
+  error: literals.reduce((acc, val, i) => {
+    if (i !== 0) acc.push(placeholders[i - 1]);
+    if (val !== '') acc.push(val);
+    return acc;
+  }, [] as (string | Element | number | boolean)[]),
+});
 
 const getClickMessage = (el: Element) =>
   `Cannot click ${getElementDescriptor(el)} that is too small.`;
@@ -143,22 +156,18 @@ const getTargetSizeMessage = ({
       )} does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html`;
 };
 
+const getDimensionsMessage = (el: Element) => {
+  const { width, height } = el.getBoundingClientRect();
+  return `${capitalizeText(
+    getElementDescriptor(el),
+  )} was ${width}px × ${height}px`;
+};
+
 const getTargetSize = (targetSize: TargetSize) =>
   typeof targetSize === 'number' ? targetSize : 44;
 
-// This is used to generate the arrays that are used
-// to produce messages with live elements in the browser,
-// and stringified elements in node
-// example usage:
-// error`something bad happened: ${el}`
-// returns { error: ['something bad happened', el]}
-export const error = (
-  literals: TemplateStringsArray,
-  ...placeholders: (Element | string | number | boolean)[]
-) => ({
-  error: literals.reduce((acc, val, i) => {
-    if (i !== 0) acc.push(placeholders[i - 1]);
-    if (val !== '') acc.push(val);
-    return acc;
-  }, [] as (string | Element | number | boolean)[]),
-});
+const getElementDescriptor = (el: Element) =>
+  el instanceof HTMLInputElement ? el.type : 'element';
+
+const capitalizeText = (text: string) =>
+  text.charAt(0).toUpperCase() + text.slice(1);
