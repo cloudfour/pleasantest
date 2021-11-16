@@ -162,32 +162,42 @@ test(
     }
 
     //
-    // Checkbox & radio inputs with larger labels
+    // Inputs with large enough sizing
     //
     {
-      // Small inputs with large-enough labels should pass
       await utils.injectHTML(`
-        <label style="padding: 1em">
+        <style>
+          label,
+          input[type="text"] {
+            padding: 1em;
+          }
+        </style>
+        <label>
           <input type="checkbox" name="test-checkbox" /> Test checkbox
         </label>
-        <label style="padding: 1em">
+        <label>
           <input type="radio" name="test-radio" /> Test radio
         </label>
+        <label>Test text</label>
+        <input type="text" name="test-text" id="text-text" /> 
       `);
 
       const checkbox: puppeteeer.ElementHandle<HTMLElement> =
         await screen.getByRole('checkbox');
       const radio: puppeteeer.ElementHandle<HTMLElement> =
         await screen.getByRole('radio');
+      const text: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('textbox');
 
       await user.click(checkbox);
       await user.click(radio);
+      await user.click(text);
     }
   }),
 );
 
 test(
-  'throws error if target size is too small',
+  'target size check should throw error',
   withBrowser(async ({ utils, screen, user }) => {
     await utils.injectHTML(`
       <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
