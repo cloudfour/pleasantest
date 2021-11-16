@@ -127,49 +127,6 @@ test(
   }),
 );
 
-describe('actionability checks', () => {
-  test(
-    'refuses to click detached element',
-    withBrowser(async ({ utils, user, screen }) => {
-      await utils.injectHTML(`<button>hi</button>`);
-      const button = await screen.getByRole('button', { name: /hi/i });
-      // Remove element from the DOM but still keep a reference to it
-      await button.evaluate((b) => b.remove());
-      await expect(user.click(button, { targetSize: false })).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <button>hi</button>"
-            `);
-      // Puppeteer's .click doesn't work on detached elements,
-      // so even with { force: true } we will not attempt to click
-      await expect(user.click(button, { force: true })).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not attached to the DOM:
-              <button>hi</button>"
-            `);
-    }),
-  );
-
-  test(
-    'refuses to click non-visible element',
-    withBrowser(async ({ utils, user, screen }) => {
-      await utils.injectHTML(`
-      <button style="opacity: 0">hi</button>
-    `);
-
-      const button = await screen.getByRole('button', { name: /hi/i });
-
-      await expect(user.click(button, { targetSize: false })).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not visible (it is near zero opacity):
-              <button style=\\"opacity: 0\\">hi</button>"
-            `);
-      // With { force: true } it should skip the visibility check
-      await user.click(button, { force: true });
-    }),
-  );
-});
-
 test(
   'target size check should pass',
   withBrowser(async ({ utils, screen, user }) => {
@@ -396,3 +353,46 @@ test(
           `);
   }),
 );
+
+describe('actionability checks', () => {
+  test(
+    'refuses to click detached element',
+    withBrowser(async ({ utils, user, screen }) => {
+      await utils.injectHTML(`<button>hi</button>`);
+      const button = await screen.getByRole('button', { name: /hi/i });
+      // Remove element from the DOM but still keep a reference to it
+      await button.evaluate((b) => b.remove());
+      await expect(user.click(button, { targetSize: false })).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot perform action on element that is not attached to the DOM:
+              <button>hi</button>"
+            `);
+      // Puppeteer's .click doesn't work on detached elements,
+      // so even with { force: true } we will not attempt to click
+      await expect(user.click(button, { force: true })).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot perform action on element that is not attached to the DOM:
+              <button>hi</button>"
+            `);
+    }),
+  );
+
+  test(
+    'refuses to click non-visible element',
+    withBrowser(async ({ utils, user, screen }) => {
+      await utils.injectHTML(`
+      <button style="opacity: 0">hi</button>
+    `);
+
+      const button = await screen.getByRole('button', { name: /hi/i });
+
+      await expect(user.click(button, { targetSize: false })).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot perform action on element that is not visible (it is near zero opacity):
+              <button style=\\"opacity: 0\\">hi</button>"
+            `);
+      // With { force: true } it should skip the visibility check
+      await user.click(button, { force: true });
+    }),
+  );
+});
