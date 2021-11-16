@@ -69,8 +69,17 @@ export const assertTargetSize = (el: Element, targetSize: TargetSize) => {
 
   if (width < size || height < size) {
     // Custom messaging for inputs that should have labels (e.g. type="radio").
-    // Inputs that don't have labels (e.g. type="submit") are checked by the
-    // general element check.
+    //
+    // Inputs that aren't expected to have labels (e.g. type="submit") are
+    // checked by the general element check.
+    //
+    // MDN <input> docs were referenced and the following were assumed
+    // to not have labels:
+    // - type="submit"
+    // - type="button"
+    // - type="reset"
+    //
+    // @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
     if (
       el instanceof HTMLInputElement &&
       el.type !== 'submit' &&

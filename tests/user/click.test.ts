@@ -234,7 +234,7 @@ test(
           `);
 
     //
-    // Inputs that aren't expected to use labels
+    // Inputs that aren't expected to have labels
     //
     {
       await utils.injectHTML(`
