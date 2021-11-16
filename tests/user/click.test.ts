@@ -238,9 +238,24 @@ test(
     //
     {
       await utils.injectHTML(`
-      <input type="button" name="test-button" value="Test button" />
-      <input type="submit" name="test-submit" value="Test submit" />
-      <input type="reset" name="test-reset" value="Test reset" />
+      <input
+        style="display: block; width: 90px; height: 25px;"
+        type="button"
+        name="test-button"
+        value="Test button"
+      />
+      <input
+        style="display: block; width: 90px; height: 25px;"
+        type="submit"
+        name="test-submit"
+        value="Test submit"
+      />
+      <input
+        style="display: block; width: 90px; height: 25px;"
+        type="reset"
+        name="test-reset"
+        value="Test reset"
+      />
       `);
 
       // For input type="button"
@@ -251,8 +266,9 @@ test(
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click element that is too small.
               Button input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Button input was 81.21875px × 21.5px
+              Button input was 90px × 25px
               <input
+                style=\\"display: block; width: 90px; height: 25px;\\"
                 type=\\"button\\"
                 name=\\"test-button\\"
                 value=\\"Test button\\"
@@ -268,8 +284,9 @@ test(
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click element that is too small.
               Submit input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Submit input was 83.4140625px × 21.5px
+              Submit input was 90px × 25px
               <input
+                style=\\"display: block; width: 90px; height: 25px;\\"
                 type=\\"submit\\"
                 name=\\"test-submit\\"
                 value=\\"Test submit\\"
@@ -285,8 +302,9 @@ test(
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click element that is too small.
               Reset input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Reset input was 73.7890625px × 21.5px
+              Reset input was 90px × 25px
               <input
+                style=\\"display: block; width: 90px; height: 25px;\\"
                 type=\\"reset\\"
                 name=\\"test-reset\\"
                 value=\\"Test reset\\"
