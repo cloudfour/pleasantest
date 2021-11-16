@@ -301,7 +301,7 @@ test(
     {
       // Small inputs with small labels should fail
       await utils.injectHTML(`
-        <label style="display: block; height: 20px;">
+        <label style="display: block; width: 120px; height: 20px;">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
         </label>
         <label style="display: block;" for="test-radio">Test radio</label>
@@ -318,8 +318,8 @@ test(
               Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-              Label associated with the checkbox input was 784px × 20px
-              <label style=\\"display: block; height: 20px;\\">
+              Label associated with the checkbox input was 120px × 20px
+              <label style=\\"display: block; width: 120px; height: 20px;\\">
                 
                         
                 <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
