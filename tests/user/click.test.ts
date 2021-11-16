@@ -199,6 +199,9 @@ test(
 test(
   'target size check should throw error',
   withBrowser(async ({ utils, screen, user }) => {
+    //
+    // General element that is too small
+    //
     await utils.injectHTML(`
       <button style="width: 2px; height: 2px; border: none; padding: 0;">hi</button>
     `);
@@ -231,7 +234,7 @@ test(
           `);
 
     //
-    // Inputs that don't use labels
+    // Inputs that aren't expected to use labels
     //
     {
       await utils.injectHTML(`
@@ -293,16 +296,19 @@ test(
     }
 
     //
-    // Checkbox input with small label
+    // Inputs that are expected to have labels
     //
     {
-      // Small checkboxes with small labels should fail
+      // Small inputs with small labels should fail
       await utils.injectHTML(`
-        <label style="display:block; width: 120px; height: 20px">
+        <label style="display: block; height: 20px;">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
         </label>
+        <label style="display: block;" for="test-radio">Test radio</label>
+        <input type="radio" name="test-radio" id="test-radio" /> 
       `);
 
+      // For input type="checkbox"
       const checkbox: puppeteeer.ElementHandle<HTMLElement> =
         await screen.getByRole('checkbox');
 
@@ -312,8 +318,8 @@ test(
               Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-              Label associated with the checkbox input was 120px × 20px
-              <label style=\\"display:block; width: 120px; height: 20px\\">
+              Label associated with the checkbox input was 784px × 20px
+              <label style=\\"display: block; height: 20px;\\">
                 
                         
                 <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
@@ -323,17 +329,39 @@ test(
               You can increase the target size by making the label or checkbox input larger than 44px × 44px.
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
+
+      // For input type="radio"
+      const radio: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('radio');
+
+      await expect(user.click(radio)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click element that is too small.
+              Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Radio input was 13px × 13px
+              <input
+                type=\\"radio\\"
+                name=\\"test-radio\\"
+                id=\\"test-radio\\"
+              />
+              Label associated with the radio input was 784px × 18.5px
+              <label style=\\"display: block;\\" for=\\"test-radio\\">Test radio</label>
+              You can increase the target size by making the label or radio input larger than 44px × 44px.
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
     }
 
     //
-    // Checkbox input with no label
+    // Inputs that are expected to have labels with no label
     //
     {
-      // Small checkboxes with no label should fail
+      // Inpus with no label should fail
       await utils.injectHTML(`
         <input type="checkbox" name="test-checkbox" />
+        <input type="radio" name="test-radio" />
       `);
 
+      // For input type="checkbox"
       const checkbox: puppeteeer.ElementHandle<HTMLElement> =
         await screen.getByRole('checkbox');
 
@@ -346,50 +374,8 @@ test(
               You can increase the target size of the checkbox input by adding a label that is larger than 44px × 44px
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
-    }
 
-    //
-    // Radio input with small label
-    //
-    {
-      // Small radio inputs with small labels should fail
-      await utils.injectHTML(`
-        <label style="display:block; width: 120px; height: 20px">
-          <input type="radio" name="test-radio" /> Test radio
-        </label>
-      `);
-
-      const radio: puppeteeer.ElementHandle<HTMLElement> =
-        await screen.getByRole('radio');
-
-      await expect(user.click(radio)).rejects
-        .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot click element that is too small.
-              Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-              Radio input was 13px × 13px
-              <input type=\\"radio\\" name=\\"test-radio\\" />
-              Label associated with the radio input was 120px × 20px
-              <label style=\\"display:block; width: 120px; height: 20px\\">
-                
-                        
-                <input type=\\"radio\\" name=\\"test-radio\\" />
-                 Test radio
-                      
-              </label>
-              You can increase the target size by making the label or radio input larger than 44px × 44px.
-              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
-            `);
-    }
-
-    //
-    // Radio input with no label
-    //
-    {
-      // Small radio inputs with no label should fail
-      await utils.injectHTML(`
-        <input type="radio" name="test-radio" />
-      `);
-
+      // For input type="radio"
       const radio: puppeteeer.ElementHandle<HTMLElement> =
         await screen.getByRole('radio');
 
