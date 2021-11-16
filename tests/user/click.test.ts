@@ -304,7 +304,7 @@ test(
         <label style="display: block; width: 120px; height: 20px;">
           <input type="checkbox" name="test-checkbox" /> Test checkbox
         </label>
-        <label style="display: block;" for="test-radio">Test radio</label>
+        <label style="display: block; width: 120px; height: 20px;" for="test-radio">Test radio</label>
         <input type="radio" name="test-radio" id="test-radio" /> 
       `);
 
@@ -344,8 +344,8 @@ test(
                 name=\\"test-radio\\"
                 id=\\"test-radio\\"
               />
-              Label associated with the radio input was 784px × 18.5px
-              <label style=\\"display: block;\\" for=\\"test-radio\\">Test radio</label>
+              Label associated with the radio input was 120px × 20px
+              <label style=\\"display: block; width: 120px; height: 20px;\\" for=\\"test-radio\\">Test radio</label>
               You can increase the target size by making the label or radio input larger than 44px × 44px.
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
             `);
