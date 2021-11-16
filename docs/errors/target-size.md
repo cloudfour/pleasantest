@@ -64,6 +64,10 @@ configureDefaults({
 
 Much of the time, increasing the target size is the correct solution to the problem. By doing this, you are creating a more inclusive user experience. Usually, increasing `padding` or setting a `min-width`/`min-height` is the easiest way to ensure an element's target size is large enough.
 
+Other resources:
+
+- https://css-tricks.com/looking-at-wcag-2-5-5-for-better-target-sizes/
+
 ### Approach 2: Disabling the check
 
 Pleasantest's target size check can be disabled per-call, per-file, or globally.
