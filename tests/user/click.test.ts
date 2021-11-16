@@ -230,6 +230,28 @@ test(
             You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
           `);
 
+    {
+      await utils.injectHTML(`
+      <input type="button" name="test-button" value="Test button" />
+      `);
+
+      const button: puppeteeer.ElementHandle<HTMLElement> =
+        await screen.getByRole('button');
+
+      await expect(user.click(button)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+              "Cannot click button input that is too small.
+              Target size of button input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Button input was 81.21875px × 21.5px
+              <input
+                type=\\"button\\"
+                name=\\"test-button\\"
+                value=\\"Test button\\"
+              />
+              You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
+            `);
+    }
+
     //
     // Checkbox input with small label
     //
