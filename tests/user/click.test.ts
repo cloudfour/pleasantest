@@ -209,7 +209,7 @@ test(
     await expect(user.click(button)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
             "Cannot click element that is too small.
-            Target size of element does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+            Element target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
             Element was 2px × 2px
             <button style=\\"width: 2px; height: 2px; border: none; padding: 0;\\">hi</button>
             You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
@@ -241,7 +241,7 @@ test(
       await expect(user.click(button)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click button input that is too small.
-              Target size of button input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Button input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Button input was 81.21875px × 21.5px
               <input
                 type=\\"button\\"
@@ -269,7 +269,7 @@ test(
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click checkbox input that is too small.
-              Target size of checkbox input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               Label associated with the checkbox input was 120px × 20px
@@ -300,7 +300,7 @@ test(
       await expect(user.click(checkbox)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click checkbox input that is too small.
-              Target size of checkbox input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Checkbox input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Checkbox input was 13px × 13px
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               You can increase the target size of the checkbox input by adding a label that is larger than 44px × 44px
@@ -325,7 +325,7 @@ test(
       await expect(user.click(radio)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click radio input that is too small.
-              Target size of radio input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Radio input was 13px × 13px
               <input type=\\"radio\\" name=\\"test-radio\\" />
               Label associated with the radio input was 120px × 20px
@@ -356,7 +356,7 @@ test(
       await expect(user.click(radio)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
               "Cannot click radio input that is too small.
-              Target size of radio input does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+              Radio input target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
               Radio input was 13px × 13px
               <input type=\\"radio\\" name=\\"test-radio\\" />
               You can increase the target size of the radio input by adding a label that is larger than 44px × 44px

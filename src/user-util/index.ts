@@ -158,9 +158,9 @@ const getTargetSizeMessage = ({
     ? `Target size of ${getElementDescriptor(
         el,
       )} is smaller than ${size}px × ${size}px`
-    : `Target size of ${getElementDescriptor(
-        el,
-      )} does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html`;
+    : `${capitalizeText(
+        getElementDescriptor(el),
+      )} target size does not meet W3C recommendation of 44px × 44px: https://www.w3.org/WAI/WCAG21/Understanding/target-size.html`;
 };
 
 const getDimensionsMessage = (el: Element) => {
