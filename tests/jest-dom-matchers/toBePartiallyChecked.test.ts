@@ -30,9 +30,9 @@ test(
     const ariaCheckboxUnchecked = await screen.getByTestId(
       'aria-checkbox-unchecked',
     );
-    const inputCheckboxIndeterminate = (await screen.getByTestId(
+    const inputCheckboxIndeterminate = await screen.getByTestId(
       'input-checkbox-indeterminate',
-    )) as ElementHandle<HTMLInputElement>;
+    );
 
     await expect(ariaCheckboxMixed).toBePartiallyChecked();
 
