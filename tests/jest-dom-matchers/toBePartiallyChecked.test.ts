@@ -1,4 +1,3 @@
-import type { ElementHandle } from 'puppeteer';
 import { withBrowser } from 'pleasantest';
 
 test(
@@ -30,9 +29,10 @@ test(
     const ariaCheckboxUnchecked = await screen.getByTestId(
       'aria-checkbox-unchecked',
     );
-    const inputCheckboxIndeterminate = (await screen.getByTestId(
-      'input-checkbox-indeterminate',
-    )) as ElementHandle<HTMLInputElement>;
+    const inputCheckboxIndeterminate =
+      await screen.getByTestId<HTMLInputElement>(
+        'input-checkbox-indeterminate',
+      );
 
     await expect(ariaCheckboxMixed).toBePartiallyChecked();
 
