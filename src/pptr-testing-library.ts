@@ -1,23 +1,42 @@
-import type { queries, BoundFunctions } from '@testing-library/dom';
+import type { queries } from '@testing-library/dom';
 import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
-import type { JSHandle } from 'puppeteer';
+import type { ElementHandle, JSHandle } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import type { AsyncHookTracker } from './async-hooks';
 
 type ElementToElementHandle<Input> = Input extends Element
-  ? import('puppeteer').ElementHandle
-  : Input extends Element[]
-  ? import('puppeteer').ElementHandle[]
+  ? ElementHandle<Input>
+  : Input extends (Element | ElementHandle)[]
+  ? { [K in keyof Input]: ElementToElementHandle<Input[K]> }
   : Input;
 
 type Promisify<Input> = Input extends Promise<any> ? Input : Promise<Input>;
-
-type UpdateReturnType<Fn> = Fn extends (...args: infer Args) => infer ReturnType
-  ? (...args: Args) => Promisify<ElementToElementHandle<ReturnType>>
+type ValueOf<Input> = Input extends any[] ? Input[number] : Input[keyof Input];
+type UnArray<Input> = Input extends any[] ? Input[number] : Input;
+type UnPromise<Input> = Input extends Promise<infer Inner> ? Inner : Input;
+/**
+ * Changes type signature of an original testing library query function by:
+ * - Removing the `container` parameter
+ * - Returning a promise, always
+ * - Returning ElementHandles instead of Elements
+ */
+type ChangeDTLFn<DTLFn extends ValueOf<typeof queries>> = DTLFn extends (
+  container: HTMLElement,
+  ...args: infer Args
+) => infer DTLReturn
+  ? <CustomizedReturn extends UnArray<UnPromise<DTLReturn>>>(
+      ...args: Args
+    ) => Promisify<
+      ElementToElementHandle<
+        UnPromise<DTLReturn> extends any[]
+          ? CustomizedReturn[]
+          : CustomizedReturn
+      >
+    >
   : never;
 
-type AsyncDTLQueries = {
-  [K in keyof typeof queries]: UpdateReturnType<typeof queries[K]>;
+export type BoundQueries = {
+  [K in keyof typeof queries]: ChangeDTLFn<typeof queries[K]>;
 };
 
 const queryNames = [
@@ -76,8 +95,6 @@ interface DTLError {
   messageWithElementsRevived: unknown[];
   messageWithElementsStringified: string;
 }
-
-export type BoundQueries = BoundFunctions<AsyncDTLQueries>;
 
 export const getQueriesForElement = (
   page: import('puppeteer').Page,

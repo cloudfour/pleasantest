@@ -1,4 +1,3 @@
-import type { ElementHandle } from 'puppeteer';
 import { withBrowser } from 'pleasantest';
 
 test(
@@ -8,9 +7,7 @@ test(
       `<div><input type="text" data-testid="element-to-focus" /></div>`,
     );
 
-    const input: ElementHandle<HTMLElement> = await screen.getByTestId(
-      'element-to-focus',
-    );
+    const input = await screen.getByTestId('element-to-focus');
 
     await input.focus();
     await expect(input).toHaveFocus();
