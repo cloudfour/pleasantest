@@ -2,4 +2,4 @@
 'pleasantest': major
 ---
 
-Adds a target size feature per WCAG Success Criterion 2.5.5 Target Size guideline
+Enforce minimum target size when calling `user.click()`, per WCAG Success Criterion 2.5.5 Target Size guideline.
