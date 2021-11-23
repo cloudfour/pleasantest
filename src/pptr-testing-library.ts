@@ -174,7 +174,7 @@ export const getQueriesForElement = (
           // @ts-expect-error messageForBrowser is a custom property that we add to Errors
           error.messageForBrowser = messageWithElementsRevived;
 
-          throw removeFuncFromStackTrace(error, query);
+          throw removeFuncFromStackTrace(error, queries[queryName]);
         }
 
         // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
@@ -199,8 +199,13 @@ export const getQueriesForElement = (
 
       return [
         queryName,
-        (...args: any[]) =>
-          asyncHookTracker.addHook(() => query(...args), queries[queryName]),
+        async (...args: any[]): Promise<any> =>
+          // await is needed for correct stack trace
+          // eslint-disable-next-line no-return-await
+          await asyncHookTracker.addHook(
+            () => query(...args),
+            queries[queryName],
+          ),
       ];
     }),
   );
