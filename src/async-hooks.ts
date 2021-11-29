@@ -9,7 +9,8 @@ import { removeFuncFromStackTrace } from './utils';
 
 /**
  * Set of all active async hook trackers
- * We need to store this module-level so that jest-dom matchers can know which withBrowser they "belong" to
+ * We need to store this module-level so that jest-dom matchers and getAccessibilityTree
+ * can know which withBrowser they "belong" to
  * If there are multiple active at a time, the jest-dom matchers won't include the forgot-await behavior.
  */
 export const activeAsyncHookTrackers = new Set<AsyncHookTracker>();

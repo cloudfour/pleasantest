@@ -140,6 +140,76 @@ test(
 );
 
 test(
+  'role="presentation"',
+  withBrowser(async ({ utils, page }) => {
+    const body = (await page.$('body'))!;
+    await utils.injectHTML(`<h1 role="presentation">Sample Content</h1>`);
+    // Role="presentation" and role="none" are equivalent
+    // They make it as if the outer element wasn't there.
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(
+      `text "Sample Content"`,
+    );
+    await utils.injectHTML(`<h1 role="none">Sample Content</h1>`);
+    // Role="presentation" and role="none" are equivalent
+    // They make it as if the outer element wasn't there.
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(
+      `text "Sample Content"`,
+    );
+
+    // The li (role=listitem) children are required owned elements of the ul (role=list)
+    // so when the list is set to role=presentation, the required owned elements are too
+    // The third li has a different role so it is not a required owned element of the list
+    await utils.injectHTML(`
+      <ul role="presentation">
+        <li>Sample Content</li>
+        <li>More Sample Content</li>
+        <li role="heading">Hi</li>
+      </ul>
+    `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      text "Sample Content"
+      text "More Sample Content"
+      heading "Hi"
+        text "Hi"
+    `);
+    // The required owned elements search should pass through elements without roles
+    await utils.injectHTML(`
+      <ul role="presentation">
+        <div>
+          <li>Sample Content</li>
+        </div>
+        <li>More Sample Content</li>
+        <li role="heading">Hi</li>
+      </ul>
+    `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      text "Sample Content"
+      text "More Sample Content"
+      heading "Hi"
+        text "Hi"
+    `);
+    // The required owned elements search should _not_ pass through elements with roles
+    await utils.injectHTML(`
+      <ul role="presentation">
+        <h1>
+          <li>Sample Content</li>
+        </h1>
+        <li>More Sample Content</li>
+        <li role="heading">Hi</li>
+      </ul>
+    `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      heading "Sample Content"
+        listitem
+          text "Sample Content"
+      text "More Sample Content"
+      heading "Hi"
+        text "Hi"
+    `);
+  }),
+);
+
+test(
   'labels which element is focused',
   withBrowser(async ({ utils, page, user, screen }) => {
     await utils.injectHTML(`
