@@ -42,7 +42,7 @@ const config = {
     requiredOwnedElementsPlugin(),
     nodeResolve({ extensions }),
     rollupPluginDomAccessibilityApi(),
-    // terser({ ecma: 2019 }),
+    terser({ ecma: 2019 }),
   ],
   output: { file: 'dist/accessibility.js' },
 };
