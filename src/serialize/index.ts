@@ -103,7 +103,7 @@ export const printElement = (
             whiteSpaceSetting === 'nowrap' ||
             whiteSpaceSetting === 'pre-line'
             ? consecutiveMergedText.replace(
-                // Pre-line should collapse whitespace _except newlines
+                // Pre-line should collapse whitespace _except_ newlines
                 whiteSpaceSetting === 'pre-line' ? /[^\S\n]+/g : /\s+/g,
                 ' ',
               )
