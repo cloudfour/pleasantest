@@ -108,5 +108,5 @@ export const printColorsInErrorMessages =
   // We use it to disable syntax-highlighting in printed HTML in error messages
   // so that the snapshots are more readable.
   // When PT is used outside of its own tests, the environment variable will not be set,
-  // so the error messages will ahve syntax-highlighted HTML
+  // so the error messages will have syntax-highlighted HTML
   kolorist.options.enabled && process.env.PLEASANTEST_TESTING_ITSELF !== 'true';
