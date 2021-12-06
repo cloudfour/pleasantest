@@ -135,14 +135,14 @@ export const printElement = (
   colors.options.supportLevel = 1;
 
   // Syntax highlighting groups
-  const hi = {
+  const highlight = {
     bracket: printColors ? colors.cyan : noColor,
     tagName: printColors ? colors.red : noColor,
     equals: printColors ? colors.cyan : noColor,
     attribute: printColors ? colors.blue : noColor,
     string: printColors ? colors.green : noColor,
   };
-  return `${hi.bracket('<')}${hi.tagName(tagName)}${
+  return `${highlight.bracket('<')}${highlight.tagName(tagName)}${
     attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' '
   }${attrs
     .map((attr) => {
@@ -150,20 +150,22 @@ export const printElement = (
         attr.value === '' &&
         typeof el[attr.name as keyof Element] === 'boolean'
       )
-        return hi.attribute(attr.name);
-      return `${hi.attribute(attr.name)}${hi.equals('=')}${hi.string(
-        `"${attr.value}"`,
-      )}`;
+        return highlight.attribute(attr.name);
+      return `${highlight.attribute(attr.name)}${highlight.equals(
+        '=',
+      )}${highlight.string(`"${attr.value}"`)}`;
     })
     .join(splitAttrs ? '\n  ' : ' ')}${
     selfClosing
-      ? hi.bracket(`${splitAttrs ? '\n' : ' '}/`)
+      ? highlight.bracket(`${splitAttrs ? '\n' : ' '}/`)
       : splitAttrs
       ? '\n'
       : ''
-  }${hi.bracket('>')}${
+  }${highlight.bracket('>')}${
     selfClosing
       ? ''
-      : `${contents}${hi.bracket('</')}${hi.tagName(tagName)}${hi.bracket('>')}`
+      : `${contents}${highlight.bracket('</')}${highlight.tagName(
+          tagName,
+        )}${highlight.bracket('>')}`
   }`;
 };
