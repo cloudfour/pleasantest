@@ -18,11 +18,7 @@ test(
 
             Received:
               [31m<div data-testid=\\"notempty\\">
-              
-                  
               <div data-testid=\\"empty\\" />
-              
-                
             </div>[39m"
           `);
   }),

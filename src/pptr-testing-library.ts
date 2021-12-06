@@ -1,5 +1,9 @@
 import type { queries } from '@testing-library/dom';
-import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
+import {
+  jsHandleToArray,
+  printColorsInErrorMessages,
+  removeFuncFromStackTrace,
+} from './utils';
 import type { ElementHandle, JSHandle } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import type { AsyncHookTracker } from './async-hooks';
@@ -146,7 +150,7 @@ export const getQueriesForElement = (
                     const messageWithElementsStringified = messageWithElementsRevived
                       .map(el => {
                         if (el instanceof Element || el instanceof Document)
-                          return printElement(el)
+                          return printElement(el, ${printColorsInErrorMessages})
                         return el
                       })
                       .join('')
