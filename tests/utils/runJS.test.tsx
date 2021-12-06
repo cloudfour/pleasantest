@@ -2,6 +2,8 @@ import { withBrowser } from 'pleasantest';
 import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
 import vuePlugin from 'rollup-plugin-vue';
+import sveltePlugin from 'rollup-plugin-svelte';
+import sveltePreprocess from 'svelte-preprocess';
 import aliasPlugin from '@rollup/plugin-alias';
 import babel from '@rollup/plugin-babel';
 
@@ -198,7 +200,7 @@ test(
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-          "Error parsing module with es-module-lexer
+          "Error parsing module with es-module-lexer.
 
           <root>/tests/utils/runJS.test.tsx:###:###
 
@@ -433,6 +435,61 @@ describe('Ecosystem interoperability', () => {
         await expect(heading).toHaveStyle({ color: 'green' });
       },
     ),
+  );
+  test(
+    'svelte component can be imported via rollup-plugin-svelte',
+    withBrowser(
+      {
+        moduleServer: {
+          plugins: [sveltePlugin({ preprocess: sveltePreprocess() })],
+        },
+      },
+      async ({ utils, screen, user }) => {
+        await utils.injectHTML('<div id="app"></div>');
+        await utils.runJS(`
+          import CounterComponent from './svelte-component.svelte'
+
+          new CounterComponent({
+            target: document.getElementById('app')
+          })
+        `);
+        const button = await screen.getByRole('button');
+        await expect(button).toHaveTextContent(/^clicked 0 times$/i);
+
+        await user.click(button);
+        await expect(button).toHaveTextContent(/^clicked 1 time$/i);
+
+        // Check that the scss in the svelte component file got preprocessed and applied correctly
+        const bgColor = await button.evaluate(
+          (button) => getComputedStyle(button).backgroundColor,
+        );
+        expect(bgColor).toEqual('rgb(255, 0, 0)');
+      },
+    ),
+  );
+  test(
+    'useful error message is thrown when plugin is missing for imported file with unusual extension',
+    withBrowser(async ({ utils }) => {
+      const runPromise = utils.runJS(`
+        import CounterComponent from './svelte-component.svelte'
+      `);
+
+      await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+          "Error parsing module with es-module-lexer. Did you mean to add a transform plugin to support .svelte files?
+
+          <root>/tests/utils/svelte-component.svelte:###:###
+
+             # |     count += 1;
+             # |   }
+          >  # | </script>
+               |          ^
+             # | 
+            ## | <button on:click={handleClick}>
+            ## |   Clicked {count} {count === 1 ? 'time' : 'times'}
+          "
+        `);
+    }),
   );
 });
 
