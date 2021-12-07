@@ -64,7 +64,7 @@
     "esbuild": "^0.14.0",
     "mime": "^3.0.0",
     "postcss": "^8.4.4",
-    "puppeteer": "^11.0.0",
+    "puppeteer": "^12.0.1",
     "rollup": "^2.57.0",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
