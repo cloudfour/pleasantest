@@ -68,10 +68,10 @@ export const getAccessibilityTree = (
   element: Element,
   opts: AccessibilityTreeOptions,
   /**
-   * Any roles in this array will be treated as role="presentation".
+   * Any elements with *implicitly set* roles in this array will be treated as role="presentation".
    * This is intended to be used when a parent element has role="presentation",
    * and its children in the accessibility tree (or descendents in the DOM tree)
-   * need to be hidden if they are required owned elements.
+   * without explicit roles need to be hidden if they are required owned elements.
    * https://www.digitala11y.com/presentation-role/
    */
   presentationalRoles: string[] = [],
@@ -88,7 +88,11 @@ export const getAccessibilityTree = (
     accessibilityState === AccessibilityState.SelfIncludedInTree &&
     role !== 'presentation' &&
     role !== 'none' &&
-    !presentationalRoles.includes(role);
+    !(
+      presentationalRoles.includes(role) &&
+      // Check that no explicit role is set
+      !element.hasAttribute('role')
+    );
   let text = (selfIsInAccessibilityTree && role) || '';
   if (selfIsInAccessibilityTree) {
     const name = computeAccessibleName(element);

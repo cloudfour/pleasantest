@@ -172,6 +172,23 @@ test(
       heading "Hi"
         text "Hi"
     `);
+    // Now the third list item has an explicit role which is the same as its implicit role.
+    // When the list gets role="presentation",
+    // it only cascades to required owned elements _without_ explicit roles.
+    // So the first two <li>'s should get role="presentation", and the last one should still have listitem.
+    await utils.injectHTML(`
+      <ul role="presentation">
+        <li>Sample Content</li>
+        <li>More Sample Content</li>
+        <li role="listitem">Hi</li>
+      </ul>
+    `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      text "Sample Content"
+      text "More Sample Content"
+      listitem
+        text "Hi"
+    `);
     // The required owned elements search should pass through elements without roles
     await utils.injectHTML(`
       <ul role="presentation">
