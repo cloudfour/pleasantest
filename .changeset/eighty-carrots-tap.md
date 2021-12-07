@@ -2,4 +2,4 @@
 'pleasantest': minor
 ---
 
-Update puppeteer to v11.0.0
+Update puppeteer to v12.0.1
