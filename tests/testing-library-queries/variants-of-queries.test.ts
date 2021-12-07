@@ -1,5 +1,6 @@
 import type { ElementHandle } from 'pleasantest';
 import { withBrowser } from 'pleasantest';
+import { printErrorFrames } from '../test-utils';
 
 const singleElementMarkup = `
   <h1>Hello</h1>
@@ -66,6 +67,43 @@ test(
           `);
   }),
   10_000,
+);
+
+test(
+  'getBy',
+  withBrowser(async ({ screen, utils }) => {
+    await utils.injectHTML('<h1>Hi</h1>');
+    const error = await screen.getByRole('banner').catch((error) => error);
+    expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+      "Error: Unable to find an accessible element with the role \\"banner\\"
+
+      Here are the accessible roles:
+
+        document:
+
+        Name \\"\\":
+        <body>
+        <h1>Hi</h1>
+      </body>
+
+        --------------------------------------------------
+        heading:
+
+        Name \\"Hi\\":
+        <h1>Hi</h1>
+
+        --------------------------------------------------
+
+      Within: #document
+      -------------------------------------------------------
+      tests/testing-library-queries/variants-of-queries.test.ts
+
+          const error = await screen.getByRole('banner').catch((error) => error);
+                        ^
+      -------------------------------------------------------
+      dist/cjs/index.cjs"
+    `);
+  }),
 );
 
 test(

@@ -1,5 +1,9 @@
 import type { queries } from '@testing-library/dom';
-import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
+import {
+  jsHandleToArray,
+  printColorsInErrorMessages,
+  removeFuncFromStackTrace,
+} from './utils';
 import type { ElementHandle, JSHandle } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import type { AsyncHookTracker } from './async-hooks';
@@ -146,7 +150,7 @@ export const getQueriesForElement = (
                     const messageWithElementsStringified = messageWithElementsRevived
                       .map(el => {
                         if (el instanceof Element || el instanceof Document)
-                          return printElement(el)
+                          return printElement(el, ${printColorsInErrorMessages})
                         return el
                       })
                       .join('')
@@ -174,7 +178,7 @@ export const getQueriesForElement = (
           // @ts-expect-error messageForBrowser is a custom property that we add to Errors
           error.messageForBrowser = messageWithElementsRevived;
 
-          throw removeFuncFromStackTrace(error, query);
+          throw removeFuncFromStackTrace(error, queries[queryName]);
         }
 
         // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
@@ -199,8 +203,13 @@ export const getQueriesForElement = (
 
       return [
         queryName,
-        (...args: any[]) =>
-          asyncHookTracker.addHook(() => query(...args), queries[queryName]),
+        async (...args: any[]): Promise<any> =>
+          // await is needed for correct stack trace
+          // eslint-disable-next-line no-return-await
+          await asyncHookTracker.addHook(
+            () => query(...args),
+            queries[queryName],
+          ),
       ];
     }),
   );

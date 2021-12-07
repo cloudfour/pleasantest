@@ -15,4 +15,5 @@ module.exports = {
   // ansi-regex is ESM and since we are using Jest in CJS mode,
   // it must be transpiled to CJS
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!ansi-regex)'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
