@@ -157,7 +157,9 @@ test(
     );
 
     // The li (role=listitem) children are required owned elements of the ul (role=list)
-    // so when the list is set to role=presentation, the required owned elements are too
+    // When the list is set to role=presentation,
+    // the role=presentation cascades to the required owned elements
+    // which don't have an explicit role set.
     // The third li has a different role so it is not a required owned element of the list
     await utils.injectHTML(`
       <ul role="presentation">
