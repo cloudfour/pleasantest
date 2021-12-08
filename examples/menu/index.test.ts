@@ -1,9 +1,5 @@
 import type { PleasantestUtils } from 'pleasantest';
-import {
-  experimentalGetAccessibilityTree,
-  withBrowser,
-  devices,
-} from 'pleasantest';
+import { getAccessibilityTree, withBrowser, devices } from 'pleasantest';
 
 import { Liquid } from 'liquidjs';
 import * as path from 'path';
@@ -80,11 +76,8 @@ test(
     await expect(await screen.getByText(aboutText)).not.toBeVisible();
 
     // Before JS initializes the menus should be links
-    expect(
-      await experimentalGetAccessibilityTree(
-        await screen.getByRole('navigation'),
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(await getAccessibilityTree(await screen.getByRole('navigation')))
+      .toMatchInlineSnapshot(`
         navigation
           heading "Company"
             link "Company"
@@ -108,11 +101,8 @@ test(
 
     // The menus should be upgraded to buttons,
     const aboutBtn = await screen.getByRole('button', { name: /about/i });
-    expect(
-      await experimentalGetAccessibilityTree(
-        await screen.getByRole('navigation'),
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(await getAccessibilityTree(await screen.getByRole('navigation')))
+      .toMatchInlineSnapshot(`
         navigation
           heading "Company"
             link "Company"

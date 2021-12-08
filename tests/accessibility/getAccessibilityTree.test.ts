@@ -1,8 +1,5 @@
 import type { ElementHandle } from 'pleasantest';
-import {
-  experimentalGetAccessibilityTree as getAccessibilityTree,
-  withBrowser,
-} from 'pleasantest';
+import { getAccessibilityTree, withBrowser } from 'pleasantest';
 
 test(
   'basic use cases',
