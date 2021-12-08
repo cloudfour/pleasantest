@@ -1,6 +1,8 @@
 import type { ElementHandle } from 'puppeteer';
 import { createClientRuntimeServer } from '../module-server/client-runtime-server';
 import { assertElementHandle } from '../utils';
+import type { AsyncHookTracker } from '../async-hooks';
+import { activeAsyncHookTrackers } from '../async-hooks';
 
 const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 
@@ -18,12 +20,14 @@ export interface AccessibilityTreeOptions {
   includeText?: boolean;
 }
 
-export const getAccessibilityTree = async (
+const getAccessibilityTree = async (
   element: ElementHandle,
   options: AccessibilityTreeOptions = {},
-) => {
+): Promise<
+  { [accessibilityTreeSymbol]: string; toString(): string } | undefined
+> => {
   const serverPromise = createClientRuntimeServer();
-  assertElementHandle(element, getAccessibilityTree);
+  assertElementHandle(element, getAccessibilityTreeWrapper);
 
   const { port } = await serverPromise;
 
@@ -44,6 +48,25 @@ export const getAccessibilityTree = async (
     toString: () => result,
   };
 };
+
+/** Wrapped version adds forgot await checks */
+const getAccessibilityTreeWrapper = async (
+  ...args: Parameters<typeof getAccessibilityTree>
+): ReturnType<typeof getAccessibilityTree> => {
+  const asyncHookTracker: AsyncHookTracker | false =
+    activeAsyncHookTrackers.size === 1 &&
+    activeAsyncHookTrackers[Symbol.iterator]().next().value;
+
+  if (asyncHookTracker) {
+    return asyncHookTracker.addHook(
+      () => getAccessibilityTree(...args),
+      getAccessibilityTreeWrapper,
+    );
+  }
+  return getAccessibilityTree(...args);
+};
+
+export { getAccessibilityTreeWrapper as getAccessibilityTree };
 
 // This tells Jest how to print the accessibility tree (without adding extra quotes)
 // https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
