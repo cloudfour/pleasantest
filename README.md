@@ -739,7 +739,7 @@ test(
 
 ### `getAccessibilityTree(element, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
 
-The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is used to return a string that can be used as a snapshot to ensure that any changes to the accessibility tree of your component or application are intended and correct. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest).
+The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest) to ensure that any changes to the accessibility tree of your component or application are intended and correct.
 
 If you have used HTML snapshots with Jest before, this feature will feel very similar. However, by creating a snapshot of the accessibility tree rather than the DOM tree, the snapshot is better at detecting user-facing changes and fewer implementation details.
 
