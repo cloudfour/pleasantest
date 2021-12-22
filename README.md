@@ -426,6 +426,8 @@ List of queries attached to screen object:
 - [`byTitle`](https://testing-library.com/docs/queries/bytitle): `getByTitle`, `queryByTitle`, `getAllByTitle`, `queryAllByTitle`, `findByTitle`, `findAllByTitle`
 - [`byTestId`](https://testing-library.com/docs/queries/bytestid): `getByTestId`, `queryByTestId`, `getAllByTestId`, `queryAllByTestId`, `findByTestId`, `findAllByTestId`
 
+There is also a `container` property which is the container that the queries are bound to, which in the case of `screen` always is `document.body`. It is a `Promise<ElementHandle>`, so you will have to `await` it. The `ElementHandle` points to `document.body`.
+
 ```js
 import { withBrowser } from 'pleasantest';
 
@@ -443,6 +445,8 @@ test(
 
 The `PleasantestContext` object exposes the `within` property, which is similar to [`screen`](#pleasantestcontextscreen), but instead of the queries being pre-bound to the document, they are pre-bound to whichever element you pass to it. [Here's Testing Library's docs on `within`](https://testing-library.com/docs/dom-testing-library/api-within). Like `screen`, it returns an object with all of the pre-bound Testing Library queries.
 
+The returned queries object also has a `container` property which can be used if you need a reference to the container that was originally passed to within(). `container` is a `Promise<ElementHandle>`, so you will have to `await` it.
+
 ```js
 import { withBrowser } from 'pleasantest';
 
@@ -450,14 +454,17 @@ test(
   'test name',
   withBrowser(async ({ within, screen }) => {
     //                 ^^^^^^
-    const containerElement = await screen.getByText(/hello/i);
-    const container = within(containerElement);
+    const helloElement = await screen.getByText(/hello/i);
+    const helloQueries = within(helloElement);
 
-    // Now `container` has queries bound to the container element
-    // You can use `container` in the same way as `screen`
+    // Now `helloQueries` has queries bound to the container element
+    // You can use `helloQueries` in the same way as `screen`
 
-    // Find elements matching /some element/i within the container element.
-    const someElement = await container.getByText(/some element/i);
+    // Find elements matching /some element/i within the `hello` element.
+    const someElement = await helloQueries.getByText(/some element/i);
+
+    const helloElement2 = await helloQueries.container;
+    // helloElement2 and helloElement are both ElementHandles pointing to the same element
   }),
 );
 ```
@@ -750,15 +757,15 @@ import { withBrowser, getAccessibilityTree } from 'pleasantest';
 
 test(
   'getAccessibilityTree example',
-  withBrowser(async ({ page }) => {
+  withBrowser(async ({ screen }) => {
     // ... Load your content here (see Loading Content)
 
-    const bodyElement = await page.evaluateHandle(() => document.body);
+    const body = await screen.container;
     // You could alternatively choose a more specific element for which to print the accessibility tree
 
     await expect(
       // Note the use of `await`; getAccessibilityTree returns a Promise
-      await getAccessibilityTree(bodyElement),
+      await getAccessibilityTree(body),
     ).toMatchInlineSnapshot();
   }),
 );

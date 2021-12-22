@@ -1,9 +1,9 @@
-import type { ElementHandle } from 'pleasantest';
 import { getAccessibilityTree, withBrowser } from 'pleasantest';
 
 test(
   'basic use cases',
-  withBrowser(async ({ utils, page }) => {
+  withBrowser(async ({ utils, screen }) => {
+    const body = await screen.container;
     await utils.injectHTML(`
       <main>
         <button>
@@ -14,7 +14,6 @@ test(
         <div role="button" tabindex="-1">foo &gt bar</div>
       </main>
     `);
-    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
       main
         button "Add to cart"
@@ -99,7 +98,7 @@ test(
 
 test(
   'hidden elements are excluded',
-  withBrowser(async ({ utils, page }) => {
+  withBrowser(async ({ utils, screen }) => {
     // https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion
     await utils.injectHTML(`
       <button>A</button>
@@ -125,7 +124,7 @@ test(
         <button style="visibility: visible">L</button>
       </div>
     `);
-    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
+    const body = await screen.container;
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
       button "A"
       button "E"
@@ -138,8 +137,8 @@ test(
 
 test(
   'role="presentation"',
-  withBrowser(async ({ utils, page }) => {
-    const body = (await page.$('body'))!;
+  withBrowser(async ({ utils, screen }) => {
+    const body = await screen.container;
     await utils.injectHTML(`<h1 role="presentation">Sample Content</h1>`);
     // Role="presentation" and role="none" are equivalent
     // They make it as if the outer element wasn't there.
@@ -227,12 +226,12 @@ test(
 
 test(
   'labels which element is focused',
-  withBrowser(async ({ utils, page, user, screen }) => {
+  withBrowser(async ({ utils, user, screen }) => {
     await utils.injectHTML(`
       <button>Click me!</button>
     `);
 
-    const body = await page.evaluateHandle<ElementHandle>(() => document.body);
+    const body = await screen.container;
 
     expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(
       `button "Click me!"`,
