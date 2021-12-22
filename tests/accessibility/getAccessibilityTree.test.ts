@@ -35,13 +35,11 @@ test(
         listitem
           text "something else"
     `);
-    expect(await getAccessibilityTree(body, { includeText: true }))
+    expect(await getAccessibilityTree(body, { includeText: false }))
       .toMatchInlineSnapshot(`
         list
           listitem
-            text "something"
           listitem
-            text "something else"
       `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
@@ -58,7 +56,7 @@ test(
         ↳ description: "extended description"
       text "extended description"
     `);
-    expect(await getAccessibilityTree(body, { includeText: true }))
+    expect(await getAccessibilityTree(body, { includeText: false }))
       .toMatchInlineSnapshot(`
         button "click me"
           ↳ description: "extended description"
@@ -66,16 +64,15 @@ test(
           ↳ description: "extended description"
         button "click me"
           ↳ description: "extended description"
-        text "extended description"
       `);
 
     expect(await getAccessibilityTree(body, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-      button "click me"
-      button "click me"
-      button "click me"
-      text "extended description"
-    `);
+          button "click me"
+          button "click me"
+          button "click me"
+          text "extended description"
+        `);
 
     await utils.injectHTML(`
       <label>
@@ -87,13 +84,26 @@ test(
       <input type="text" id="input"/>
     `);
 
-    expect(await getAccessibilityTree(body, { includeText: true }))
-      .toMatchInlineSnapshot(`
-        text "Label Text"
-        textbox "Label Text"
-        text "Label Text"
-        textbox "Label Text"
-      `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      text "Label Text"
+      textbox "Label Text"
+      text "Label Text"
+      textbox "Label Text"
+    `);
+
+    // Make sure whitespace is normalized
+    await utils.injectHTML(`
+         <h1>
+
+
+         Hello  
+           world
+       </h1>
+    `);
+    expect(await getAccessibilityTree(body)).toMatchInlineSnapshot(`
+      heading "Hello world"
+        text "Hello world"
+    `);
   }),
 );
 
