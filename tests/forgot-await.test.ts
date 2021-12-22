@@ -1,8 +1,5 @@
 /* eslint-disable @cloudfour/typescript-eslint/require-await */
-import {
-  withBrowser,
-  experimentalGetAccessibilityTree as getAccessibilityTree,
-} from 'pleasantest';
+import { withBrowser, getAccessibilityTree } from 'pleasantest';
 import { printErrorFrames } from './test-utils';
 
 test('forgot await detection works even if other async stuff happens afterwards', async () => {

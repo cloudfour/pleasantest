@@ -34,6 +34,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
+  - [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
@@ -221,6 +222,8 @@ test(
   }),
 );
 ```
+
+Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
 
 ### Performing Actions
 
@@ -733,6 +736,56 @@ test(
   }),
 );
 ```
+
+### `getAccessibilityTree(element, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
+
+The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest) to ensure that any changes to the accessibility tree of your component or application are intended and correct.
+
+If you have used HTML snapshots with Jest before, this feature will feel very similar. However, by creating a snapshot of the accessibility tree rather than the DOM tree, the snapshot is better at detecting user-facing changes and fewer implementation details.
+
+```js
+import { withBrowser, getAccessibilityTree } from 'pleasantest';
+//                    ^^^^^^^^^^^^^^^^^^^^
+//                    getAccessibilityTree is a top-level import
+
+test(
+  'getAccessibilityTree example',
+  withBrowser(async ({ page }) => {
+    // ... Load your content here (see Loading Content)
+
+    const bodyElement = await page.evaluate(() => document.body);
+    // You could alternatively choose a more specific element for which to print the accessibility tree
+
+    await expect(
+      // Note the use of `await`; getAccessibilityTree returns a Promise
+      await getAccessibilityTree(bodyElement),
+    ).toMatchInlineSnapshot();
+  }),
+);
+```
+
+When you first write your test, you'll leave the parameter list to `toMatchInlineSnapshot()` empty. Then when you run your test, Jest will fill it in automatically for you. After that first time, whenever the output changes, Jest will fail the test, and you will be asked whether the change was intended. If it was intended, then you can tell Jest to automatically update the inline snapshot to the new output.
+
+This is an example of an accessibility that might get generated (from a `<ul>`):
+
+```
+list
+  listitem
+    text "something"
+  listitem
+    text "something else"
+```
+
+The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you to configure what is shown in the output.
+
+`AccessibilityTreeOptions` (all properties are optional):
+
+- `includeDescriptions`: `boolean`, default `true`: Whether the [accessible description](https://www.w3.org/TR/wai-aria-1.2/#dfn-accessible-description) of elements should be included in the tree.
+- `includeText`: `boolean`, default `true`: Whether to include text that is not being used as an element's name.
+
+Disabling these options can be used to reduce the output or to exclude text that is intended to frequently change.
+
+The returned `Promise` wraps an `AccessibilityTreeSnapshot`, which can be passed directly as the `expect` first parameter in `expect(___).toMatchInlineSnapshot()`. The returned object can also be converted to a string using `String(accessibilityTreeSnapshot)`.
 
 ## Puppeteer Tips
 

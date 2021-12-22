@@ -451,4 +451,4 @@ afterAll(async () => {
   await cleanupClientRuntimeServer();
 });
 
-export { getAccessibilityTree as experimentalGetAccessibilityTree } from './accessibility';
+export { getAccessibilityTree } from './accessibility';
