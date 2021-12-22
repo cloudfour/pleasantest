@@ -753,7 +753,7 @@ test(
   withBrowser(async ({ page }) => {
     // ... Load your content here (see Loading Content)
 
-    const bodyElement = await page.evaluate(() => document.body);
+    const bodyElement = await page.evaluateHandle(() => document.body);
     // You could alternatively choose a more specific element for which to print the accessibility tree
 
     await expect(
