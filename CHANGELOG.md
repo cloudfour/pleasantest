@@ -1,5 +1,49 @@
 # pleasantest
 
+## 1.4.0
+
+### Minor Changes
+
+- [#314](https://github.com/cloudfour/pleasantest/pull/314) [`542f3f9`](https://github.com/cloudfour/pleasantest/commit/542f3f96b62318cc159cdabf135fc3ba33cefc35) Thanks [@calebeby](https://github.com/calebeby)! - Improve printing of HTML elements in error messages
+
+  - Printed HTML now is syntax-highlighted
+  - Adjacent whitespace is collapsed in places where the browser would collapse it
+
+* [#265](https://github.com/cloudfour/pleasantest/pull/265) [`2b92fbc`](https://github.com/cloudfour/pleasantest/commit/2b92fbcd1f47f8ab020ff26be276a9da02b9b368) Thanks [@renovate](https://github.com/apps/renovate)! - Update `@testing-library/dom` to [`v8.11.1`](https://github.com/testing-library/dom-testing-library/releases/tag/v8.11.1)
+
+  Read their [release notes](https://github.com/testing-library/dom-testing-library/releases) for all the versions between 8.1.0 and 8.11.1 to see the full changes.
+
+  Notably, we have added the ability for TypeScript users to optionally specify an element type as a type parameter for DTL queries:
+
+  ```ts
+  import { withBrowser } from 'pleasantest';
+
+  test(
+    'changelog example',
+    withBrowser(async ({ screen }) => {
+      // ElementHandle<HTMLButtonElement>
+      const button = await screen.getByRole<HTMLButtonElement>(/button/);
+
+      // ElementHandle<HTMLButtonElement>[]
+      const buttons = await screen.getAllByRole<HTMLButtonElement>(/button/);
+    }),
+  );
+  ```
+
+  The return type is automatically determined based on the specified element type. Since Pleasantest DTL queries return `ElementHandle`s, the return type will be wrapped with `Promise<ElementHandle<...>>`. For queries which return arrays of elements, the singular version of the element type is accepted as the type parameter, and the return type will automatically be wrapped with `Promise<Array<ElementHandle<...>>>`.
+
+- [#297](https://github.com/cloudfour/pleasantest/pull/297) [`97e075c`](https://github.com/cloudfour/pleasantest/commit/97e075c915dedc754abcdb5de0db4e757479e02f) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to v13.0.0
+
+* [#236](https://github.com/cloudfour/pleasantest/pull/236) [`67a222f`](https://github.com/cloudfour/pleasantest/commit/67a222f62bc96ce2a646f9ed0670a5959f60c7ac) Thanks [@calebeby](https://github.com/calebeby)! - Add accessibility snapshots feature: `getAccessibilityTree`. This feature can be used to ensure that changes to the accessibility structure of your applications are intentional and correct.
+
+- [#327](https://github.com/cloudfour/pleasantest/pull/327) [`dfc9620`](https://github.com/cloudfour/pleasantest/commit/dfc9620712ba12d355d84fe2165722ccf2314176) Thanks [@calebeby](https://github.com/calebeby)! - Add suggestion to error message when transformation plugin is missing for unrecognized file extensions
+
+### Patch Changes
+
+- [#283](https://github.com/cloudfour/pleasantest/pull/283) [`93b3922`](https://github.com/cloudfour/pleasantest/commit/93b39227f87196c01319a4650af34fa8371bfa14) Thanks [@calebeby](https://github.com/calebeby)! - Add logo (thanks @dromo77)
+
+* [#290](https://github.com/cloudfour/pleasantest/pull/290) [`e9808b5`](https://github.com/cloudfour/pleasantest/commit/e9808b59ef6836904897895981dc6a53ce0ab64a) Thanks [@calebeby](https://github.com/calebeby)! - Fix regression in stack frames handling when calling `user.*` and `screen.*` methods.
+
 ## 1.3.0
 
 ### Minor Changes
