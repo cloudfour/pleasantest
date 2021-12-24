@@ -443,6 +443,22 @@ test(
 
 The `PleasantestContext` object exposes the `within` property, which is similar to [`screen`](#pleasantestcontextscreen), but instead of the queries being pre-bound to the document, they are pre-bound to whichever element you pass to it. [Here's Testing Library's docs on `within`](https://testing-library.com/docs/dom-testing-library/api-within). Like `screen`, it returns an object with all of the pre-bound Testing Library queries.
 
+```js
+import { withBrowser } from 'pleasantest';
+test(
+  'test name',
+  withBrowser(async ({ within, screen }) => {
+    //                 ^^^^^^
+    const containerElement = await screen.getByText(/hello/i);
+    const container = within(containerElement);
+    // Now `container` has queries bound to the container element
+    // You can use `container` in the same way as `screen`
+    // Find elements matching /some element/i within the container element.
+    const someElement = await container.getByText(/some element/i);
+  }),
+);
+```
+
 #### `PleasantestContext.page`
 
 The `PleasantestContext` object exposes the `page` property, which is an instance of Puppeteer's [`Page` class](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-page). This will most often be used for navigation ([`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagegotourl-options)), but you can do anything with it that you can do with puppeteer.
