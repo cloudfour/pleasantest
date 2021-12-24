@@ -426,8 +426,6 @@ List of queries attached to screen object:
 - [`byTitle`](https://testing-library.com/docs/queries/bytitle): `getByTitle`, `queryByTitle`, `getAllByTitle`, `queryAllByTitle`, `findByTitle`, `findAllByTitle`
 - [`byTestId`](https://testing-library.com/docs/queries/bytestid): `getByTestId`, `queryByTestId`, `getAllByTestId`, `queryAllByTestId`, `findByTestId`, `findAllByTestId`
 
-There is also a `container` property which is the container that the queries are bound to, which in the case of `screen` always is `document.body`. It is a `Promise<ElementHandle>`, so you will have to `await` it. The `ElementHandle` points to `document.body`.
-
 ```js
 import { withBrowser } from 'pleasantest';
 
@@ -444,30 +442,6 @@ test(
 #### `PleasantestContext.within(element: ElementHandle)`
 
 The `PleasantestContext` object exposes the `within` property, which is similar to [`screen`](#pleasantestcontextscreen), but instead of the queries being pre-bound to the document, they are pre-bound to whichever element you pass to it. [Here's Testing Library's docs on `within`](https://testing-library.com/docs/dom-testing-library/api-within). Like `screen`, it returns an object with all of the pre-bound Testing Library queries.
-
-The returned queries object also has a `container` property which can be used if you need a reference to the container that was originally passed to within(). `container` is a `Promise<ElementHandle>`, so you will have to `await` it.
-
-```js
-import { withBrowser } from 'pleasantest';
-
-test(
-  'test name',
-  withBrowser(async ({ within, screen }) => {
-    //                 ^^^^^^
-    const helloElement = await screen.getByText(/hello/i);
-    const helloQueries = within(helloElement);
-
-    // Now `helloQueries` has queries bound to the container element
-    // You can use `helloQueries` in the same way as `screen`
-
-    // Find elements matching /some element/i within the `hello` element.
-    const someElement = await helloQueries.getByText(/some element/i);
-
-    const helloElement2 = await helloQueries.container;
-    // helloElement2 and helloElement are both ElementHandles pointing to the same element
-  }),
-);
-```
 
 #### `PleasantestContext.page`
 
@@ -744,7 +718,7 @@ test(
 );
 ```
 
-### `getAccessibilityTree(element, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
+### `getAccessibilityTree(element: ElementHandle | Page, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
 
 The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest) to ensure that any changes to the accessibility tree of your component or application are intended and correct.
 
@@ -757,15 +731,13 @@ import { withBrowser, getAccessibilityTree } from 'pleasantest';
 
 test(
   'getAccessibilityTree example',
-  withBrowser(async ({ screen }) => {
+  withBrowser(async ({ page }) => {
     // ... Load your content here (see Loading Content)
-
-    const body = await screen.container;
-    // You could alternatively choose a more specific element for which to print the accessibility tree
 
     await expect(
       // Note the use of `await`; getAccessibilityTree returns a Promise
-      await getAccessibilityTree(body),
+      // Also, you could pass a specific element instead of the page
+      await getAccessibilityTree(page),
     ).toMatchInlineSnapshot();
   }),
 );
@@ -782,6 +754,8 @@ list
   listitem
     text "something else"
 ```
+
+The first parameter must be either an `ElementHandle` or the `Page` object. If an `ElementHandle` is passed, the accessibility tree will contain only descendants of that element. If the `Page` object is passed, the accessibility tree will be of the entire document.
 
 The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you to configure what is shown in the output.
 

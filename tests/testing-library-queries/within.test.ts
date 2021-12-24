@@ -42,24 +42,5 @@ test(
 
     // This should pass now because there is only one button within the checkout section
     await checkoutQueries.getByRole('button');
-
-    // The .container property returns a promise resolving to the container element
-    await utils.runJS(
-      `export default (originalContainer, containerReference) => {
-        if (originalContainer !== containerReference)
-          throw new Error('.container property did not return correct reference')
-      }`,
-      [checkoutContainer, await checkoutQueries.container],
-    );
-
-    // Also screen.container should exist as well and should point to document.body
-    // since screen === within(document.body)
-    await utils.runJS(
-      `export default (container) => {
-        if (document.body !== container)
-          throw new Error('.container property did not return correct reference')
-      }`,
-      [await screen.container],
-    );
   }),
 );

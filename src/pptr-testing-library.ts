@@ -41,8 +41,6 @@ type ChangeDTLFn<DTLFn extends ValueOf<typeof queries>> = DTLFn extends (
 
 export type BoundQueries = {
   [K in keyof typeof queries]: ChangeDTLFn<typeof queries[K]>;
-} & {
-  container: Promise<ElementHandle>;
 };
 
 const queryNames = [
@@ -214,22 +212,6 @@ export const getQueriesForElement = (
           ),
       ];
     }),
-  );
-
-  Object.defineProperty(
-    queries,
-    'container',
-    element
-      ? // If a root element was passed in (from calling within())
-        // Then we can always return that value directly
-        // when they use screen.container
-        { value: Promise.resolve(element) }
-      : // If they did not pass a root element, then the queries are run from document.body.
-        // document.body is not static, it can change if a different page is loaded
-        // or even if you replace the body element in the page.
-        // So we must return a getter for screen.container
-        // so that it always reflects the most up to date document.body
-        { get: () => page.evaluateHandle(() => document.body) },
   );
 
   return queries;
