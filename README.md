@@ -445,14 +445,17 @@ The `PleasantestContext` object exposes the `within` property, which is similar 
 
 ```js
 import { withBrowser } from 'pleasantest';
+
 test(
   'test name',
   withBrowser(async ({ within, screen }) => {
     //                 ^^^^^^
     const containerElement = await screen.getByText(/hello/i);
     const container = within(containerElement);
+
     // Now `container` has queries bound to the container element
     // You can use `container` in the same way as `screen`
+
     // Find elements matching /some element/i within the container element.
     const someElement = await container.getByText(/some element/i);
   }),
