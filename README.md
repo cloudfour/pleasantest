@@ -34,7 +34,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
-  - [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
+  - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
@@ -223,7 +223,7 @@ test(
 );
 ```
 
-Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
+Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
 
 ### Performing Actions
 
