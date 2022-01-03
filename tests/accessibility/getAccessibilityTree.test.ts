@@ -96,12 +96,12 @@ test(
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-        document
-          button "click me"
-          button "click me"
-          button "click me"
-          text "extended description"
-        `);
+      document
+        button "click me"
+        button "click me"
+        button "click me"
+        text "extended description"
+      `);
 
     await utils.injectHTML(`
       <label>
