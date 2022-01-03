@@ -1,4 +1,4 @@
-import type { ElementHandle } from 'puppeteer';
+import type { ElementHandle, Page } from 'puppeteer';
 import { createClientRuntimeServer } from '../module-server/client-runtime-server';
 import { assertElementHandle } from '../utils';
 import type { AsyncHookTracker } from '../async-hooks';
@@ -21,11 +21,21 @@ export interface AccessibilityTreeOptions {
 }
 
 const getAccessibilityTree = async (
-  element: ElementHandle,
+  element: ElementHandle | Page,
   options: AccessibilityTreeOptions = {},
 ): Promise<
   { [accessibilityTreeSymbol]: string; toString(): string } | undefined
 > => {
+  if (
+    // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
+    element &&
+    typeof element === 'object' &&
+    element.constructor.name === 'Page'
+  ) {
+    element = await element.evaluateHandle<ElementHandle>(
+      () => document.documentElement,
+    );
+  }
   const serverPromise = createClientRuntimeServer();
   assertElementHandle(element, getAccessibilityTreeWrapper);
 
@@ -49,10 +59,10 @@ const getAccessibilityTree = async (
   };
 };
 
-/** Wrapped version adds forgot await checks */
-const getAccessibilityTreeWrapper = async (
-  ...args: Parameters<typeof getAccessibilityTree>
-): ReturnType<typeof getAccessibilityTree> => {
+// Wrapped version adds forgot await checks
+const getAccessibilityTreeWrapper: typeof getAccessibilityTree = async (
+  ...args
+) => {
   const asyncHookTracker: AsyncHookTracker | false =
     activeAsyncHookTrackers.size === 1 &&
     activeAsyncHookTrackers[Symbol.iterator]().next().value;

@@ -34,7 +34,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
-  - [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
+  - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
@@ -223,7 +223,7 @@ test(
 );
 ```
 
-Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
+Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
 
 ### Performing Actions
 
@@ -737,7 +737,7 @@ test(
 );
 ```
 
-### `getAccessibilityTree(element, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
+### `getAccessibilityTree(element: ElementHandle | Page, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
 
 The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest) to ensure that any changes to the accessibility tree of your component or application are intended and correct.
 
@@ -753,12 +753,10 @@ test(
   withBrowser(async ({ page }) => {
     // ... Load your content here (see Loading Content)
 
-    const bodyElement = await page.evaluateHandle(() => document.body);
-    // You could alternatively choose a more specific element for which to print the accessibility tree
-
     await expect(
       // Note the use of `await`; getAccessibilityTree returns a Promise
-      await getAccessibilityTree(bodyElement),
+      // Also, you could pass a specific element instead of the page
+      await getAccessibilityTree(page),
     ).toMatchInlineSnapshot();
   }),
 );
@@ -775,6 +773,8 @@ list
   listitem
     text "something else"
 ```
+
+The first parameter must be either an `ElementHandle` or the `Page` object. If an `ElementHandle` is passed, the accessibility tree will contain only descendants of that element. If the `Page` object is passed, the accessibility tree will be of the entire document.
 
 The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you to configure what is shown in the output.
 
