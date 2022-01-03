@@ -2,8 +2,8 @@ import type { ElementHandle } from 'pleasantest';
 import { getAccessibilityTree, withBrowser } from 'pleasantest';
 
 test(
-  'allows passing page instead of element',
-  withBrowser(async ({ utils, page }) => {
+  'allows passing Page or ElementHandle',
+  withBrowser(async ({ utils, page, screen }) => {
     await utils.injectHTML(`<ul></ul>`);
     await page.evaluate(() => (document.title = 'example title'));
     const htmlElement = await page.evaluateHandle<ElementHandle>(
@@ -17,6 +17,11 @@ test(
       document
         list
     `);
+
+    const list = await screen.getByRole('list');
+
+    // Allows passing a more specific element to get a subtree
+    expect(await getAccessibilityTree(list)).toMatchInlineSnapshot(`list`);
   }),
 );
 
