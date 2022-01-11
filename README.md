@@ -411,6 +411,36 @@ The `devices` import from `pleasantest` is re-exported from Puppeteer, [here is 
 
 ### `PleasantestContext` Object (passed into test function wrapped by `withBrowser`)
 
+#### `PleasantestContext.waitFor<T>(callback: () => T | Promise<T>, options?: WaitForOptions) => Promise<T>`
+
+The `waitFor` method in the `PleasantestContext` object repeatedly executes the callback passed into it until the callback stops throwing or rejecting, or after a configurable timeout. [This utility comes from Testing Library](https://testing-library.com/docs/dom-testing-library/api-async/#waitfor).
+
+The return value of the callback function is returned by `waitFor`.
+
+`WaitForOptions`: (all properties are optional):
+
+- `container`: `ElementHandle`, default `document.documentElement` (root element): The element watched by the MutationObserver which,
+  when it or its descendants change, causes the callback to run again (regardless of the interval).
+- `timeout`: `number`, default: 1000ms The amount of time (milliseconds) that will pass before waitFor "gives up" and throws whatever the callback threw.
+- `interval`: `number`, default: 50ms: The maximum amount of time (milliseconds) that will pass between each run of the callback. If the MutationObserver notices a DOM change before this interval triggers, the callback will run again immediately.
+- `onTimeout`: `(error: Error) => Error`: Manipulate the error thrown when the timeout triggers.
+  `mutationObserverOptions`: [`MutationObserverInit`](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe#parameters) Options to pass to initialize the `MutationObserver`,
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'test name',
+  withBrowser(async ({ waitFor, page }) => {
+    //                 ^^^^^^^
+    // Wait until the url changes to ...
+    await waitFor(async () => {
+      expect(page.url).toBe('https://something.com/something');
+    });
+  }),
+);
+```
+
 #### `PleasantestContext.screen`
 
 The `PleasantestContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Pleasantest compared to Testing Library: in Pleasantest, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle)'s from Puppeteer.
