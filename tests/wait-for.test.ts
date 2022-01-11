@@ -26,7 +26,7 @@ test(
 
 test(
   'Throws error with timeout',
-  withBrowser(async ({ waitFor, utils, screen }) => {
+  withBrowser(async ({ waitFor }) => {
     const error1 = await waitFor(
       () => {
         throw new Error('something bad happened');
