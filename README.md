@@ -424,7 +424,7 @@ The return value of the callback function is returned by `waitFor`.
 - `timeout`: `number`, default: 1000ms The amount of time (milliseconds) that will pass before waitFor "gives up" and throws whatever the callback threw.
 - `interval`: `number`, default: 50ms: The maximum amount of time (milliseconds) that will pass between each run of the callback. If the MutationObserver notices a DOM change before this interval triggers, the callback will run again immediately.
 - `onTimeout`: `(error: Error) => Error`: Manipulate the error thrown when the timeout triggers.
-  `mutationObserverOptions`: [`MutationObserverInit`](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe#parameters) Options to pass to initialize the `MutationObserver`,
+- `mutationObserverOptions`: [`MutationObserverInit`](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe#parameters) Options to pass to initialize the `MutationObserver`,
 
 ```js
 import { withBrowser } from 'pleasantest';
