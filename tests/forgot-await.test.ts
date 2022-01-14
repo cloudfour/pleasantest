@@ -1,5 +1,5 @@
 /* eslint-disable @cloudfour/typescript-eslint/require-await */
-import { withBrowser } from 'pleasantest';
+import { withBrowser, getAccessibilityTree } from 'pleasantest';
 import { printErrorFrames } from './test-utils';
 
 test('forgot await detection works even if other async stuff happens afterwards', async () => {
@@ -156,4 +156,47 @@ test('forgot await in user.type', async () => {
       const error = await withBrowser(async ({ user, utils, screen }) => {
                     ^"
     `);
+});
+
+test('forgot await in getAccessibilityTree', async () => {
+  const error = await withBrowser(async ({ page }) => {
+    const body = await page.$('body');
+    expect(getAccessibilityTree(body!)).toMatchInlineSnapshot(`Promise {}`);
+  })().catch((error) => error);
+  expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+    "Error: Cannot interact with browser after test finishes. Did you forget to await?
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+        expect(getAccessibilityTree(body!)).toMatchInlineSnapshot(\`Promise {}\`);
+               ^
+    -------------------------------------------------------
+    dist/cjs/index.cjs
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+      const error = await withBrowser(async ({ page }) => {
+                    ^"
+  `);
+});
+
+test('forgot await in waitFor', async () => {
+  const error = await withBrowser(async ({ waitFor }) => {
+    waitFor(() => {});
+  })().catch((error) => error);
+  expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+    "Error: Cannot interact with browser after test finishes. Did you forget to await?
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+        waitFor(() => {});
+        ^
+    -------------------------------------------------------
+    dist/cjs/index.cjs
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+      const error = await withBrowser(async ({ waitFor }) => {
+                    ^"
+  `);
 });

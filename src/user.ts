@@ -4,6 +4,7 @@ import { createClientRuntimeServer } from './module-server/client-runtime-server
 import {
   assertElementHandle,
   jsHandleToArray,
+  printColorsInErrorMessages,
   removeFuncFromStackTrace,
 } from './utils';
 
@@ -88,7 +89,7 @@ export const pleasantestUser = async (
           const msgWithStringEls = msgWithLiveEls
             .map(el => {
               if (el instanceof Element || el instanceof Document)
-                return utils.printElement(el)
+                return utils.printElement(el, ${printColorsInErrorMessages})
               return el
             })
             .join('')

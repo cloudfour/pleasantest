@@ -7,6 +7,7 @@ import {
   isElementHandle,
   isPromise,
   jsHandleToArray,
+  printColorsInErrorMessages,
   removeFuncFromStackTrace,
 } from './utils';
 
@@ -145,7 +146,7 @@ Received ${this.utils.printReceived(arg)}`,
                   const messageWithElementsRevived = reviveElementsInString(message)
                   const messageWithElementsStringified = messageWithElementsRevived
                   .map(el => {
-                    if (el instanceof Element) return printElement(el)
+                    if (el instanceof Element) return printElement(el, ${printColorsInErrorMessages})
                       return el
                   })
                   .join('')

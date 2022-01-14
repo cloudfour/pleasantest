@@ -1,3 +1,4 @@
+import * as colors from 'kolorist';
 interface Handler<T, Serialized extends unknown> {
   name: string;
   toObj(input: T): Serialized;
@@ -66,35 +67,82 @@ export const deserialize = (input: string) =>
     );
   });
 
-export const printElement = (el: Element | Document, depth = 3) => {
+const noColor = (input: string) => input;
+const indent = (input: string) => `  ${input.split('\n').join('\n  ')}`;
+
+export const printElement = (
+  el: Element | Document,
+  printColors = true,
+  depth = 3,
+) => {
   if (el instanceof Document) return '#document';
   let contents = '';
   const attrs = [...el.attributes];
   const splitAttrs = attrs.length > 2;
-  if (depth > 0 && el.childNodes.length <= 3) {
-    const singleLine =
-      !splitAttrs &&
-      (el.childNodes.length === 0 ||
-        (el.childNodes.length === 1 && el.childNodes[0] instanceof Text));
-    for (const child of el.childNodes) {
+  let needsMultipleLines = false;
+  if (depth > 0 && el.childNodes.length <= 5) {
+    const whiteSpaceSetting = getComputedStyle(el).whiteSpace;
+    const printedChildren: string[] = [];
+    let child = el.firstChild;
+    while (child) {
       if (child instanceof Element) {
-        contents += `\n  ${printElement(child, depth - 1).replace(
-          /\n/g,
-          '\n  ',
-        )}`;
+        needsMultipleLines = true;
+        printedChildren.push(printElement(child, printColors, depth - 1));
       } else if (child instanceof Text) {
-        contents += `${singleLine ? '' : '\n  '}${child.textContent}`;
+        // Merge consecutive text nodes together so their text can be collapsed
+        let consecutiveMergedText = child.textContent || '';
+        while (child.nextSibling instanceof Text) {
+          // We are collecting the consecutive siblings' text here
+          // so we are also skipping those siblings from being used by the outer loop
+          child = child.nextSibling;
+          consecutiveMergedText += child.textContent || '';
+        }
+        printedChildren.push(
+          whiteSpaceSetting === '' ||
+            whiteSpaceSetting === 'normal' ||
+            whiteSpaceSetting === 'nowrap' ||
+            whiteSpaceSetting === 'pre-line'
+            ? consecutiveMergedText.replace(
+                // Pre-line should collapse whitespace _except_ newlines
+                whiteSpaceSetting === 'pre-line' ? /[^\S\n]+/g : /\s+/g,
+                ' ',
+              )
+            : consecutiveMergedText,
+        );
       }
+      child = child.nextSibling;
     }
+    if (!needsMultipleLines)
+      needsMultipleLines =
+        splitAttrs || printedChildren.some((c) => c.includes('\n'));
 
-    if (!singleLine) contents += '\n';
+    contents += needsMultipleLines
+      ? `\n${printedChildren
+          .filter((c) => c.trim() !== '')
+          .map((c) => indent(c))
+          .join('\n')}\n`
+      : printedChildren.join('');
   } else {
     contents = '[...]';
   }
 
   const tagName = el.tagName.toLowerCase();
   const selfClosing = el.childNodes.length === 0;
-  return `<${tagName}${
+  // We haver to tell kolorist to print the colors
+  // beacuse by default it won't since we are in the browser
+  // (the colored message gets sent to node to be printed)
+  colors.options.enabled = true;
+  colors.options.supportLevel = 1;
+
+  // Syntax highlighting groups
+  const highlight = {
+    bracket: printColors ? colors.cyan : noColor,
+    tagName: printColors ? colors.red : noColor,
+    equals: printColors ? colors.cyan : noColor,
+    attribute: printColors ? colors.blue : noColor,
+    string: printColors ? colors.green : noColor,
+  };
+  return `${highlight.bracket('<')}${highlight.tagName(tagName)}${
     attrs.length === 0 ? '' : splitAttrs ? '\n  ' : ' '
   }${attrs
     .map((attr) => {
@@ -102,10 +150,22 @@ export const printElement = (el: Element | Document, depth = 3) => {
         attr.value === '' &&
         typeof el[attr.name as keyof Element] === 'boolean'
       )
-        return attr.name;
-      return `${attr.name}="${attr.value}"`;
+        return highlight.attribute(attr.name);
+      return `${highlight.attribute(attr.name)}${highlight.equals(
+        '=',
+      )}${highlight.string(`"${attr.value}"`)}`;
     })
     .join(splitAttrs ? '\n  ' : ' ')}${
-    selfClosing ? `${splitAttrs ? '\n' : ' '}/` : splitAttrs ? '\n' : ''
-  }>${selfClosing ? '' : `${contents}</${tagName}>`}`;
+    selfClosing
+      ? highlight.bracket(`${splitAttrs ? '\n' : ' '}/`)
+      : splitAttrs
+      ? '\n'
+      : ''
+  }${highlight.bracket('>')}${
+    selfClosing
+      ? ''
+      : `${contents}${highlight.bracket('</')}${highlight.tagName(
+          tagName,
+        )}${highlight.bracket('>')}`
+  }`;
 };

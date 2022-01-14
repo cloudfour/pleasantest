@@ -26,16 +26,18 @@ test('regexes', () => {
 
 describe('printElement', () => {
   it('formats a document correctly', () => {
-    expect(printElement(document)).toMatchInlineSnapshot(`"#document"`);
+    expect(printElement(document, false)).toMatchInlineSnapshot(`"#document"`);
   });
   it('formats an empty element', () => {
     const outerEl = document.createElement('div');
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`"<div />"`);
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`"<div />"`);
   });
   it('formats an element with a single text node', () => {
     const outerEl = document.createElement('div');
     outerEl.innerHTML = 'asdf';
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`"<div>asdf</div>"`);
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(
+      `"<div>asdf</div>"`,
+    );
   });
   it('formats an element with multiple text nodes', () => {
     const outerEl = document.createElement('div');
@@ -43,17 +45,59 @@ describe('printElement', () => {
       document.createTextNode('first'),
       document.createTextNode('second'),
     );
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`
-      "<div>
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(
+      `"<div>firstsecond</div>"`,
+    );
+  });
+  it('formats consecutive whitespace as single space except when white-space is set in CSS', () => {
+    const outerEl = document.createElement('div');
+    outerEl.append(
+      document.createTextNode('first\n\n  '),
+      document.createTextNode('\n second  third\n '),
+    );
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(
+      `"<div>first second third </div>"`,
+    );
+    outerEl.style.whiteSpace = 'pre';
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
+      "<div style=\\"white-space: pre;\\">
         first
-        second
+        
+          
+         second  third
+         
+      </div>"
+    `);
+    outerEl.style.whiteSpace = 'pre-line';
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
+      "<div style=\\"white-space: pre-line;\\">
+        first
+        
+         
+         second third
+         
+      </div>"
+    `);
+  });
+  it('Removes whitespace-only text nodes when printing elements across multiple lines', () => {
+    const outerEl = document.createElement('div');
+    outerEl.innerHTML = `
+      
+      <h1> Hi </h1>
+
+      <h2>Hi  </h2>
+    `;
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
+      "<div>
+        <h1> Hi </h1>
+        <h2>Hi </h2>
       </div>"
     `);
   });
   it('formats an element with nested children', () => {
     const outerEl = document.createElement('div');
     outerEl.innerHTML = '<strong><a>Hi</a></strong>';
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div>
         <strong>
           <a>Hi</a>
@@ -64,7 +108,7 @@ describe('printElement', () => {
   it('formats self-closing element', () => {
     const outerEl = document.createElement('div');
     outerEl.innerHTML = '<input><img>';
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div>
         <input />
         <img />
@@ -74,7 +118,7 @@ describe('printElement', () => {
   it('formats attributes on one line', () => {
     const outerEl = document.createElement('div');
     outerEl.dataset.asdf = 'foo';
-    expect(printElement(outerEl)).toMatchInlineSnapshot(
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(
       `"<div data-asdf=\\"foo\\" />"`,
     );
   });
@@ -83,7 +127,7 @@ describe('printElement', () => {
     outerEl.dataset.asdf = 'foo';
     outerEl.setAttribute('class', 'class');
     outerEl.setAttribute('style', 'background: green');
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div
         data-asdf=\\"foo\\"
         class=\\"class\\"
@@ -97,7 +141,7 @@ describe('printElement', () => {
     outerEl.dataset.asdf = 'foo';
     outerEl.setAttribute('class', 'class');
     outerEl.setAttribute('style', 'background: green');
-    expect(printElement(outerEl)).toMatchInlineSnapshot(`
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div
         data-asdf=\\"foo\\"
         class=\\"class\\"
@@ -111,7 +155,7 @@ describe('printElement', () => {
     const outerEl = document.createElement('input');
     outerEl.setAttribute('required', '');
     outerEl.setAttribute('value', '');
-    expect(printElement(outerEl)).toMatchInlineSnapshot(
+    expect(printElement(outerEl, false)).toMatchInlineSnapshot(
       `"<input required value=\\"\\" />"`,
     );
   });
