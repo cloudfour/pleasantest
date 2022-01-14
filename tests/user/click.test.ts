@@ -338,11 +338,8 @@ test(
               <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
               Label associated with the checkbox input was 120px × 20px
               <label style=\\"display: block; width: 120px; height: 20px;\\">
-                
-                        
                 <input type=\\"checkbox\\" name=\\"test-checkbox\\" />
-                 Test checkbox
-                      
+                 Test checkbox 
               </label>
               You can increase the target size by making the label or checkbox input larger than 44px × 44px.
               You can customize this check by setting the targetSize option, more details at https://github.com/cloudfour/pleasantest/blob/v2.0.0/docs/errors/target-size.md"
