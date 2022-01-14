@@ -1,5 +1,17 @@
 # pleasantest
 
+## 1.5.0
+
+### Minor Changes
+
+- [#369](https://github.com/cloudfour/pleasantest/pull/369) [`c0a8a0a`](https://github.com/cloudfour/pleasantest/commit/c0a8a0ae008507b36a664dc8a1d009507021c146) Thanks [@calebeby](https://github.com/calebeby)! - Add `waitFor` feature
+
+* [#344](https://github.com/cloudfour/pleasantest/pull/344) [`d7bbae3`](https://github.com/cloudfour/pleasantest/commit/d7bbae367e9d5fb8c7756ec337568c18e34faf3f) Thanks [@calebeby](https://github.com/calebeby)! - Allow passing `page` instead of an `ElementHandle` to `getAccessibilityTree`.
+
+  If `page` is passed, the accessibility tree will be of the root `html` element.
+
+- [#363](https://github.com/cloudfour/pleasantest/pull/363) [`4bdfb5b`](https://github.com/cloudfour/pleasantest/commit/4bdfb5b58c4a61567ac7c9367483aab5a261180c) Thanks [@calebeby](https://github.com/calebeby)! - Add support for Node 17
+
 ## 1.4.0
 
 ### Minor Changes
