@@ -11,7 +11,7 @@ test(
       }, 100)
     `);
     // At first the element should not be there
-    // Because it waits 10ms to add it
+    // Because it waits 100ms to add it
     expect(await page.$('h2')).toBeNull();
     const waitForCallback = jest.fn(async () => {
       expect(await page.$('h2')).not.toBeNull();
