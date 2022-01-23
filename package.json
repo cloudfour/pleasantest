@@ -25,7 +25,7 @@
     "@types/node": "12.20.41",
     "@types/polka": "0.5.4",
     "@types/puppeteer": "5.4.4",
-    "@vue/compiler-sfc": "3.2.26",
+    "@vue/compiler-sfc": "3.2.29",
     "ansi-regex": "6.0.0",
     "aria-query": "*",
     "babel-plugin-un-cjs": "2.5.0",
@@ -57,7 +57,7 @@
     "svelte": "3.46.2",
     "svelte-preprocess": "4.10.1",
     "typescript": "4.5.4",
-    "vue": "3.2.26"
+    "vue": "3.2.29"
   },
   "dependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
