@@ -9,7 +9,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@ampproject/remapping": "1.0.2",
+    "@ampproject/remapping": "1.1.1",
     "@babel/core": "7.16.7",
     "@babel/preset-env": "7.16.8",
     "@babel/preset-typescript": "7.16.7",
