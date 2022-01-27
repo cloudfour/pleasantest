@@ -26,7 +26,7 @@
     "@types/polka": "0.5.4",
     "@types/puppeteer": "5.4.4",
     "@vue/compiler-sfc": "3.2.29",
-    "ansi-regex": "6.0.0",
+    "ansi-regex": "6.0.1",
     "aria-query": "*",
     "babel-plugin-un-cjs": "2.5.0",
     "dom-accessibility-api": "0.5.10",
