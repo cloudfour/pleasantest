@@ -16,6 +16,11 @@
         ":warning: **Warning:** Manually update the version numbers in URL's in README"
       ],
       "commitMessagePrefix": "[Requires manual changes]"
+    },
+    {
+      "matchPackagePatterns": ["preact", "prop-types", "react", "sass", "svelte", "vue", "liquidjs"],
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "testing-only"
     }
   ],
   "prConcurrentLimit": 5,
