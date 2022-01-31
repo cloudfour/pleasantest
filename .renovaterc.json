@@ -20,7 +20,9 @@
     {
       "matchPackagePatterns": ["preact", "prop-types", "react", "sass", "svelte", "vue", "liquidjs"],
       "matchDepTypes": ["devDependencies"],
-      "groupName": "testing-only"
+      "prCreation": "immediate",
+      "stabilityDays": 0,
+      "groupName": "Compatability testing-only dependencies"
     }
   ],
   "prConcurrentLimit": 5,
