@@ -18,7 +18,15 @@
       "commitMessagePrefix": "[Requires manual changes]"
     },
     {
-      "matchPackagePatterns": ["preact", "prop-types", "react", "sass", "svelte", "vue", "liquidjs"],
+      "matchPackagePatterns": [
+        "preact",
+        "prop-types",
+        "react",
+        "sass",
+        "svelte",
+        "vue",
+        "liquidjs"
+      ],
       "matchDepTypes": ["devDependencies"],
       "prCreation": "immediate",
       "stabilityDays": 0,
