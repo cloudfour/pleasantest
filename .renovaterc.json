@@ -30,7 +30,8 @@
       "matchDepTypes": ["devDependencies"],
       "prCreation": "immediate",
       "stabilityDays": 0,
-      "groupName": "Compatability testing-only dependencies"
+      "schedule": "every 1 month on the first day of the month",
+      "groupName": "compatability testing-only dependencies"
     }
   ],
   "prConcurrentLimit": 5,
