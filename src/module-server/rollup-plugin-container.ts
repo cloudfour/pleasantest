@@ -78,6 +78,7 @@ type PluginContext = Omit<
   | 'isExternal'
   | 'moduleIds'
   | 'resolveId'
+  | 'load'
 >;
 
 export const createPluginContainer = (plugins: Plugin[]) => {
@@ -185,7 +186,9 @@ export const createPluginContainer = (plugins: Plugin[]) => {
 
         let result;
         try {
-          result = await p.resolveId.call(ctx as any, id, importer, {});
+          result = await p.resolveId.call(ctx as any, id, importer, {
+            isEntry: false,
+          });
         } finally {
           if (_skip) resolveSkips.delete(p, key);
         }
