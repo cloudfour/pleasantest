@@ -463,4 +463,7 @@ afterAll(async () => {
 
 export type { WaitForOptions };
 
-export { getAccessibilityTree } from './accessibility';
+export {
+  getAccessibilityTree,
+  accessibilityTreeSnapshotSerializer,
+} from './accessibility';
