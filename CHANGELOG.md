@@ -1,5 +1,31 @@
 # pleasantest
 
+## 1.6.0
+
+### Minor Changes
+
+- [#353](https://github.com/cloudfour/pleasantest/pull/353) [`19c7cbb`](https://github.com/cloudfour/pleasantest/commit/19c7cbb86e0be198c3c95c613c180356faab9e80) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to 13.1.2
+
+### Patch Changes
+
+- [#391](https://github.com/cloudfour/pleasantest/pull/391) [`55a7d42`](https://github.com/cloudfour/pleasantest/commit/55a7d4205f756625bf5764ec4dd0a4287194b48c) Thanks [@renovate](https://github.com/apps/renovate)! - Update `dom-accessibility-api` to 0.5.11
+
+  `<input type="number" />` now maps to role `spinbutton` (was `textbox` before).
+
+  This is technically a breaking change for users which depended on the incorrect behavior of `getAccessibilityTree` with `input[type="number"]` previously mapping to `textbox`.
+
+## 1.5.0
+
+### Minor Changes
+
+- [#369](https://github.com/cloudfour/pleasantest/pull/369) [`c0a8a0a`](https://github.com/cloudfour/pleasantest/commit/c0a8a0ae008507b36a664dc8a1d009507021c146) Thanks [@calebeby](https://github.com/calebeby)! - Add `waitFor` feature
+
+* [#344](https://github.com/cloudfour/pleasantest/pull/344) [`d7bbae3`](https://github.com/cloudfour/pleasantest/commit/d7bbae367e9d5fb8c7756ec337568c18e34faf3f) Thanks [@calebeby](https://github.com/calebeby)! - Allow passing `page` instead of an `ElementHandle` to `getAccessibilityTree`.
+
+  If `page` is passed, the accessibility tree will be of the root `html` element.
+
+- [#363](https://github.com/cloudfour/pleasantest/pull/363) [`4bdfb5b`](https://github.com/cloudfour/pleasantest/commit/4bdfb5b58c4a61567ac7c9367483aab5a261180c) Thanks [@calebeby](https://github.com/calebeby)! - Add support for Node 17
+
 ## 1.4.0
 
 ### Minor Changes

@@ -1,7 +1,10 @@
 import * as puppeteer from 'puppeteer';
 import { relative, join, isAbsolute, dirname } from 'path';
-import type { BoundQueries } from './pptr-testing-library';
-import { getQueriesForElement } from './pptr-testing-library';
+import type { BoundQueries, WaitForOptions } from './pptr-testing-library';
+import {
+  getQueriesForElement,
+  waitFor as innerWaitFor,
+} from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -59,6 +62,7 @@ export interface PleasantestContext {
   within(element: puppeteer.ElementHandle | null): BoundQueries;
   page: puppeteer.Page;
   user: PleasantestUser;
+  waitFor: <T>(cb: () => T | Promise<T>, opts?: WaitForOptions) => Promise<T>;
 }
 
 export interface WithBrowserOpts {
@@ -428,11 +432,17 @@ const createTab = async ({
     return getQueriesForElement(page, asyncHookTracker, element);
   };
 
+  const waitFor: PleasantestContext['waitFor'] = (
+    cb,
+    opts: WaitForOptions = {},
+  ) => innerWaitFor(page, asyncHookTracker, cb, opts, waitFor);
+
   return {
     screen,
     utils,
     page,
     within,
+    waitFor,
     user: await pleasantestUser(page, asyncHookTracker),
     asyncHookTracker,
     cleanupServer: () => closeServer(),
@@ -450,5 +460,7 @@ export const devices = puppeteer.devices;
 afterAll(async () => {
   await cleanupClientRuntimeServer();
 });
+
+export type { WaitForOptions };
 
 export { getAccessibilityTree } from './accessibility';

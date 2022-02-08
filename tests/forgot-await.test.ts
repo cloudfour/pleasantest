@@ -179,3 +179,24 @@ test('forgot await in getAccessibilityTree', async () => {
                     ^"
   `);
 });
+
+test('forgot await in waitFor', async () => {
+  const error = await withBrowser(async ({ waitFor }) => {
+    waitFor(() => {});
+  })().catch((error) => error);
+  expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+    "Error: Cannot interact with browser after test finishes. Did you forget to await?
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+        waitFor(() => {});
+        ^
+    -------------------------------------------------------
+    dist/cjs/index.cjs
+    -------------------------------------------------------
+    tests/forgot-await.test.ts
+
+      const error = await withBrowser(async ({ waitFor }) => {
+                    ^"
+  `);
+});
