@@ -34,6 +34,7 @@ test(
           <span aria-hidden="true">+</span>
           <span>Add to cart</span>
         </button>
+        <!-- This comment shouldn't show up -->
         <h1>hiiii</h1>
         <div role="button" tabindex="-1">foo &gt bar</div>
       </main>

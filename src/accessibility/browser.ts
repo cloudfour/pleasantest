@@ -122,7 +122,7 @@ export const getAccessibilityTree = (
     let printedChild;
     if (node instanceof Element) {
       printedChild = getAccessibilityTree(node, opts, requiredOwnedElements);
-    } else if (includeText) {
+    } else if (includeText && !(node instanceof Comment)) {
       const trimmedText = node.nodeValue?.trim();
       if (!trimmedText) continue;
 
