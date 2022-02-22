@@ -78,15 +78,17 @@ const getAccessibilityTreeWrapper: typeof getAccessibilityTree = async (
 
 export { getAccessibilityTreeWrapper as getAccessibilityTree };
 
+export const accessibilityTreeSnapshotSerializer: import('pretty-format').NewPlugin =
+  {
+    serialize: (val, config, indentation, depth, refs, printer) => {
+      const v = val[accessibilityTreeSymbol];
+      return typeof v === 'string'
+        ? v
+        : printer(v, config, indentation, depth, refs);
+    },
+    test: (val) =>
+      val && typeof val === 'object' && accessibilityTreeSymbol in val,
+  };
 // This tells Jest how to print the accessibility tree (without adding extra quotes)
 // https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
-expect.addSnapshotSerializer({
-  serialize: (val, config, indentation, depth, refs, printer) => {
-    const v = val[accessibilityTreeSymbol];
-    return typeof v === 'string'
-      ? v
-      : printer(v, config, indentation, depth, refs);
-  },
-  test: (val) =>
-    val && typeof val === 'object' && accessibilityTreeSymbol in val,
-});
+expect.addSnapshotSerializer(accessibilityTreeSnapshotSerializer);
