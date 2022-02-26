@@ -60,7 +60,7 @@
     "vue": "3.2.29"
   },
   "dependencies": {
-    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-commonjs": "^21.0.2",
     "acorn": "^8.7.0",
     "cjs-module-lexer": "^1.2.2",
     "es-module-lexer": "^0.9.3",
