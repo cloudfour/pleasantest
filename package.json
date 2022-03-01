@@ -24,7 +24,7 @@
     "@types/jest": "27.4.1",
     "@types/node": "12.20.46",
     "@types/polka": "0.5.4",
-    "@types/puppeteer": "5.4.4",
+    "@types/puppeteer": "5.4.5",
     "@vue/compiler-sfc": "3.2.31",
     "ansi-regex": "6.0.1",
     "aria-query": "*",
