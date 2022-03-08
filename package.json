@@ -36,7 +36,7 @@
     "jest": "27.5.1",
     "kolorist": "1.5.1",
     "liquidjs": "9.35.1",
-    "magic-string": "0.25.7",
+    "magic-string": "0.26.1",
     "polka": "0.5.2",
     "preact": "10.6.6",
     "prettier": "2.5.1",
