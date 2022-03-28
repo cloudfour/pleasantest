@@ -16,7 +16,7 @@ import { removeFuncFromStackTrace } from './utils';
 export const activeAsyncHookTrackers = new Set<AsyncHookTracker>();
 
 export interface AsyncHookTracker {
-  addHook<T extends unknown>(
+  addHook<T>(
     func: () => Promise<T>,
     captureFunction: (...args: any[]) => any,
   ): Promise<T | undefined>;

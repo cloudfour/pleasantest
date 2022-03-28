@@ -37,6 +37,16 @@ const stat = (path: string) => fs.stat(path).catch(() => null);
 // (it also doesn't do implicit extension resolution at all in modules, but it is so common because of bundlers, that we will support it)
 const exts = ['.js', '.ts', '.tsx', '.jsx'];
 
+const isFile = async (path: string) => {
+  const stats = await stat(path);
+  return stats?.isFile() || false;
+};
+
+const isDirectory = async (path: string) => {
+  const stats = await stat(path);
+  return stats?.isDirectory() || false;
+};
+
 export const resolveRelativeOrAbsolute = async (
   id: string,
   importer?: string,
@@ -47,7 +57,7 @@ export const resolveRelativeOrAbsolute = async (
   if (result) return result;
 
   // LOAD_AS_DIRECTORY section in https://nodejs.org/api/modules.html#modules_all_together
-  if ((await stat(resolved))?.isDirectory()) {
+  if (await isDirectory(resolved)) {
     const result = await resolveAsDirectory(resolved);
     if (result) return result;
   }
@@ -56,11 +66,10 @@ export const resolveRelativeOrAbsolute = async (
 
 /** Given ./file, check for ./file.js (LOAD_AS_FILE) */
 const resolveAsFile = async (path: string) => {
-  if ((await stat(path))?.isFile()) return path;
+  if (await isFile(path)) return path;
 
   for (const ext of exts) {
-    const stats = await stat(path + ext);
-    if (stats?.isFile()) return path + ext;
+    if (await isFile(path + ext)) return path + ext;
   }
 };
 
@@ -75,7 +84,7 @@ const resolveIndex = async (directory: string) => {
 
 const readPkgJson = async (directory: string) => {
   const pkgJsonPath = join(directory, 'package.json');
-  if ((await stat(pkgJsonPath))?.isFile()) {
+  if (await isFile(pkgJsonPath)) {
     try {
       return JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'));
     } catch (error) {
@@ -140,7 +149,7 @@ export const resolveFromNodeModules = async (
         .then((realImporter) => relative(realRoot, realImporter))
         .catch(() => relative(root, importer))
     : '.';
-  while (!pkgDir || !(await stat(pkgDir))?.isDirectory()) {
+  while (!pkgDir || !(await isDirectory(pkgDir))) {
     if (scanDir === '.' || scanDir.startsWith('..')) {
       throw new Error(`Could not find ${id} in node_modules`);
     }

@@ -63,13 +63,13 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document
-        list
-          listitem
-            text "something"
-          listitem
-            text "something else"
-    `);
+        document
+          list
+            listitem
+              text "something"
+            listitem
+              text "something else"
+      `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
       <button aria-describedby="click-me-description"><div>click me</div></button>
@@ -88,24 +88,24 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        text "extended description"
-    `);
+        document
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
+          text "extended description"
+      `);
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-      document
-        button "click me"
-        button "click me"
-        button "click me"
-        text "extended description"
-    `);
+        document
+          button "click me"
+          button "click me"
+          button "click me"
+          text "extended description"
+      `);
 
     await utils.injectHTML(`
       <label>
@@ -119,12 +119,12 @@ test(
 
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document
-        text "Label Text"
-        textbox "Label Text"
-        text "Label Text"
-        textbox "Label Text"
-    `);
+        document
+          text "Label Text"
+          textbox "Label Text"
+          text "Label Text"
+          textbox "Label Text"
+      `);
   }),
 );
 

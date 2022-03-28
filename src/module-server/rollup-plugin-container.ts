@@ -101,7 +101,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
         ...opts,
       });
     },
-    async resolve(id, importer, { skipSelf = false } = { skipSelf: false }) {
+    async resolve(id, importer, { skipSelf = false } = {}) {
       const skip = [];
       if (skipSelf && plugin) skip.push(plugin);
       let out = await container.resolveId(id, importer, skip);

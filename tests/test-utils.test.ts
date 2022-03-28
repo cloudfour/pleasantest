@@ -29,18 +29,18 @@ test('printErrorFrames with browser-made stack trace', async () => {
         at renderThrow (tests/utils/external.tsx:16:3)`;
 
   expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-"Error: something
--------------------------------------------------------
-tests/utils/external.tsx
+    "Error: something
+    -------------------------------------------------------
+    tests/utils/external.tsx
 
-  throw new Error('you have rendered the death component');
-        ^
--------------------------------------------------------
-tests/utils/external.tsx
+      throw new Error('you have rendered the death component');
+            ^
+    -------------------------------------------------------
+    tests/utils/external.tsx
 
-  preactRender(<ThrowComponent />, document.body);
-  ^"
-`);
+      preactRender(<ThrowComponent />, document.body);
+      ^"
+  `);
 });
 
 // eslint-disable-next-line @cloudfour/typescript-eslint/require-await
