@@ -15,10 +15,16 @@ export const staticMiddleware =
   async (req, res, next) => {
     try {
       const absPath = resolve(root, ...req.path.split(posix.sep));
-      if (!absPath.startsWith(root)) return next();
+      if (!absPath.startsWith(root)) {
+        next();
+        return;
+      }
 
       const stats = await fs.stat(absPath).catch((() => {}) as () => undefined);
-      if (!stats?.isFile()) return next();
+      if (!stats?.isFile()) {
+        next();
+        return;
+      }
 
       const headers = {
         'Content-Type': (mime as any).getType(absPath) || '',

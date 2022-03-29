@@ -1,14 +1,14 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
-import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api';
+import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
     export { toHaveStyle } from "${require.resolve(
-      // eslint-disable-next-line @cloudfour/node/no-missing-require
+      // eslint-disable-next-line @cloudfour/n/no-missing-require
       './src/jest-dom/to-have-style',
     )}"
   `,

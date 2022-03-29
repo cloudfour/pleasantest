@@ -7,7 +7,7 @@ import {
 import path from 'path';
 import { printColorsInErrorMessages } from '../../src/utils';
 
-const runWithUtils = async <Args extends any[], Return extends unknown>(
+const runWithUtils = async <Args extends any[], Return>(
   fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,
 ): Promise<(...args: Args) => Promise<Return>> => {
   const { port } = await createClientRuntimeServer(

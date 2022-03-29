@@ -18,7 +18,10 @@ const defaultHTML = `
 `;
 
 export const indexHTMLMiddleware: polka.Middleware = (req, res, next) => {
-  if (req.url !== '/') return next();
+  if (req.url !== '/') {
+    next();
+    return;
+  }
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/html');
   res.write(defaultHTML);

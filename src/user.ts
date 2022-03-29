@@ -59,7 +59,7 @@ export const pleasantestUser = async (
   asyncHookTracker: AsyncHookTracker,
 ) => {
   const { port } = await createClientRuntimeServer();
-  const runWithUtils = <Args extends any[], Return extends unknown>(
+  const runWithUtils = <Args extends any[], Return>(
     fn: (userUtil: typeof import('./user-util'), ...args: Args) => Return,
   ): ((...args: Args) => Promise<Return>) =>
     new Function(

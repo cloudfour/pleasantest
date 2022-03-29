@@ -59,6 +59,7 @@ describe('printElement', () => {
       `"<div>first second third </div>"`,
     );
     outerEl.style.whiteSpace = 'pre';
+    // eslint-disable-next-line @cloudfour/unicorn/template-indent
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div style=\\"white-space: pre;\\">
         first
@@ -69,6 +70,7 @@ describe('printElement', () => {
       </div>"
     `);
     outerEl.style.whiteSpace = 'pre-line';
+    // eslint-disable-next-line @cloudfour/unicorn/template-indent
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div style=\\"white-space: pre-line;\\">
         first
