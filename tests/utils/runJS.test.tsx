@@ -152,7 +152,7 @@ test(
 
               throw new Error('errorFromTs')\`,
                     ^"
-      `);
+    `);
 
     // Implicitly created error
     const error2 = await utils
@@ -169,7 +169,7 @@ test(
 
               thisVariableDoesntExist\`,
               ^"
-      `);
+    `);
   }),
 );
 
@@ -230,7 +230,7 @@ test(
 
             .runJS('console.log(nothing)')
                                 ^"
-      `);
+    `);
   }),
 );
 
@@ -272,7 +272,7 @@ test(
 
               renderThrow()\`,
               ^"
-      `);
+    `);
   }),
 );
 

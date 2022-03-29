@@ -16,7 +16,7 @@ export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   return arr;
 };
 
-export const isPromise = <T extends any>(
+export const isPromise = <T>(
   input: unknown | Promise<T>,
 ): input is Promise<T> => Promise.resolve(input) === input; // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise/38339199#38339199
 

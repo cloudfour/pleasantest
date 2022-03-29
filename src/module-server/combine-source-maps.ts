@@ -53,16 +53,13 @@ export const combineSourceMaps = (
       return map;
     })
     .reverse();
-  if (
-    sourceMapList.length === 0 ||
-    sourceMapList.every((m) => m.sources.length === 0)
-  )
+  if (sourceMapList.every((m) => m.sources.length === 0))
     return { ...nullSourceMap };
 
   let mapIndex = 1;
-  const useArrayInterface =
-    sourceMapList.slice(0, -1).find((m) => m.sources.length !== 1) ===
-    undefined;
+  const useArrayInterface = !sourceMapList
+    .slice(0, -1)
+    .some((m) => m.sources.length !== 1);
   const map = useArrayInterface
     ? remapping(sourceMapList, () => null, true)
     : remapping(

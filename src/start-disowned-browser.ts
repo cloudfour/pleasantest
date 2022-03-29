@@ -51,7 +51,7 @@ process.on('message', async ({ browser, headless }) => {
     await Promise.all(allPages.map((p) => p.close()));
     const browserWSEndpoint = browserInstance.wsEndpoint();
     process.send!({ browserWSEndpoint });
-    // eslint-disable-next-line no-process-exit
+    // eslint-disable-next-line @cloudfour/n/no-process-exit
     browserInstance.on('disconnected', () => process.exit());
   } catch (error) {
     process.send!({ error: error.message });

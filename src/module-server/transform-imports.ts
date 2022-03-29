@@ -63,7 +63,8 @@ export const transformImports = async (
   let imports;
   try {
     // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
-    imports = (await parse(code, id))[0];
+    const parsed = await parse(code, id);
+    imports = parsed[0];
   } catch (error) {
     if (!('idx' in error)) throw error;
     const linesUntilError = code.slice(0, error.idx).split('\n');

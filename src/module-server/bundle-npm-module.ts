@@ -43,7 +43,6 @@ export const bundleNpmModule = async (
 
     if (isValidCJS) {
       const require = createRequire(import.meta.url);
-      // eslint-disable-next-line @cloudfour/typescript-eslint/no-var-requires
       const imported = require(mod);
       if (typeof imported === 'object' && !imported.__esModule)
         namedExports = Object.keys(imported);

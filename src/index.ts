@@ -27,7 +27,6 @@ import { createAsyncHookTracker } from './async-hooks';
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
-export type { PleasantestUser };
 
 export interface PleasantestUtils {
   /**
@@ -468,6 +467,10 @@ afterAll(async () => {
   await cleanupClientRuntimeServer();
 });
 
-export type { WaitForOptions };
+export {
+  getAccessibilityTree,
+  accessibilityTreeSnapshotSerializer,
+} from './accessibility';
 
-export { getAccessibilityTree } from './accessibility';
+export { type PleasantestUser } from './user';
+export { type WaitForOptions } from './pptr-testing-library';

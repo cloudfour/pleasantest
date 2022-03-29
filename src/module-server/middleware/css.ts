@@ -23,7 +23,10 @@ export const cssMiddleware = ({
 
   return async (req, res, next) => {
     try {
-      if (!cssExts.test(req.path)) return next();
+      if (!cssExts.test(req.path)) {
+        next();
+        return;
+      }
       // Normalized path starting with slash
       const path = posix.normalize(req.path);
       // Remove leading slash, and convert slashes to os-specific slashes
@@ -38,7 +41,7 @@ export const cssMiddleware = ({
         .join(posix.sep)}`;
 
       res.setHeader('Content-Type', 'text/css;charset=utf-8');
-      let code = await fs.readFile(file, 'utf-8');
+      let code = await fs.readFile(file, 'utf8');
 
       if (cssPlug.transform) {
         const ctx: Partial<PluginContext> = {
@@ -60,15 +63,20 @@ export const cssMiddleware = ({
           typeof result !== 'object' ||
           result === null ||
           result.meta?.css === undefined
-        )
-          return next();
+        ) {
+          next();
+          return;
+        }
         code = result.meta.css;
       }
 
-      if (!code) return next();
+      if (!code) {
+        next();
+        return;
+      }
 
       res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(code, 'utf-8'),
+        'Content-Length': Buffer.byteLength(code, 'utf8'),
       });
       res.end(code);
     } catch (error) {
