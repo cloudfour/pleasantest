@@ -1,5 +1,5 @@
 import * as colors from 'kolorist';
-interface Handler<T, Serialized extends unknown> {
+interface Handler<T, Serialized> {
   name: string;
   toObj(input: T): Serialized;
   fromObj(input: Serialized): T;

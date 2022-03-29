@@ -128,10 +128,12 @@ export const jsMiddleware = async ({
         if (
           !jsExts.test(resolvedId || req.path) &&
           req.query.import === undefined
-        )
-          return next();
+        ) {
+          next();
+          return;
+        }
 
-        code = await fs.readFile(file, 'utf-8');
+        code = await fs.readFile(file, 'utf8');
       }
 
       const transformResult = await rollupPlugins.transform(code, id, map);
@@ -201,10 +203,13 @@ export const jsMiddleware = async ({
         },
       });
 
-      if (!code) return next();
+      if (!code) {
+        next();
+        return;
+      }
 
       res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(code, 'utf-8'),
+        'Content-Length': Buffer.byteLength(code, 'utf8'),
       });
       res.end(code);
     } catch (error) {

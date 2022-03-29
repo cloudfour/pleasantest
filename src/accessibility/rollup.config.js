@@ -1,7 +1,7 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
-import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api';
+import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 import * as r from 'aria-query';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];

@@ -118,8 +118,10 @@ export const connectToBrowser = async (
   const wsEndpoint = await new Promise<string>((resolve, reject) => {
     subprocess.send({ browser, headless });
     subprocess.on('message', (msg: any) => {
-      if (msg.error)
-        return reject(new Error(`Failed to start browser: ${msg.error}`));
+      if (msg.error) {
+        reject(new Error(`Failed to start browser: ${msg.error}`));
+        return;
+      }
       if (!msg.browserWSEndpoint) return;
       resolve(msg.browserWSEndpoint);
     });
