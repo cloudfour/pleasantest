@@ -43,7 +43,7 @@ test(
       document
         main
           button "Add to cart"
-          heading "hiiii"
+          heading "hiiii" (level=1)
             text "hiiii"
           button "foo > bar"
     `);
@@ -201,7 +201,7 @@ test(
       document
         text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
     // Now the third list item has an explicit role which is the same as its implicit role.
@@ -236,7 +236,7 @@ test(
       document
         text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
     // The required owned elements search should _not_ pass through elements with roles
@@ -251,11 +251,11 @@ test(
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
       document
-        heading "Sample Content"
+        heading "Sample Content" (level=1)
           listitem
             text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
   }),
@@ -278,6 +278,56 @@ test(
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
       document
         button "Click me!" (focused)
+    `);
+  }),
+);
+
+test(
+  'heading level labels',
+  withBrowser(async ({ utils, page }) => {
+    await utils.injectHTML(`
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <h4>Heading 4</h4>
+      <h5>Heading 5</h5>
+      <h6>Heading 6</h6>
+
+      <div>Not a heading</div>
+      <div aria-level="3">Not a heading</div>
+      <div role="heading" aria-level="3">Heading 3 div</div>
+      <div role="heading">Heading missing level</div>
+      <div role="heading" aria-level="-2">Invalid heading level</div>
+      <div role="heading" aria-level="asdf">Invalid heading level</div>
+      <h2 aria-level="3">Heading 3 h2</h2>
+    `);
+
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        heading "Heading 1" (level=1)
+          text "Heading 1"
+        heading "Heading 2" (level=2)
+          text "Heading 2"
+        heading "Heading 3" (level=3)
+          text "Heading 3"
+        heading "Heading 4" (level=4)
+          text "Heading 4"
+        heading "Heading 5" (level=5)
+          text "Heading 5"
+        heading "Heading 6" (level=6)
+          text "Heading 6"
+        text "Not a heading"
+        text "Not a heading"
+        heading "Heading 3 div" (level=3)
+          text "Heading 3 div"
+        heading "Heading missing level" (MISSING HEADING LEVEL)
+          text "Heading missing level"
+        heading "Invalid heading level" (INVALID HEADING LEVEL: "-2")
+          text "Invalid heading level"
+        heading "Invalid heading level" (INVALID HEADING LEVEL: "asdf")
+          text "Invalid heading level"
+        heading "Heading 3 h2" (level=3)
+          text "Heading 3 h2"
     `);
   }),
 );

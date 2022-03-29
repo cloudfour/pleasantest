@@ -98,6 +98,22 @@ export const getAccessibilityTree = (
     const name = computeAccessibleName(element);
     if (name) text += ` "${name}"`;
     if (document.activeElement === element) text += ` (focused)`;
+    if (role === 'heading') {
+      const level =
+        element.ariaLevel ||
+        (element.tagName.length === 2 &&
+          element.tagName.startsWith('H') &&
+          element.tagName[1]);
+      if (level) {
+        text +=
+          Number.parseInt(level, 10).toString() === level &&
+          Number.parseInt(level, 10) > 0
+            ? ` (level=${level})`
+            : ` (INVALID HEADING LEVEL: ${JSON.stringify(level)})`;
+      } else {
+        text += ` (MISSING HEADING LEVEL)`;
+      }
+    }
     if (includeDescriptions) {
       const description = computeAccessibleDescription(element);
       if (description) text += `\n  ↳ description: "${description}"`;
