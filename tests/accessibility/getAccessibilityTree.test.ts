@@ -63,10 +63,10 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: false }))
       .toMatchInlineSnapshot(`
-      document
-        list
-          listitem
-          listitem
+        document
+          list
+            listitem
+            listitem
       `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
@@ -86,22 +86,22 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: false }))
       .toMatchInlineSnapshot(`
-      document
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
+        document
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
       `);
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-      document
-        button "click me"
-        button "click me"
-        button "click me"
-        text "extended description"
+        document
+          button "click me"
+          button "click me"
+          button "click me"
+          text "extended description"
       `);
 
     await utils.injectHTML(`
@@ -120,7 +120,7 @@ test(
         textbox "Label Text"
         text "Label Text"
         textbox "Label Text"
-      `);
+    `);
 
     // Make sure whitespace is normalized
     await utils.injectHTML(`
