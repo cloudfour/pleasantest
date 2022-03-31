@@ -44,7 +44,13 @@ const getElementAccessibilityState = (element: Element): AccessibilityState => {
   if (
     (element as HTMLElement).hidden ||
     element.getAttribute('aria-hidden') === 'true' ||
-    computedStyle.display === 'none'
+    computedStyle.display === 'none' ||
+    (element.parentElement?.tagName === 'DETAILS' &&
+      !(element.parentElement as HTMLDetailsElement).open &&
+      !(
+        element.tagName === 'SUMMARY' &&
+        element.parentElement.firstElementChild === element
+      ))
   )
     return AccessibilityState.SelfAndDescendentsExcludedFromTree;
 
@@ -95,9 +101,45 @@ export const getAccessibilityTree = (
     );
   let text = (selfIsInAccessibilityTree && role) || '';
   if (selfIsInAccessibilityTree) {
-    const name = computeAccessibleName(element);
+    let name = computeAccessibleName(element);
+    if (
+      element === document.documentElement &&
+      role === 'document' &&
+      !name &&
+      document.title
+    ) {
+      name = document.title;
+    }
     if (name) text += ` "${name}"`;
+    if (
+      element.ariaExpanded === 'true' ||
+      (element.tagName === 'SUMMARY' &&
+        (element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=true)`;
+    if (
+      element.ariaExpanded === 'false' ||
+      (element.tagName === 'SUMMARY' &&
+        !(element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=false)`;
     if (document.activeElement === element) text += ` (focused)`;
+    if (role === 'heading') {
+      const level =
+        element.ariaLevel ||
+        (element.tagName.length === 2 &&
+          element.tagName.startsWith('H') &&
+          element.tagName[1]);
+      if (level) {
+        text +=
+          Number.parseInt(level, 10).toString() === level &&
+          Number.parseInt(level, 10) > 0
+            ? ` (level=${level})`
+            : ` (INVALID HEADING LEVEL: ${JSON.stringify(level)})`;
+      } else {
+        text += ` (MISSING HEADING LEVEL)`;
+      }
+    }
     if (includeDescriptions) {
       const description = computeAccessibleDescription(element);
       if (description) text += `\n  ↳ description: "${description}"`;
