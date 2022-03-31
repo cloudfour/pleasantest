@@ -101,7 +101,15 @@ export const getAccessibilityTree = (
     );
   let text = (selfIsInAccessibilityTree && role) || '';
   if (selfIsInAccessibilityTree) {
-    const name = computeAccessibleName(element);
+    let name = computeAccessibleName(element);
+    if (
+      element === document.documentElement &&
+      role === 'document' &&
+      !name &&
+      document.title
+    ) {
+      name = document.title;
+    }
     if (name) text += ` "${name}"`;
     if (
       element.ariaExpanded === 'true' ||
