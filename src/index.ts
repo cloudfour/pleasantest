@@ -12,7 +12,7 @@ import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
 import { ansiColorsLog } from './ansi-colors-browser';
 import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
-import type { PleasantestUser } from './user';
+import type { PleasantestUser, UserOpts } from './user';
 import { pleasantestUser } from './user';
 import { assertElementHandle } from './utils';
 import type { ModuleServerOpts } from './module-server';
@@ -68,6 +68,7 @@ export interface WithBrowserOpts {
   headless?: boolean;
   device?: puppeteer.devices.Device;
   moduleServer?: ModuleServerOpts;
+  user?: UserOpts;
 }
 
 interface TestFn {
@@ -223,6 +224,7 @@ const createTab = async ({
     headless = defaultOptions.headless ?? true,
     device = defaultOptions.device,
     moduleServer: moduleServerOpts = {},
+    user: userOpts = {},
   },
 }: {
   testPath: string;
@@ -242,6 +244,8 @@ const createTab = async ({
     port,
     close: closeServer,
   } = await createModuleServer({
+    ...defaultOptions.moduleServer,
+    ...moduleServerOpts,
     ...defaultOptions.moduleServer,
     ...moduleServerOpts,
   });
@@ -442,7 +446,10 @@ const createTab = async ({
     page,
     within,
     waitFor,
-    user: await pleasantestUser(page, asyncHookTracker),
+    user: await pleasantestUser(page, asyncHookTracker, {
+      ...defaultOptions.user,
+      ...userOpts,
+    }),
     asyncHookTracker,
     cleanupServer: () => closeServer(),
   };

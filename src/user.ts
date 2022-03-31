@@ -12,7 +12,7 @@ export interface PleasantestUser {
   /** Clicks an element, if the element is visible and not covered by another element */
   click(
     element: ElementHandle | null,
-    options?: { force?: boolean },
+    options?: { force?: boolean } & Pick<UserOpts, 'targetSize'>,
   ): Promise<void>;
   /** Types text into an element, if the element is visible. The element must be an `<input>` or `<textarea>` or have `[contenteditable]`. */
   type(
@@ -31,6 +31,14 @@ export interface PleasantestUser {
     values: ElementHandle | ElementHandle[] | string[] | string,
     options?: { force?: boolean },
   ): Promise<void>;
+}
+
+export interface UserOpts {
+  /**
+   * Control the minimum target size, only for user.click
+   * Pass `false` to disable the check
+   */
+  targetSize?: boolean | number;
 }
 
 /** Wraps each user method to catch errors that happen when user forgets to await */
@@ -57,6 +65,7 @@ const wrapWithForgotAwait = (
 export const pleasantestUser = async (
   page: Page,
   asyncHookTracker: AsyncHookTracker,
+  userOpts: UserOpts,
 ) => {
   const { port } = await createClientRuntimeServer();
   const runWithUtils = <Args extends any[], Return>(
@@ -91,32 +100,38 @@ export const pleasantestUser = async (
     ) as any;
 
   const user: PleasantestUser = {
-    async click(el, { force = false } = {}) {
+    async click(el, { force = false, targetSize = userOpts.targetSize } = {}) {
       assertElementHandle(el, user.click);
       await el
         .evaluateHandle(
-          runWithUtils((utils, clickEl, force: boolean) => {
-            utils.assertAttached(clickEl);
-            if (!force) {
-              utils.assertVisible(clickEl);
-              const clickElRect = clickEl.getBoundingClientRect();
-              // See if there is an element covering the center of the click target element
-              const coveringEl = document.elementFromPoint(
-                Math.floor(clickElRect.x + clickElRect.width / 2),
-                Math.floor(clickElRect.y + clickElRect.height / 2),
-              )!;
-              if (coveringEl === clickEl || clickEl.contains(coveringEl))
-                return;
-              // TODO: try to find other points on the element that are clickable,
-              // in case the covering element does not cover the whole click-target element
-              return utils.error`Could not click element:
+          runWithUtils(
+            (utils, clickEl, force: boolean, targetSize?: boolean | number) => {
+              utils.assertAttached(clickEl);
+              if (!force) {
+                if (targetSize !== false) {
+                  utils.assertTargetSize(clickEl, targetSize);
+                }
+                utils.assertVisible(clickEl);
+                const clickElRect = clickEl.getBoundingClientRect();
+                // See if there is an element covering the center of the click target element
+                const coveringEl = document.elementFromPoint(
+                  Math.floor(clickElRect.x + clickElRect.width / 2),
+                  Math.floor(clickElRect.y + clickElRect.height / 2),
+                )!;
+                if (coveringEl === clickEl || clickEl.contains(coveringEl))
+                  return;
+                // TODO: try to find other points on the element that are clickable,
+                // in case the covering element does not cover the whole click-target element
+                return utils.error`Could not click element:
 ${clickEl}
 
 Element was covered by:
 ${coveringEl}`;
-            }
-          }),
+              }
+            },
+          ),
           force,
+          targetSize as any,
         )
         .then(throwBrowserError(user.click));
       await el.click();

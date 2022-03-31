@@ -264,7 +264,7 @@ test(
   'labels which element is focused',
   withBrowser(async ({ utils, user, screen, page }) => {
     await utils.injectHTML(`
-      <button>Click me!</button>
+      <button style="padding: 20px">Click me!</button>
     `);
 
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`

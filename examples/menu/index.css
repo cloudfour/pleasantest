@@ -98,6 +98,7 @@ a {
   transition: color 0.2s ease;
   background: transparent;
   border: none;
+  padding: 1em;
 }
 
 .menu-link > :is(a, button):is(:hover, :focus) {

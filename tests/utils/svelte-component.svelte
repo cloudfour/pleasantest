@@ -16,5 +16,6 @@ $bg: red;
 
 button {
   background: $bg;
+  padding: 3em;
 }
 </style>
