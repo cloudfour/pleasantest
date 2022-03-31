@@ -165,7 +165,8 @@ export const getAccessibilityTree = (
     if (node instanceof Element) {
       printedChild = getAccessibilityTree(node, opts, requiredOwnedElements);
     } else if (includeText && !(node instanceof Comment)) {
-      const trimmedText = node.nodeValue?.trim();
+      // Trim whitespace from ends and normalize all whitespace to a single space
+      const trimmedText = node.nodeValue?.trim().replace(/\s+/g, ' ');
       if (!trimmedText) continue;
 
       printedChild = `text "${trimmedText}"`;

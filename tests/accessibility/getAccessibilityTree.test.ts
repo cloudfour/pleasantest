@@ -60,14 +60,12 @@ test(
           listitem
             text "something else"
     `);
-    expect(await getAccessibilityTree(page, { includeText: true }))
+    expect(await getAccessibilityTree(page, { includeText: false }))
       .toMatchInlineSnapshot(`
         document "pleasantest"
           list
             listitem
-              text "something"
             listitem
-              text "something else"
       `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
@@ -85,7 +83,7 @@ test(
           ↳ description: "extended description"
         text "extended description"
     `);
-    expect(await getAccessibilityTree(page, { includeText: true }))
+    expect(await getAccessibilityTree(page, { includeText: false }))
       .toMatchInlineSnapshot(`
         document "pleasantest"
           button "click me"
@@ -94,7 +92,6 @@ test(
             ↳ description: "extended description"
           button "click me"
             ↳ description: "extended description"
-          text "extended description"
       `);
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
@@ -116,14 +113,28 @@ test(
       <input type="text" id="input"/>
     `);
 
-    expect(await getAccessibilityTree(page, { includeText: true }))
-      .toMatchInlineSnapshot(`
-        document "pleasantest"
-          text "Label Text"
-          textbox "Label Text"
-          text "Label Text"
-          textbox "Label Text"
-      `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document "pleasantest"
+        text "Label Text"
+        textbox "Label Text"
+        text "Label Text"
+        textbox "Label Text"
+    `);
+
+    // Make sure whitespace is normalized
+    await utils.injectHTML(`
+         <h1>
+
+
+         Hello  
+           world
+       </h1>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document "pleasantest"
+        heading "Hello world" (level=1)
+          text "Hello world"
+    `);
   }),
 );
 
