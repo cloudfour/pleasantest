@@ -1,5 +1,39 @@
 # pleasantest
 
+## 2.0.0
+
+### Major Changes
+
+- [#345](https://github.com/cloudfour/pleasantest/pull/345) [`847cbd8`](https://github.com/cloudfour/pleasantest/commit/847cbd829504ae7ac518063cc380bc1b0adc3adc) Thanks [@calebeby](https://github.com/calebeby)! - Normalize whitespace in `getAccessibilityTree`
+
+  Now anytime there is contiguous whitespace in text strings it is collapsed into a single space. This matches the behavior of browser accessibility trees.
+
+  This is a breaking change because it changes the `getAccessibilityTree` output, and may break your snapshots. Update your snapshots with Jest and review the changes.
+
+* [#446](https://github.com/cloudfour/pleasantest/pull/446) [`1eaa648`](https://github.com/cloudfour/pleasantest/commit/1eaa648dc8e2307a622383b9decf7ff637fad681) Thanks [@calebeby](https://github.com/calebeby)! - Use document.title as fallback implicit accessible name for html root element in accessibility tree snapshots
+
+- [#445](https://github.com/cloudfour/pleasantest/pull/445) [`5fa4103`](https://github.com/cloudfour/pleasantest/commit/5fa41034ee423559203669282c6af7f03042ec01) Thanks [@calebeby](https://github.com/calebeby)! - Add heading levels to `getAccessibilityTree`. The heading levels are computed from the corresponding element number in `<h1>` - `<h6>`, or from the `aria-level` role.
+
+  In the accessibility tree snapshot, it looks like this:
+
+  ```
+  heading "Name of Heading" (level=2)
+  ```
+
+  This is a breaking change because it will cause existing accessibility tree snapshots to fail which contain headings. Update the snapshots to make them pass again.
+
+* [#451](https://github.com/cloudfour/pleasantest/pull/451) [`eb364cc`](https://github.com/cloudfour/pleasantest/commit/eb364cce9f077247f3f08c4e4319f4d2dbac8b3c) Thanks [@calebeby](https://github.com/calebeby)! - Added `aria-expanded` support to `getAccessibilityTree` and fix handling for `<details>`/`<summary>`
+
+  Now, elements which have the `aria-expanded` attribute will represent the state of that attribute in accessibility tree snapshots. `<details>`/`<summary>` elements will represent their expanded state in the tree as well.
+
+  Also, for collapsed `<details>`/`<summary>` elements, the hidden content is now hidden in the accessibility tree, to match screen reader behavior.
+
+- [#248](https://github.com/cloudfour/pleasantest/pull/248) [`abe22a6`](https://github.com/cloudfour/pleasantest/commit/abe22a6ba71eb04fa858447272a171474483b105) Thanks [@gerardo-rodriguez](https://github.com/gerardo-rodriguez)! - Enforce minimum target size when calling `user.click()`, per WCAG Success Criterion 2.5.5 Target Size guideline.
+
+### Minor Changes
+
+- [#409](https://github.com/cloudfour/pleasantest/pull/409) [`cf3ad32`](https://github.com/cloudfour/pleasantest/commit/cf3ad32f60e463b3b72b6cf58254152832fff758) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to 13.5.2
+
 ## 1.7.0
 
 ### Minor Changes
