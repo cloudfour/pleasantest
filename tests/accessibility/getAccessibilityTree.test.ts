@@ -42,7 +42,7 @@ test(
       document "pleasantest"
         main
           button "Add to cart"
-          heading "hiiii"
+          heading "hiiii" (level=1)
             text "hiiii"
           button "foo > bar"
     `);
@@ -62,13 +62,13 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document "pleasantest"
-        list
-          listitem
-            text "something"
-          listitem
-            text "something else"
-    `);
+        document "pleasantest"
+          list
+            listitem
+              text "something"
+            listitem
+              text "something else"
+      `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
       <button aria-describedby="click-me-description"><div>click me</div></button>
@@ -87,24 +87,24 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document "pleasantest"
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        button "click me"
-          ↳ description: "extended description"
-        text "extended description"
-    `);
+        document "pleasantest"
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
+          button "click me"
+            ↳ description: "extended description"
+          text "extended description"
+      `);
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-      document "pleasantest"
-        button "click me"
-        button "click me"
-        button "click me"
-        text "extended description"
-    `);
+        document "pleasantest"
+          button "click me"
+          button "click me"
+          button "click me"
+          text "extended description"
+      `);
 
     await utils.injectHTML(`
       <label>
@@ -118,12 +118,12 @@ test(
 
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-      document "pleasantest"
-        text "Label Text"
-        textbox "Label Text"
-        text "Label Text"
-        textbox "Label Text"
-    `);
+        document "pleasantest"
+          text "Label Text"
+          textbox "Label Text"
+          text "Label Text"
+          textbox "Label Text"
+      `);
   }),
 );
 
@@ -200,7 +200,7 @@ test(
       document "pleasantest"
         text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
     // Now the third list item has an explicit role which is the same as its implicit role.
@@ -235,7 +235,7 @@ test(
       document "pleasantest"
         text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
     // The required owned elements search should _not_ pass through elements with roles
@@ -250,11 +250,11 @@ test(
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
       document "pleasantest"
-        heading "Sample Content"
+        heading "Sample Content" (level=1)
           listitem
             text "Sample Content"
         text "More Sample Content"
-        heading "Hi"
+        heading "Hi" (MISSING HEADING LEVEL)
           text "Hi"
     `);
   }),
@@ -282,6 +282,56 @@ test(
 );
 
 test(
+  'heading level labels',
+  withBrowser(async ({ utils, page }) => {
+    await utils.injectHTML(`
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <h4>Heading 4</h4>
+      <h5>Heading 5</h5>
+      <h6>Heading 6</h6>
+
+      <div>Not a heading</div>
+      <div aria-level="3">Not a heading</div>
+      <div role="heading" aria-level="3">Heading 3 div</div>
+      <div role="heading">Heading missing level</div>
+      <div role="heading" aria-level="-2">Invalid heading level</div>
+      <div role="heading" aria-level="asdf">Invalid heading level</div>
+      <h2 aria-level="3">Heading 3 h2</h2>
+    `);
+
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document "pleasantest"
+        heading "Heading 1" (level=1)
+          text "Heading 1"
+        heading "Heading 2" (level=2)
+          text "Heading 2"
+        heading "Heading 3" (level=3)
+          text "Heading 3"
+        heading "Heading 4" (level=4)
+          text "Heading 4"
+        heading "Heading 5" (level=5)
+          text "Heading 5"
+        heading "Heading 6" (level=6)
+          text "Heading 6"
+        text "Not a heading"
+        text "Not a heading"
+        heading "Heading 3 div" (level=3)
+          text "Heading 3 div"
+        heading "Heading missing level" (MISSING HEADING LEVEL)
+          text "Heading missing level"
+        heading "Invalid heading level" (INVALID HEADING LEVEL: "-2")
+          text "Invalid heading level"
+        heading "Invalid heading level" (INVALID HEADING LEVEL: "asdf")
+          text "Invalid heading level"
+        heading "Heading 3 h2" (level=3)
+          text "Heading 3 h2"
+    `);
+  }),
+);
+
+test(
   '<details>/<summary>',
   withBrowser(async ({ utils, page, screen, user }) => {
     await utils.injectHTML(`
@@ -297,7 +347,7 @@ test(
 
     // Starts collapsed
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         group
           button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=false)
     `);
@@ -307,11 +357,11 @@ test(
 
     // After toggling it should be expanded
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         group
           button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=true) (focused)
           text "Some content"
-          heading "Tags in details do preserve their semantic meaning"
+          heading "Tags in details do preserve their semantic meaning" (level=2)
             text "Tags in details do preserve their semantic meaning"
     `);
   }),
@@ -324,7 +374,7 @@ test(
       <button aria-expanded="false">Click me!</button>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "Click me!" (expanded=false)
     `);
 
@@ -332,7 +382,7 @@ test(
       <button aria-expanded="true">Click me!</button>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "Click me!" (expanded=true)
     `);
 
@@ -340,7 +390,7 @@ test(
       <button>Click me!</button>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "Click me!"
     `);
   }),

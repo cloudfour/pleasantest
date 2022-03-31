@@ -79,7 +79,7 @@ test(
     expect(await getAccessibilityTree(await screen.getByRole('navigation')))
       .toMatchInlineSnapshot(`
         navigation
-          heading "Company"
+          heading "Company" (level=1)
             link "Company"
               text "Company"
           list
@@ -104,7 +104,7 @@ test(
     expect(await getAccessibilityTree(await screen.getByRole('navigation')))
       .toMatchInlineSnapshot(`
         navigation
-          heading "Company"
+          heading "Company" (level=1)
             link "Company"
               text "Company"
           list
