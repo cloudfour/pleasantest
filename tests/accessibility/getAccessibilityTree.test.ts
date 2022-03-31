@@ -12,9 +12,8 @@ test(
     expect(String(await getAccessibilityTree(htmlElement))).toEqual(
       String(await getAccessibilityTree(page)),
     );
-    // TODO: document's name should be from document.title (breaking change)
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "example title"
         list
     `);
 
@@ -40,7 +39,7 @@ test(
       </main>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         main
           button "Add to cart"
           heading "hiiii"
@@ -54,7 +53,7 @@ test(
       </ul>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         list
           listitem
             text "something"
@@ -63,13 +62,13 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-        document
-          list
-            listitem
-              text "something"
-            listitem
-              text "something else"
-      `);
+      document "pleasantest"
+        list
+          listitem
+            text "something"
+          listitem
+            text "something else"
+    `);
     await utils.injectHTML(`
       <button aria-describedby="click-me-description">click me</button>
       <button aria-describedby="click-me-description"><div>click me</div></button>
@@ -77,7 +76,7 @@ test(
       <div id="click-me-description">extended description</div>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "click me"
           ↳ description: "extended description"
         button "click me"
@@ -88,24 +87,24 @@ test(
     `);
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-        document
-          button "click me"
-            ↳ description: "extended description"
-          button "click me"
-            ↳ description: "extended description"
-          button "click me"
-            ↳ description: "extended description"
-          text "extended description"
-      `);
+      document "pleasantest"
+        button "click me"
+          ↳ description: "extended description"
+        button "click me"
+          ↳ description: "extended description"
+        button "click me"
+          ↳ description: "extended description"
+        text "extended description"
+    `);
 
     expect(await getAccessibilityTree(page, { includeDescriptions: false }))
       .toMatchInlineSnapshot(`
-        document
-          button "click me"
-          button "click me"
-          button "click me"
-          text "extended description"
-      `);
+      document "pleasantest"
+        button "click me"
+        button "click me"
+        button "click me"
+        text "extended description"
+    `);
 
     await utils.injectHTML(`
       <label>
@@ -119,12 +118,12 @@ test(
 
     expect(await getAccessibilityTree(page, { includeText: true }))
       .toMatchInlineSnapshot(`
-        document
-          text "Label Text"
-          textbox "Label Text"
-          text "Label Text"
-          textbox "Label Text"
-      `);
+      document "pleasantest"
+        text "Label Text"
+        textbox "Label Text"
+        text "Label Text"
+        textbox "Label Text"
+    `);
   }),
 );
 
@@ -157,7 +156,7 @@ test(
       </div>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "A"
         button "E"
         button "G"
@@ -174,14 +173,14 @@ test(
     // Role="presentation" and role="none" are equivalent
     // They make it as if the outer element wasn't there.
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         text "Sample Content"
     `);
     await utils.injectHTML(`<h1 role="none">Sample Content</h1>`);
     // Role="presentation" and role="none" are equivalent
     // They make it as if the outer element wasn't there.
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         text "Sample Content"
     `);
 
@@ -198,7 +197,7 @@ test(
       </ul>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         text "Sample Content"
         text "More Sample Content"
         heading "Hi"
@@ -216,7 +215,7 @@ test(
       </ul>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         text "Sample Content"
         text "More Sample Content"
         listitem
@@ -233,7 +232,7 @@ test(
       </ul>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         text "Sample Content"
         text "More Sample Content"
         heading "Hi"
@@ -250,7 +249,7 @@ test(
       </ul>
     `);
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         heading "Sample Content"
           listitem
             text "Sample Content"
@@ -269,15 +268,80 @@ test(
     `);
 
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "Click me!"
     `);
 
     await user.click(await screen.getByRole('button'));
 
     expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
-      document
+      document "pleasantest"
         button "Click me!" (focused)
+    `);
+  }),
+);
+
+test(
+  '<details>/<summary>',
+  withBrowser(async ({ utils, page, screen, user }) => {
+    await utils.injectHTML(`
+      <details>
+        <summary>
+          Click me!
+          <h1>Tags in summary do not preserve their semantic meaning</h1>
+        </summary>
+        <p>Some content</p>
+        <h2>Tags in details do preserve their semantic meaning</h2>
+      </details>
+    `);
+
+    // Starts collapsed
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        group
+          button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=false)
+    `);
+
+    const toggle = await screen.getByText(/click me!/i);
+    await user.click(toggle);
+
+    // After toggling it should be expanded
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        group
+          button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=true) (focused)
+          text "Some content"
+          heading "Tags in details do preserve their semantic meaning"
+            text "Tags in details do preserve their semantic meaning"
+    `);
+  }),
+);
+
+test(
+  'aria-expanded and aria-collapsed',
+  withBrowser(async ({ utils, page }) => {
+    await utils.injectHTML(`
+      <button aria-expanded="false">Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!" (expanded=false)
+    `);
+
+    await utils.injectHTML(`
+      <button aria-expanded="true">Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!" (expanded=true)
+    `);
+
+    await utils.injectHTML(`
+      <button>Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!"
     `);
   }),
 );
