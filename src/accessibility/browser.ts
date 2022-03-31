@@ -44,7 +44,13 @@ const getElementAccessibilityState = (element: Element): AccessibilityState => {
   if (
     (element as HTMLElement).hidden ||
     element.getAttribute('aria-hidden') === 'true' ||
-    computedStyle.display === 'none'
+    computedStyle.display === 'none' ||
+    (element.parentElement?.tagName === 'DETAILS' &&
+      !(element.parentElement as HTMLDetailsElement).open &&
+      !(
+        element.tagName === 'SUMMARY' &&
+        element.parentElement.firstElementChild === element
+      ))
   )
     return AccessibilityState.SelfAndDescendentsExcludedFromTree;
 
@@ -97,6 +103,18 @@ export const getAccessibilityTree = (
   if (selfIsInAccessibilityTree) {
     const name = computeAccessibleName(element);
     if (name) text += ` "${name}"`;
+    if (
+      element.ariaExpanded === 'true' ||
+      (element.tagName === 'SUMMARY' &&
+        (element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=true)`;
+    if (
+      element.ariaExpanded === 'false' ||
+      (element.tagName === 'SUMMARY' &&
+        !(element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=false)`;
     if (document.activeElement === element) text += ` (focused)`;
     if (includeDescriptions) {
       const description = computeAccessibleDescription(element);

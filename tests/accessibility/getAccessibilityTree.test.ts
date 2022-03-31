@@ -281,3 +281,68 @@ test(
     `);
   }),
 );
+
+test(
+  '<details>/<summary>',
+  withBrowser(async ({ utils, page, screen, user }) => {
+    await utils.injectHTML(`
+      <details>
+        <summary>
+          Click me!
+          <h1>Tags in summary do not preserve their semantic meaning</h1>
+        </summary>
+        <p>Some content</p>
+        <h2>Tags in details do preserve their semantic meaning</h2>
+      </details>
+    `);
+
+    // Starts collapsed
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        group
+          button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=false)
+    `);
+
+    const toggle = await screen.getByText(/click me!/i);
+    await user.click(toggle);
+
+    // After toggling it should be expanded
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        group
+          button "Click me! Tags in summary do not preserve their semantic meaning" (expanded=true) (focused)
+          text "Some content"
+          heading "Tags in details do preserve their semantic meaning"
+            text "Tags in details do preserve their semantic meaning"
+    `);
+  }),
+);
+
+test(
+  'aria-expanded and aria-collapsed',
+  withBrowser(async ({ utils, page }) => {
+    await utils.injectHTML(`
+      <button aria-expanded="false">Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!" (expanded=false)
+    `);
+
+    await utils.injectHTML(`
+      <button aria-expanded="true">Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!" (expanded=true)
+    `);
+
+    await utils.injectHTML(`
+      <button>Click me!</button>
+    `);
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document
+        button "Click me!"
+    `);
+  }),
+);
