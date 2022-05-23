@@ -48,10 +48,7 @@ import type {
 } from 'rollup';
 import type { Plugin } from './plugin';
 import { combineSourceMaps } from './combine-source-maps';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import { ErrorWithLocation } from './error-with-location';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */

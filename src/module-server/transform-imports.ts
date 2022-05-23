@@ -32,10 +32,7 @@
 
 import { parse } from 'es-module-lexer';
 import { ErrorWithLocation } from './error-with-location';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import { extname } from 'path';
 import { jsExts } from './extensions-and-detection';
 
