@@ -95,7 +95,7 @@ export const jsMiddleware = async ({
       res.setHeader('Content-Type', 'application/javascript;charset=utf-8');
       const resolved = await rollupPlugins.resolveId(id);
       const resolvedId = typeof resolved === 'object' ? resolved?.id : resolved;
-      let code: string | false | undefined;
+      let code: string | false | void;
       let map: DecodedSourceMap | RawSourceMap | string | undefined;
       if (typeof req.query['inline-code'] === 'string') {
         code = req.query['inline-code'];

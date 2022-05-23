@@ -53,8 +53,8 @@ export const cssPlugin = ({
     const originalTranform = plugin.transform!;
     plugin.transform = async function (code, id) {
       let result = await originalTranform.call(this, code, id);
-      if (result === null || result === undefined) return result;
       if (typeof result === 'string') result = { code: result, map: '' };
+      else if (!result) return result;
       if (!result.meta) result.meta = {};
       result.meta.css = transformedCSS.get(id);
       return result;
