@@ -9,10 +9,7 @@ import type { Plugin } from '../plugin';
 import { createPluginContainer } from '../rollup-plugin-container';
 import { promises as fs } from 'fs';
 import { transformImports } from '../transform-imports';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import MagicString from 'magic-string';
 import { jsExts } from '../extensions-and-detection';
 import { rejectBuild } from '../build-status-tracker';
