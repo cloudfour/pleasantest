@@ -1,5 +1,6 @@
 /**
  * @jest-environment jsdom
+ * @jest-environment-options {"customExportConditions": ["require"]}
  */
 import { printElement, deserialize, serialize } from '.';
 
