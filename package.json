@@ -87,7 +87,8 @@
         {
           "jsxTags": true,
           "definedTags": [
-            "jest-environment"
+            "jest-environment",
+            "jest-environment-options"
           ]
         }
       ],
