@@ -1,5 +1,13 @@
 # pleasantest
 
+## 2.1.0
+
+### Minor Changes
+
+- [#486](https://github.com/cloudfour/pleasantest/pull/486) [`c142d73`](https://github.com/cloudfour/pleasantest/commit/c142d73bbd7b5b7ef92f8e38fee686f3e43d1b27) Thanks [@calebeby](https://github.com/calebeby)! - Add support for node 18
+
+* [#481](https://github.com/cloudfour/pleasantest/pull/481) [`10a8364`](https://github.com/cloudfour/pleasantest/commit/10a836471144bcf6c500d06a72143c7fec64c751) Thanks [@calebeby](https://github.com/calebeby)! - Add full support for Jest 28
+
 ## 2.0.0
 
 ### Major Changes
