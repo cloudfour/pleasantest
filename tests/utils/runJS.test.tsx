@@ -393,12 +393,13 @@ describe('Ecosystem interoperability', () => {
         if (React.createElement !== React2.createElement) {
           throw new Error('Namespace import did not yield same result as direct import')
         }
-        import { render } from 'react-dom'
+        import { createRoot } from 'react-dom/client';
 
-        const root = document.createElement('div')
+        const container = document.createElement('div')
         document.body.innerHTML = ''
-        document.body.append(root)
-        render(<h1>Hi</h1>, root)
+        document.body.append(container)
+        const root = createRoot(container)
+        root.render(<h1>Hi</h1>)
       `);
       const heading = await screen.getByRole('heading');
       await expect(heading).toHaveTextContent('Hi');
