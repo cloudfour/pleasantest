@@ -2,7 +2,7 @@
   "name": "pleasantest",
   "version": "2.0.0",
   "engines": {
-    "node": "^12.2 || 14 || 16 || 17"
+    "node": "^12.2 || 14 || 16 || 17 || 18"
   },
   "files": [
     "dist"
