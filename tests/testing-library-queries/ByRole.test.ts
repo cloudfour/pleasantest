@@ -8,12 +8,21 @@ test(
     <div>hello</div>
     <div role="button">butt1</div>
     <div role="button">butt2</div>
+    <button aria-describedby="trash-desc">Move to trash</button>
+    <p id="trash-desc">Items in the trash will be permanently removed after 30 days.</p>
   `);
 
     // Finds just one
     await screen.getByRole('heading');
-    // Alternate syntax
+
+    // Select by accessible name
     await screen.getByRole('button', { name: /butt2/ });
+
+    // Select by accessible role and description
+    await screen.getByRole('button', {
+      description: /^items in the trash will be/i,
+    });
+
     // Doesn't find any
     await expect(screen.getByRole('banner')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
@@ -41,6 +50,9 @@ test(
               Name \\"butt2\\":
               <div role=\\"button\\">butt2</div>
 
+              Name \\"Move to trash\\":
+              <button aria-describedby=\\"trash-desc\\">Move to trash</button>
+
               --------------------------------------------------
 
             Within: #document"
@@ -55,6 +67,8 @@ test(
             <div role=\\"button\\">butt1</div>
 
             <div role=\\"button\\">butt2</div>
+
+            <button aria-describedby=\\"trash-desc\\">Move to trash</button>
 
             (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
