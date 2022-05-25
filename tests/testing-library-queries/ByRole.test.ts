@@ -18,7 +18,7 @@ test(
     // Select by accessible name
     await screen.getByRole('button', { name: /butt2/ });
 
-    // Select by accessible description
+    // Select by accessible role and description
     await screen.getByRole('button', {
       description: /^items in the trash will be/i,
     });
