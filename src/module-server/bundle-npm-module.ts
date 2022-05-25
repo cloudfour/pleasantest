@@ -107,7 +107,7 @@ export { default } from '${mod}'`;
 };
 
 const pluginNodeResolve = (): Plugin => ({
-  name: 'node-resolve',
+  name: 'pleasantest-node-resolve',
   resolveId(id) {
     if (isBareImport(id)) return { id, external: true };
   },
