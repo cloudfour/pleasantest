@@ -107,7 +107,7 @@ export const connectToBrowser = async (
   if (valueWrittenInMeantime) {
     const connectedBrowser = await connectToCachedBrowser(browser, headless);
     if (!isBrowser(connectedBrowser))
-      throw new Error('unable to connect to brwoser');
+      throw new Error('unable to connect to browser');
     return connectedBrowser;
   }
 
