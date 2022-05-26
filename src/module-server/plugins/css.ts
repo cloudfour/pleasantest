@@ -118,7 +118,6 @@ const postcssPlugin = (): CSSPlugin => {
         });
       return {
         code: result.css,
-        // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
         map: result.map?.toString(),
         jsExports,
       };

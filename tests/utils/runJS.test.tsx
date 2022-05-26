@@ -169,8 +169,7 @@ test(
 
               thisVariableDoesntExist\`,
               ^"
-<<<<<<< HEAD
-      `);
+    `);
 
     // Edge case: Escaped backslashes (because it is in a code string)
     // get converted into single backslashes,
@@ -190,8 +189,6 @@ test(
 
               throw new Error('blah')\`,
                     ^"
-=======
->>>>>>> origin/main
     `);
   }),
 );

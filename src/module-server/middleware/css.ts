@@ -40,7 +40,7 @@ export const cssMiddleware =
       res.setHeader('Content-Type', 'text/css;charset=utf-8');
       // TODO: handle errors here using buildId thing
       const { code } = await transformCSS(
-        await fs.readFile(file, 'utf-8'),
+        await fs.readFile(file, 'utf8'),
         id,
         root,
       );
