@@ -3,6 +3,8 @@ import {
   computeAccessibleName,
   computeAccessibleDescription,
 } from 'dom-accessibility-api';
+// @ts-expect-error This is a fake file that triggers a rollup plugin
+import requiredOwnedElementsMap from 'generated:requiredOwnedElements';
 import type { AccessibilityTreeOptions } from '.';
 
 const indent = (text: string, indenter = '  ') =>
@@ -37,13 +39,18 @@ const enum AccessibilityState {
   SelfAndDescendentsExcludedFromTree,
 }
 
-// TODO in PR: what about role="presentation" or role="none"? Should they be excluded?
 const getElementAccessibilityState = (element: Element): AccessibilityState => {
   const computedStyle = getComputedStyle(element);
   if (
     (element as HTMLElement).hidden ||
     element.getAttribute('aria-hidden') === 'true' ||
-    computedStyle.display === 'none'
+    computedStyle.display === 'none' ||
+    (element.parentElement?.tagName === 'DETAILS' &&
+      !(element.parentElement as HTMLDetailsElement).open &&
+      !(
+        element.tagName === 'SUMMARY' &&
+        element.parentElement.firstElementChild === element
+      ))
   )
     return AccessibilityState.SelfAndDescendentsExcludedFromTree;
 
@@ -54,9 +61,26 @@ const getElementAccessibilityState = (element: Element): AccessibilityState => {
   return AccessibilityState.SelfIncludedInTree;
 };
 
+/** Temporarily removes the role attribute to get the implicit role */
+const getImplicitRole = (el: Element) => {
+  const originalRole = el.getAttribute('role');
+  el.removeAttribute('role');
+  const implicitRole = getRole(el);
+  if (originalRole) el.setAttribute('role', originalRole);
+  return implicitRole;
+};
+
 export const getAccessibilityTree = (
   element: Element,
   opts: AccessibilityTreeOptions,
+  /**
+   * Any elements with *implicitly set* roles in this array will be treated as role="presentation".
+   * This is intended to be used when a parent element has role="presentation",
+   * and its children in the accessibility tree (or descendents in the DOM tree)
+   * without explicit roles need to be hidden if they are required owned elements.
+   * https://www.digitala11y.com/presentation-role/
+   */
+  presentationalRoles: string[] = [],
 ): string => {
   const accessibilityState = getElementAccessibilityState(element);
   if (
@@ -65,13 +89,57 @@ export const getAccessibilityTree = (
     return '';
   const { includeDescriptions = true, includeText = true } = opts;
   const role = getRole(element);
-  const printSelf =
-    role && accessibilityState === AccessibilityState.SelfIncludedInTree;
-  let text = (printSelf && role) || '';
-  if (printSelf) {
-    const name = computeAccessibleName(element);
+  const selfIsInAccessibilityTree =
+    role &&
+    accessibilityState === AccessibilityState.SelfIncludedInTree &&
+    role !== 'presentation' &&
+    role !== 'none' &&
+    !(
+      presentationalRoles.includes(role) &&
+      // Check that no explicit role is set
+      !element.hasAttribute('role')
+    );
+  let text = (selfIsInAccessibilityTree && role) || '';
+  if (selfIsInAccessibilityTree) {
+    let name = computeAccessibleName(element);
+    if (
+      element === document.documentElement &&
+      role === 'document' &&
+      !name &&
+      document.title
+    ) {
+      name = document.title;
+    }
     if (name) text += ` "${name}"`;
+    if (
+      element.ariaExpanded === 'true' ||
+      (element.tagName === 'SUMMARY' &&
+        (element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=true)`;
+    if (
+      element.ariaExpanded === 'false' ||
+      (element.tagName === 'SUMMARY' &&
+        !(element.parentElement as HTMLDetailsElement).open)
+    )
+      text += ` (expanded=false)`;
     if (document.activeElement === element) text += ` (focused)`;
+    if (role === 'heading') {
+      const level =
+        element.ariaLevel ||
+        (element.tagName.length === 2 &&
+          element.tagName.startsWith('H') &&
+          element.tagName[1]);
+      if (level) {
+        text +=
+          Number.parseInt(level, 10).toString() === level &&
+          Number.parseInt(level, 10) > 0
+            ? ` (level=${level})`
+            : ` (INVALID HEADING LEVEL: ${JSON.stringify(level)})`;
+      } else {
+        text += ` (MISSING HEADING LEVEL)`;
+      }
+    }
     if (includeDescriptions) {
       const description = computeAccessibleDescription(element);
       if (description) text += `\n  ↳ description: "${description}"`;
@@ -81,16 +149,24 @@ export const getAccessibilityTree = (
 
   // Some roles have a `childrenArePresentational` attribute which means all of
   // their children should be excluded from the accessibility tree.
-  // For example, a button should not have its button text displayed, since it's
-  // already used as the accessible name.
+  // For example, a button should not have its button text displayed,
+  // since it's already used as the accessible name.
   // https://www.w3.org/TR/wai-aria-1.1/#childrenArePresentational
   if (role && rolesWithChildrenPresentation.has(role)) return text;
+  const requiredOwnedElements =
+    role === null
+      ? // Pass along the presentational roles from the parents
+        presentationalRoles
+      : ((role === 'none' || role === 'presentation') &&
+          requiredOwnedElementsMap.get(getImplicitRole(element))) ||
+        [];
   for (const node of element.childNodes) {
     let printedChild;
     if (node instanceof Element) {
-      printedChild = getAccessibilityTree(node, opts);
-    } else if (includeText) {
-      const trimmedText = node.nodeValue?.trim();
+      printedChild = getAccessibilityTree(node, opts, requiredOwnedElements);
+    } else if (includeText && !(node instanceof Comment)) {
+      // Trim whitespace from ends and normalize all whitespace to a single space
+      const trimmedText = node.nodeValue?.trim().replace(/\s+/g, ' ');
       if (!trimmedText) continue;
 
       printedChild = `text "${trimmedText}"`;
@@ -99,7 +175,7 @@ export const getAccessibilityTree = (
   }
   if (printedChildren.length > 0) {
     if (text.length > 0) text += '\n';
-    text += printSelf
+    text += selfIsInAccessibilityTree
       ? indent(printedChildren.join('\n'))
       : printedChildren.join('\n');
   }

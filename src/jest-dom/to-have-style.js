@@ -1,3 +1,4 @@
+// eslint-disable-next-line @cloudfour/n/no-missing-import
 import { checkHtmlElement } from '@testing-library/jest-dom/dist/utils';
 
 function getStyleDeclaration(document, css) {

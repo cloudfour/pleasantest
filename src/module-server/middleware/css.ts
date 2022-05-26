@@ -20,7 +20,10 @@ export const cssMiddleware =
   async (req, res, next) => {
     try {
       // TODO: use passed in loaders/handlers to determine extensions
-      if (!cssExts.test(req.path)) return next();
+      if (!cssExts.test(req.path)) {
+        next();
+        return;
+      }
       // Normalized path starting with slash
       const path = posix.normalize(req.path);
       // Remove leading slash, and convert slashes to os-specific slashes
@@ -43,7 +46,7 @@ export const cssMiddleware =
       );
 
       res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(code, 'utf-8'),
+        'Content-Length': Buffer.byteLength(code, 'utf8'),
       });
       res.end(code);
     } catch (error) {

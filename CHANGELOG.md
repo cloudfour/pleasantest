@@ -1,5 +1,174 @@
 # pleasantest
 
+## 2.1.0
+
+### Minor Changes
+
+- [#486](https://github.com/cloudfour/pleasantest/pull/486) [`c142d73`](https://github.com/cloudfour/pleasantest/commit/c142d73bbd7b5b7ef92f8e38fee686f3e43d1b27) Thanks [@calebeby](https://github.com/calebeby)! - Add support for node 18
+
+* [#481](https://github.com/cloudfour/pleasantest/pull/481) [`10a8364`](https://github.com/cloudfour/pleasantest/commit/10a836471144bcf6c500d06a72143c7fec64c751) Thanks [@calebeby](https://github.com/calebeby)! - Add full support for Jest 28
+
+## 2.0.0
+
+### Major Changes
+
+- [#345](https://github.com/cloudfour/pleasantest/pull/345) [`847cbd8`](https://github.com/cloudfour/pleasantest/commit/847cbd829504ae7ac518063cc380bc1b0adc3adc) Thanks [@calebeby](https://github.com/calebeby)! - Normalize whitespace in `getAccessibilityTree`
+
+  Now anytime there is contiguous whitespace in text strings it is collapsed into a single space. This matches the behavior of browser accessibility trees.
+
+  This is a breaking change because it changes the `getAccessibilityTree` output, and may break your snapshots. Update your snapshots with Jest and review the changes.
+
+* [#446](https://github.com/cloudfour/pleasantest/pull/446) [`1eaa648`](https://github.com/cloudfour/pleasantest/commit/1eaa648dc8e2307a622383b9decf7ff637fad681) Thanks [@calebeby](https://github.com/calebeby)! - Use document.title as fallback implicit accessible name for html root element in accessibility tree snapshots
+
+- [#445](https://github.com/cloudfour/pleasantest/pull/445) [`5fa4103`](https://github.com/cloudfour/pleasantest/commit/5fa41034ee423559203669282c6af7f03042ec01) Thanks [@calebeby](https://github.com/calebeby)! - Add heading levels to `getAccessibilityTree`. The heading levels are computed from the corresponding element number in `<h1>` - `<h6>`, or from the `aria-level` role.
+
+  In the accessibility tree snapshot, it looks like this:
+
+  ```
+  heading "Name of Heading" (level=2)
+  ```
+
+  This is a breaking change because it will cause existing accessibility tree snapshots to fail which contain headings. Update the snapshots to make them pass again.
+
+* [#451](https://github.com/cloudfour/pleasantest/pull/451) [`eb364cc`](https://github.com/cloudfour/pleasantest/commit/eb364cce9f077247f3f08c4e4319f4d2dbac8b3c) Thanks [@calebeby](https://github.com/calebeby)! - Added `aria-expanded` support to `getAccessibilityTree` and fix handling for `<details>`/`<summary>`
+
+  Now, elements which have the `aria-expanded` attribute will represent the state of that attribute in accessibility tree snapshots. `<details>`/`<summary>` elements will represent their expanded state in the tree as well.
+
+  Also, for collapsed `<details>`/`<summary>` elements, the hidden content is now hidden in the accessibility tree, to match screen reader behavior.
+
+- [#248](https://github.com/cloudfour/pleasantest/pull/248) [`abe22a6`](https://github.com/cloudfour/pleasantest/commit/abe22a6ba71eb04fa858447272a171474483b105) Thanks [@gerardo-rodriguez](https://github.com/gerardo-rodriguez)! - Enforce minimum target size when calling `user.click()`, per WCAG Success Criterion 2.5.5 Target Size guideline.
+
+### Minor Changes
+
+- [#409](https://github.com/cloudfour/pleasantest/pull/409) [`cf3ad32`](https://github.com/cloudfour/pleasantest/commit/cf3ad32f60e463b3b72b6cf58254152832fff758) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to 13.5.2
+
+## 1.7.0
+
+### Minor Changes
+
+- [#403](https://github.com/cloudfour/pleasantest/pull/403) [`6ceb029`](https://github.com/cloudfour/pleasantest/commit/6ceb029be3152ed7b7d34a1a6b643591f1ce7cf2) Thanks [@calebeby](https://github.com/calebeby)! - Expose `accessibilityTreeSnapshotSerializer`. This is the snapshot serializer that Pleasantest configures Jest to use to format accessibility tree snapshots. It was enabled by default in previous versions, and it still is, just now it is also exposed as an export so you can pass the snapshot serializer to other tools, like [`snapshot-diff`](https://github.com/jest-community/snapshot-diff).
+
+  Here's an example of using this:
+
+  This part you'd put in your test setup file (configured in Jest's `setupFilesAfterEnv`):
+
+  ```js
+  import snapshotDiff from 'snapshot-diff';
+
+  expect.addSnapshotSerializer(snapshotDiff.getSnapshotDiffSerializer());
+  snapshotDiff.setSerializers([
+    {
+      test: accessibilityTreeSnapshotSerializer.test,
+      // @ts-ignore
+      print: (value) => accessibilityTreeSnapshotSerializer.serialize(value),
+      diffOptions: () => ({ expand: true }),
+    },
+  ]);
+  ```
+
+  Then in your tests:
+
+  ```js
+  const beforeSnap = await getAccessibilityTree(element);
+
+  // ... interact with the DOM
+
+  const afterSnap = await getAccessibilityTree(element);
+
+  expect(snapshotDiff(beforeSnap, afterSnap)).toMatchInlineSnapshot(`
+    Snapshot Diff:
+    - First value
+    + Second value
+  
+      region "Summary"
+        heading "Summary"
+          text "Summary"
+        list
+          listitem
+            text "Items:"
+    -       text "2"
+    +       text "5"
+        link "Checkout"
+          text "Checkout"
+  `);
+  ```
+
+  The diff provided by snapshotDiff automatically highlights the differences between the snapshots, to make it clear to the test reader what changed in the page accessibility structure as the interactions happened.
+
+### Patch Changes
+
+- [#412](https://github.com/cloudfour/pleasantest/pull/412) [`33ddf04`](https://github.com/cloudfour/pleasantest/commit/33ddf047aef3dfb43fdd31eedc3da491e50b7df9) Thanks [@calebeby](https://github.com/calebeby)! - Ignore HTML comments in `getAccessibilityTree` output (potentially breaking bugfix)
+
+## 1.6.0
+
+### Minor Changes
+
+- [#353](https://github.com/cloudfour/pleasantest/pull/353) [`19c7cbb`](https://github.com/cloudfour/pleasantest/commit/19c7cbb86e0be198c3c95c613c180356faab9e80) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to 13.1.2
+
+### Patch Changes
+
+- [#391](https://github.com/cloudfour/pleasantest/pull/391) [`55a7d42`](https://github.com/cloudfour/pleasantest/commit/55a7d4205f756625bf5764ec4dd0a4287194b48c) Thanks [@renovate](https://github.com/apps/renovate)! - Update `dom-accessibility-api` to 0.5.11
+
+  `<input type="number" />` now maps to role `spinbutton` (was `textbox` before).
+
+  This is technically a breaking change for users which depended on the incorrect behavior of `getAccessibilityTree` with `input[type="number"]` previously mapping to `textbox`.
+
+## 1.5.0
+
+### Minor Changes
+
+- [#369](https://github.com/cloudfour/pleasantest/pull/369) [`c0a8a0a`](https://github.com/cloudfour/pleasantest/commit/c0a8a0ae008507b36a664dc8a1d009507021c146) Thanks [@calebeby](https://github.com/calebeby)! - Add `waitFor` feature
+
+* [#344](https://github.com/cloudfour/pleasantest/pull/344) [`d7bbae3`](https://github.com/cloudfour/pleasantest/commit/d7bbae367e9d5fb8c7756ec337568c18e34faf3f) Thanks [@calebeby](https://github.com/calebeby)! - Allow passing `page` instead of an `ElementHandle` to `getAccessibilityTree`.
+
+  If `page` is passed, the accessibility tree will be of the root `html` element.
+
+- [#363](https://github.com/cloudfour/pleasantest/pull/363) [`4bdfb5b`](https://github.com/cloudfour/pleasantest/commit/4bdfb5b58c4a61567ac7c9367483aab5a261180c) Thanks [@calebeby](https://github.com/calebeby)! - Add support for Node 17
+
+## 1.4.0
+
+### Minor Changes
+
+- [#314](https://github.com/cloudfour/pleasantest/pull/314) [`542f3f9`](https://github.com/cloudfour/pleasantest/commit/542f3f96b62318cc159cdabf135fc3ba33cefc35) Thanks [@calebeby](https://github.com/calebeby)! - Improve printing of HTML elements in error messages
+
+  - Printed HTML now is syntax-highlighted
+  - Adjacent whitespace is collapsed in places where the browser would collapse it
+
+* [#265](https://github.com/cloudfour/pleasantest/pull/265) [`2b92fbc`](https://github.com/cloudfour/pleasantest/commit/2b92fbcd1f47f8ab020ff26be276a9da02b9b368) Thanks [@renovate](https://github.com/apps/renovate)! - Update `@testing-library/dom` to [`v8.11.1`](https://github.com/testing-library/dom-testing-library/releases/tag/v8.11.1)
+
+  Read their [release notes](https://github.com/testing-library/dom-testing-library/releases) for all the versions between 8.1.0 and 8.11.1 to see the full changes.
+
+  Notably, we have added the ability for TypeScript users to optionally specify an element type as a type parameter for DTL queries:
+
+  ```ts
+  import { withBrowser } from 'pleasantest';
+
+  test(
+    'changelog example',
+    withBrowser(async ({ screen }) => {
+      // ElementHandle<HTMLButtonElement>
+      const button = await screen.getByRole<HTMLButtonElement>(/button/);
+
+      // ElementHandle<HTMLButtonElement>[]
+      const buttons = await screen.getAllByRole<HTMLButtonElement>(/button/);
+    }),
+  );
+  ```
+
+  The return type is automatically determined based on the specified element type. Since Pleasantest DTL queries return `ElementHandle`s, the return type will be wrapped with `Promise<ElementHandle<...>>`. For queries which return arrays of elements, the singular version of the element type is accepted as the type parameter, and the return type will automatically be wrapped with `Promise<Array<ElementHandle<...>>>`.
+
+- [#297](https://github.com/cloudfour/pleasantest/pull/297) [`97e075c`](https://github.com/cloudfour/pleasantest/commit/97e075c915dedc754abcdb5de0db4e757479e02f) Thanks [@renovate](https://github.com/apps/renovate)! - Update puppeteer to v13.0.0
+
+* [#236](https://github.com/cloudfour/pleasantest/pull/236) [`67a222f`](https://github.com/cloudfour/pleasantest/commit/67a222f62bc96ce2a646f9ed0670a5959f60c7ac) Thanks [@calebeby](https://github.com/calebeby)! - Add accessibility snapshots feature: `getAccessibilityTree`. This feature can be used to ensure that changes to the accessibility structure of your applications are intentional and correct.
+
+- [#327](https://github.com/cloudfour/pleasantest/pull/327) [`dfc9620`](https://github.com/cloudfour/pleasantest/commit/dfc9620712ba12d355d84fe2165722ccf2314176) Thanks [@calebeby](https://github.com/calebeby)! - Add suggestion to error message when transformation plugin is missing for unrecognized file extensions
+
+### Patch Changes
+
+- [#283](https://github.com/cloudfour/pleasantest/pull/283) [`93b3922`](https://github.com/cloudfour/pleasantest/commit/93b39227f87196c01319a4650af34fa8371bfa14) Thanks [@calebeby](https://github.com/calebeby)! - Add logo (thanks @dromo77)
+
+* [#290](https://github.com/cloudfour/pleasantest/pull/290) [`e9808b5`](https://github.com/cloudfour/pleasantest/commit/e9808b59ef6836904897895981dc6a53ce0ab64a) Thanks [@calebeby](https://github.com/calebeby)! - Fix regression in stack frames handling when calling `user.*` and `screen.*` methods.
+
 ## 1.3.0
 
 ### Minor Changes

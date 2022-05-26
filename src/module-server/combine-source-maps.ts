@@ -30,10 +30,7 @@
   */
 
 import remapping from '@ampproject/remapping';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 
 // Based on https://github.com/sveltejs/svelte/blob/abf11bb02b2afbd3e4cac509a0f70e318c306364/src/compiler/utils/mapped_code.ts#L221
 const nullSourceMap: RawSourceMap = {
@@ -53,16 +50,13 @@ export const combineSourceMaps = (
       return map;
     })
     .reverse();
-  if (
-    sourceMapList.length === 0 ||
-    sourceMapList.every((m) => m.sources.length === 0)
-  )
+  if (sourceMapList.every((m) => m.sources.length === 0))
     return { ...nullSourceMap };
 
   let mapIndex = 1;
-  const useArrayInterface =
-    sourceMapList.slice(0, -1).find((m) => m.sources.length !== 1) ===
-    undefined;
+  const useArrayInterface = !sourceMapList
+    .slice(0, -1)
+    .some((m) => m.sources.length !== 1);
   const map = useArrayInterface
     ? remapping(sourceMapList, () => null, true)
     : remapping(

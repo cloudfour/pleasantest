@@ -16,7 +16,7 @@ test(
               `);
     // This short delay is necessary to make sure that the screen.getByText finishes before the test finishes
     // Otherwise, the forgot await error is triggered
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }),
 );
 

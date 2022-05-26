@@ -1,8 +1,13 @@
-# Pleasantest
-
-[![NPM version](http://img.shields.io/npm/v/pleasantest.svg)](https://www.npmjs.org/package/pleasantest) [![Build Status](https://github.com/cloudfour/pleasantest/workflows/Node.js%20CI/badge.svg)](https://github.com/cloudfour/pleasantest/actions/workflows/ci.yml) [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
+<h1 align="center">
+	<br/>
+	<img width="400" src="pleasantest-logo.svg" alt="Pleasantest">
+	<br/>
+	<br/>
+</h1>
 
 Pleasantest is a library that allows you test web applications using real browsers in your Jest tests. Pleasantest is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
+
+[![NPM version](http://img.shields.io/npm/v/pleasantest.svg)](https://www.npmjs.org/package/pleasantest) [![Build Status](https://github.com/cloudfour/pleasantest/workflows/Node.js%20CI/badge.svg)](https://github.com/cloudfour/pleasantest/actions/workflows/ci.yml) [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
 
 ## Pleasantest Goals
 
@@ -29,6 +34,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [User API: `PleasantestUser`](#user-api-pleasantestuser)
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
+  - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
@@ -179,7 +185,7 @@ test(
 );
 ```
 
-Sometimes, you may want to traverse the DOM tree to find parent, sibling, or descendant elements. Pleasantest communicates asynchronously with the browser, so you do not have synchronous access to the DOM tree. You can use [`ElementHandle.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleevaluatepagefunction-args) to run code in the browser using an `ElementHandle` returned from a query:
+Sometimes, you may want to traverse the DOM tree to find parent, sibling, or descendant elements. Pleasantest communicates asynchronously with the browser, so you do not have synchronous access to the DOM tree. You can use [`ElementHandle.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-elementhandleevaluatepagefunction-args) to run code in the browser using an `ElementHandle` returned from a query:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -217,11 +223,13 @@ test(
 );
 ```
 
+Another option is to use the [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot) function to create snapshots of the expected accessibility tree.
+
 ### Performing Actions
 
 You can use the [User API](#user-api-pleasantestuser) to perform actions in the browser.
 
-If the User API is missing a method that you need, you can instead use [methods on `ElementHandle`s directly](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle)
+If the User API is missing a method that you need, you can instead use [methods on `ElementHandle`s directly](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-elementhandle)
 
 ```js
 test(
@@ -319,6 +327,12 @@ Ensures that the element is visible to a user. Currently, the following checks a
 - Element has a size (its [bounding box](https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect) has a non-zero width and height)
 - Element's opacity is greater than 0.05 (opacity of parent elements are considered)
 
+#### Target size
+
+> [The intent of this success criteria is to ensure that target sizes are large enough for users to easily activate them, even if the user is accessing content on a small handheld touch screen device, has limited dexterity, or has trouble activating small targets for other reasons. For instance, mice and similar pointing devices can be hard to use for these users, and a larger target will help them activate the target.](https://www.w3.org/WAI/WCAG21/Understanding/target-size.html)
+
+Per the [W3C Web Content Accessibility Guidelines (WCAG) 2.1](https://www.w3.org/TR/WCAG21/#target-size), the element must be at least 44px wide and at least 44px tall to pass the target size check (configurable via `user.targetSize` option in `WithBrowserOpts` or `targetSize` option for `user.click`).
+
 ## Full Example
 
 There is a menu example in the [examples folder](./examples/menu/index.test.ts)
@@ -350,11 +364,13 @@ Call Signatures:
 `WithBrowserOpts` (all properties are optional):
 
 - `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
-- `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageemulateoptions).
+- `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-pageemulateoptions).
 - `moduleServer`: Module Server options object (all properties are optional). They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
   - `plugins`: Array of Rollup, Vite, or WMR plugins to add.
   - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
-  - `esbuild`: [`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`: Options to pass to esbuild. Set to false to disable esbuild.
+  - `esbuild`: ([`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`) Options to pass to esbuild. Set to false to disable esbuild.
+- `user`: User API options object (all properties are optional). They will be applied when calling `user.*` methods.
+  - `targetSize`: (`number | boolean`, default `44`): Set the minimum target size for `user.click`. Set to `false` to disable target size checks. This option can also be passed to individual `user.click` calls in the 2nd parameter.
 
 You can configure the default options (applied to all tests in current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
 
@@ -364,6 +380,9 @@ import { configureDefaults } from 'pleasantest'
 configureDefaults({
   device: /* ... */,
   moduleServer: {
+    /* ... */
+  },
+  user: {
     /* ... */
   },
   /* ... */
@@ -403,9 +422,39 @@ The `devices` import from `pleasantest` is re-exported from Puppeteer, [here is 
 
 ### `PleasantestContext` Object (passed into test function wrapped by `withBrowser`)
 
+#### `PleasantestContext.waitFor<T>(callback: () => T | Promise<T>, options?: WaitForOptions) => Promise<T>`
+
+The `waitFor` method in the `PleasantestContext` object repeatedly executes the callback passed into it until the callback stops throwing or rejecting, or after a configurable timeout. [This utility comes from Testing Library](https://testing-library.com/docs/dom-testing-library/api-async/#waitfor).
+
+The return value of the callback function is returned by `waitFor`.
+
+`WaitForOptions`: (all properties are optional):
+
+- `container`: `ElementHandle`, default `document.documentElement` (root element): The element watched by the MutationObserver which,
+  when it or its descendants change, causes the callback to run again (regardless of the interval).
+- `timeout`: `number`, default: 1000ms The amount of time (milliseconds) that will pass before waitFor "gives up" and throws whatever the callback threw.
+- `interval`: `number`, default: 50ms: The maximum amount of time (milliseconds) that will pass between each run of the callback. If the MutationObserver notices a DOM change before this interval triggers, the callback will run again immediately.
+- `onTimeout`: `(error: Error) => Error`: Manipulate the error thrown when the timeout triggers.
+- `mutationObserverOptions`: [`MutationObserverInit`](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe#parameters) Options to pass to initialize the `MutationObserver`,
+
+```js
+import { withBrowser } from 'pleasantest';
+
+test(
+  'test name',
+  withBrowser(async ({ waitFor, page }) => {
+    //                 ^^^^^^^
+    // Wait until the url changes to ...
+    await waitFor(async () => {
+      expect(page.url).toBe('https://something.com/something');
+    });
+  }),
+);
+```
+
 #### `PleasantestContext.screen`
 
-The `PleasantestContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Pleasantest compared to Testing Library: in Pleasantest, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle)'s from Puppeteer.
+The `PleasantestContext` object exposes the [`screen`](https://testing-library.com/docs/queries/about/#screen) property, which is an [object with Testing Library queries pre-bound to the document](https://testing-library.com/docs/queries/about/#screen). All of the [Testing Library queries](https://testing-library.com/docs/queries/about#overview) are available. These are used to find elements in the DOM for use in your tests. There is one difference in how you use the queries in Pleasantest compared to Testing Library: in Pleasantest, all queries must be `await`ed to handle the time it takes to communicate with the browser. In addition, since your tests are running in Node, the queries return Promises that resolve to [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-elementhandle)'s from Puppeteer.
 
 List of queries attached to screen object:
 
@@ -456,7 +505,7 @@ test(
 
 #### `PleasantestContext.page`
 
-The `PleasantestContext` object exposes the `page` property, which is an instance of Puppeteer's [`Page` class](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-page). This will most often be used for navigation ([`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagegotourl-options)), but you can do anything with it that you can do with puppeteer.
+The `PleasantestContext` object exposes the `page` property, which is an instance of Puppeteer's [`Page` class](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-page). This will most often be used for navigation ([`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagegotourl-options)), but you can do anything with it that you can do with puppeteer.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -487,11 +536,13 @@ See the [`PleasantestUtils`](#utilities-api-pleasantestutils) documentation.
 
 The user API allows you to perform actions on behalf of the user. If you have used [`user-event`](https://github.com/testing-library/user-event), then this API will feel familiar. This API is exposed via the [`user` property in `PleasantestContext`](#pleasantestcontextuser-pleasantestuser).
 
-#### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean }): Promise<void>`
+#### `PleasantestUser.click(element: ElementHandle, options?: { force?: boolean, targetSize?: number | boolean }): Promise<void>`
 
-Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleclickoptions). The difference is that `PleasantestUser.click` checks that the target element is an element that actually can be clicked before clicking it!
+Clicks an element, if the element is visible and the center of it is not covered by another element. If the center of the element is covered by another element, an error is thrown. This is a thin wrapper around Puppeteer's [`ElementHandle.click` method](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-elementhandleclickoptions). The difference is that `PleasantestUser.click` checks that the target element is an element that actually can be clicked before clicking it!
 
-**Actionability checks**: It refuses to click elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
+**Actionability checks**: It refuses to click elements that are not [**attached**](#attached), not [**visible**](#visible) or which have too small of a [**target size**](#target-size). You can override the visibility and target size checks by passing `{ force: true }`.
+
+The target size check can be disabled or configured by passing the `targetSize` option in the second parameter. Passing `false` disables the check; passing a number sets the minimum width/height of elements (in px).
 
 Additionally, it refuses to click an element if there is another element covering it. `{ force: true }` overrides this behavior.
 
@@ -518,7 +569,7 @@ The `delay` option controls the amount of time (ms) between keypresses (defaults
 
 **Actionability checks**: It refuses to type into elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
-In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagekeyboard)
+In the text, you can pass special commands using curly brackets to trigger special keypresses, similar to [user-event](https://github.com/testing-library/user-event#special-characters) and [Cypress](https://docs.cypress.io/api/commands/type.html#Arguments). Open an issue if you want more commands available here! Note: If you want to simulate individual keypresses independent from a text field, you can use Puppeteer's [page.keyboard API](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-pagekeyboard)
 
 | Text string    | Key        | Notes                                                                                   |
 | -------------- | ---------- | --------------------------------------------------------------------------------------- |
@@ -566,7 +617,7 @@ test(
 
 #### `PleasantestUser.selectOptions(element: ElementHandle, values: ElementHandle | ElementHandle[] | string[] | string, options?: { force?: boolean }): Promise<void>`
 
-Selects the specified option(s) of a `<select>` or a `<select multiple>` element. Values can be passed as either strings (option values) or as [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle) references to elements.
+Selects the specified option(s) of a `<select>` or a `<select multiple>` element. Values can be passed as either strings (option values) or as [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-elementhandle) references to elements.
 
 **Actionability checks**: It refuses to select in elements that are not [**attached**](#attached) or not [**visible**](#visible). You can override the visibility check by passing `{ force: true }`.
 
@@ -616,7 +667,7 @@ test(
 );
 ```
 
-To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
+To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -729,15 +780,65 @@ test(
 );
 ```
 
+### `getAccessibilityTree(element: ElementHandle | Page, options?: AccessibilityTreeOptions) => Promise<AccessibilityTreeSnapshot>`
+
+The `getAccessibilityTree` function is a top-level import from `pleasantest`. It is intended to be used with [Jest Snapshots](https://jestjs.io/docs/snapshot-testing#snapshot-testing-with-jest) to ensure that any changes to the accessibility tree of your component or application are intended and correct.
+
+If you have used HTML snapshots with Jest before, this feature will feel very similar. However, by creating a snapshot of the accessibility tree rather than the DOM tree, the snapshot is better at detecting user-facing changes and fewer implementation details.
+
+```js
+import { withBrowser, getAccessibilityTree } from 'pleasantest';
+//                    ^^^^^^^^^^^^^^^^^^^^
+//                    getAccessibilityTree is a top-level import
+
+test(
+  'getAccessibilityTree example',
+  withBrowser(async ({ page }) => {
+    // ... Load your content here (see Loading Content)
+
+    await expect(
+      // Note the use of `await`; getAccessibilityTree returns a Promise
+      // Also, you could pass a specific element instead of the page
+      await getAccessibilityTree(page),
+    ).toMatchInlineSnapshot();
+  }),
+);
+```
+
+When you first write your test, you'll leave the parameter list to `toMatchInlineSnapshot()` empty. Then when you run your test, Jest will fill it in automatically for you. After that first time, whenever the output changes, Jest will fail the test, and you will be asked whether the change was intended. If it was intended, then you can tell Jest to automatically update the inline snapshot to the new output.
+
+This is an example of an accessibility that might get generated (from a `<ul>`):
+
+```
+list
+  listitem
+    text "something"
+  listitem
+    text "something else"
+```
+
+The first parameter must be either an `ElementHandle` or the `Page` object. If an `ElementHandle` is passed, the accessibility tree will contain only descendants of that element. If the `Page` object is passed, the accessibility tree will be of the entire document.
+
+The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you to configure what is shown in the output.
+
+`AccessibilityTreeOptions` (all properties are optional):
+
+- `includeDescriptions`: `boolean`, default `true`: Whether the [accessible description](https://www.w3.org/TR/wai-aria-1.2/#dfn-accessible-description) of elements should be included in the tree.
+- `includeText`: `boolean`, default `true`: Whether to include text that is not being used as an element's name.
+
+Disabling these options can be used to reduce the output or to exclude text that is intended to frequently change.
+
+The returned `Promise` wraps an `AccessibilityTreeSnapshot`, which can be passed directly as the `expect` first parameter in `expect(___).toMatchInlineSnapshot()`. The returned object can also be converted to a string using `String(accessibilityTreeSnapshot)`.
+
 ## Puppeteer Tips
 
 Pleasantest uses [Puppeteer](https://github.com/puppeteer/puppeteer) under the hood. You don't need to know how to use Puppeteer in order to use Pleasantest, but a little bit of Puppeteer knowledge might come in handy. Here are the parts of Puppeteer that are most helpful and relevant for Pleasantest:
 
-### [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle)
+### [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-elementhandle)
 
 An `ElementHandle` is a reference to a DOM element in the browser. When you use one of the [Testing Library queries](#pleasantestcontextscreen) to find elements, the queries return promises that resolve to `ElementHandle`s.
 
-You can use the [`.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleevaluatepagefunction-args) method to execute code in the browser, using a reference to the actual `Element` instance that the `ElementHandle` points to. For example, if you want to get the [`innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) of an element:
+You can use the [`.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-elementhandleevaluatepagefunction-args) method to execute code in the browser, using a reference to the actual `Element` instance that the `ElementHandle` points to. For example, if you want to get the [`innerText`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) of an element:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -757,7 +858,7 @@ test(
 );
 ```
 
-Sometimes, you may want to return another `ElementHandle` from the browser callback, or some other value that can't be serialized in order to be transferred from the browser to Node. To do this, you can use the [`.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-elementhandleevaluatehandlepagefunction-args) method. In this example, we want to get a reference to the parent of an element.
+Sometimes, you may want to return another `ElementHandle` from the browser callback, or some other value that can't be serialized in order to be transferred from the browser to Node. To do this, you can use the [`.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-elementhandleevaluatehandlepagefunction-args) method. In this example, we want to get a reference to the parent of an element.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -775,13 +876,13 @@ test(
 );
 ```
 
-### [`Page`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-page)
+### [`Page`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-page)
 
 The page object is one of the properties that is passed into the test callback by [`withBrowser`](#withbrowser). You can use `.evaluate` and `.evaluateHandle` on `Page`, and those methods work the same as on `ElementHandle`.
 
 Here are some useful methods that are exposed through `Page`:
 
-[`page.cookies`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagecookiesurls), [`page.emulateMediaFeatures`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageemulatemediafeaturesfeatures), [`page.emulateNetworkConditions`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageemulatenetworkconditionsnetworkconditions), [`page.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageevaluatepagefunction-args), [`page.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageevaluatehandlepagefunction-args), [`page.exposeFunction`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageexposefunctionname-puppeteerfunction), [`page.goBack`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagegobackoptions), [`page.goForward`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagegoforwardoptions), [`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagegotourl-options), [`page.metrics`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagemetrics), [`page.reload`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagereloadoptions), [`page.screenshot`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagescreenshotoptions), [`page.setGeolocation`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagesetgeolocationoptions), [`page.setOfflineMode`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagesetofflinemodeenabled), [`page.setRequestInterception`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagesetrequestinterceptionvalue-cachesafe), [`page.title`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagetitle), [`page.url`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pageurl), [`page.waitForNavigation`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-pagewaitfornavigationoptions), [`page.browserContext().overridePermissions`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-browsercontextoverridepermissionsorigin-permissions), [`page.keyboard.press`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-keyboardpresskey-options), [`page.mouse.move`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-mousemovex-y-options), [`page.mouse.click`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-mouseclickx-y-options), [`page.touchscreen.tap`](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-touchscreentapx-y)
+[`page.cookies`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-pagecookiesurls), [`page.emulateMediaFeatures`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageemulatemediafeaturesfeatures), [`page.emulateNetworkConditions`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageemulatenetworkconditionsnetworkconditions), [`page.evaluate`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageevaluatepagefunction-args), [`page.evaluateHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageevaluatehandlepagefunction-args), [`page.exposeFunction`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageexposefunctionname-puppeteerfunction), [`page.goBack`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagegobackoptions), [`page.goForward`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagegoforwardoptions), [`page.goto`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagegotourl-options), [`page.metrics`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagemetrics), [`page.reload`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagereloadoptions), [`page.screenshot`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagescreenshotoptions), [`page.setGeolocation`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagesetgeolocationoptions), [`page.setOfflineMode`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagesetofflinemodeenabled), [`page.setRequestInterception`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagesetrequestinterceptionvalue-cachesafe), [`page.title`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagetitle), [`page.url`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pageurl), [`page.waitForNavigation`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-pagewaitfornavigationoptions), [`page.browserContext().overridePermissions`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-browsercontextoverridepermissionsorigin-permissions), [`page.keyboard.press`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-keyboardpresskey-options), [`page.mouse.move`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-mousemovex-y-options), [`page.mouse.click`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-mouseclickx-y-options), [`page.touchscreen.tap`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-touchscreentapx-y)
 
 ## Comparisons with other testing tools
 
@@ -807,7 +908,7 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
 
 ### [pptr-testing-library](https://github.com/testing-library/pptr-testing-library) + Jest
 
-`pptr-testing-library` makes versions of the [Testing Library](https://testing-library.com) queries that work with Puppeteer's [ElementHandle](https://pptr.dev/#?product=Puppeteer&version=v10.4.0&show=api-class-elementhandle)s, similarly to how Pleasantest does.
+`pptr-testing-library` makes versions of the [Testing Library](https://testing-library.com) queries that work with Puppeteer's [ElementHandle](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-elementhandle)s, similarly to how Pleasantest does.
 
 - It does not make the [jest-dom](https://github.com/testing-library/jest-dom) assertions work with Puppeteer ElementHandles.
 - It does not manage the browser for you. You must manually set up and tear down the browser.

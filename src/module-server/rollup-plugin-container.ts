@@ -49,10 +49,7 @@ import type {
 } from 'rollup';
 import type { Plugin } from './plugin';
 import { combineSourceMaps } from './combine-source-maps';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import { ErrorWithLocation } from './error-with-location';
 import { removeFuncFromStackTrace } from '../utils';
 
@@ -80,6 +77,7 @@ type PluginContext = Omit<
   | 'isExternal'
   | 'moduleIds'
   | 'resolveId'
+  | 'load'
 >;
 
 export const createPluginContainer = (plugins: Plugin[]) => {
@@ -102,7 +100,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
         ...opts,
       });
     },
-    async resolve(id, importer, { skipSelf = false } = { skipSelf: false }) {
+    async resolve(id, importer, { skipSelf = false } = {}) {
       const skip = [];
       if (skipSelf && plugin) skip.push(plugin);
       let out = await container.resolveId(id, importer, skip);
@@ -194,7 +192,9 @@ export const createPluginContainer = (plugins: Plugin[]) => {
 
         let result;
         try {
-          result = await p.resolveId.call(ctx as any, id, importer, {});
+          result = await p.resolveId.call(ctx as any, id, importer, {
+            isEntry: false,
+          });
         } finally {
           if (_skip) resolveSkips.delete(p, key);
         }

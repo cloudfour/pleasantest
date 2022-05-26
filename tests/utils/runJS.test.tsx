@@ -2,6 +2,8 @@ import { withBrowser } from 'pleasantest';
 import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
 import vuePlugin from 'rollup-plugin-vue';
+import sveltePlugin from 'rollup-plugin-svelte';
+import sveltePreprocess from 'svelte-preprocess';
 import aliasPlugin from '@rollup/plugin-alias';
 import babel from '@rollup/plugin-babel';
 
@@ -150,7 +152,7 @@ test(
 
               throw new Error('errorFromTs')\`,
                     ^"
-      `);
+    `);
 
     // Implicitly created error
     const error2 = await utils
@@ -167,6 +169,7 @@ test(
 
               thisVariableDoesntExist\`,
               ^"
+<<<<<<< HEAD
       `);
 
     // Edge case: Escaped backslashes (because it is in a code string)
@@ -187,6 +190,8 @@ test(
 
               throw new Error('blah')\`,
                     ^"
+=======
+>>>>>>> origin/main
     `);
   }),
 );
@@ -218,7 +223,7 @@ test(
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-          "Error parsing module with es-module-lexer
+          "Error parsing module with es-module-lexer.
 
           <root>/tests/utils/runJS.test.tsx:###:###
 
@@ -248,7 +253,7 @@ test(
 
             .runJS('console.log(nothing)')
                                 ^"
-      `);
+    `);
   }),
 );
 
@@ -290,7 +295,7 @@ test(
 
               renderThrow()\`,
               ^"
-      `);
+    `);
   }),
 );
 
@@ -411,12 +416,13 @@ describe('Ecosystem interoperability', () => {
         if (React.createElement !== React2.createElement) {
           throw new Error('Namespace import did not yield same result as direct import')
         }
-        import { render } from 'react-dom'
+        import { createRoot } from 'react-dom/client';
 
-        const root = document.createElement('div')
+        const container = document.createElement('div')
         document.body.innerHTML = ''
-        document.body.append(root)
-        render(<h1>Hi</h1>, root)
+        document.body.append(container)
+        const root = createRoot(container)
+        root.render(<h1>Hi</h1>)
       `);
       const heading = await screen.getByRole('heading');
       await expect(heading).toHaveTextContent('Hi');
@@ -453,6 +459,61 @@ describe('Ecosystem interoperability', () => {
         await expect(heading).toHaveStyle({ color: 'green' });
       },
     ),
+  );
+  test(
+    'svelte component can be imported via rollup-plugin-svelte',
+    withBrowser(
+      {
+        moduleServer: {
+          plugins: [sveltePlugin({ preprocess: sveltePreprocess() })],
+        },
+      },
+      async ({ utils, screen, user }) => {
+        await utils.injectHTML('<div id="app"></div>');
+        await utils.runJS(`
+          import CounterComponent from './svelte-component.svelte'
+
+          new CounterComponent({
+            target: document.getElementById('app')
+          })
+        `);
+        const button = await screen.getByRole('button');
+        await expect(button).toHaveTextContent(/^clicked 0 times$/i);
+
+        await user.click(button);
+        await expect(button).toHaveTextContent(/^clicked 1 time$/i);
+
+        // Check that the scss in the svelte component file got preprocessed and applied correctly
+        const bgColor = await button.evaluate(
+          (button) => getComputedStyle(button).backgroundColor,
+        );
+        expect(bgColor).toEqual('rgb(255, 0, 0)');
+      },
+    ),
+  );
+  test(
+    'useful error message is thrown when plugin is missing for imported file with unusual extension',
+    withBrowser(async ({ utils }) => {
+      const runPromise = utils.runJS(`
+        import CounterComponent from './svelte-component.svelte'
+      `);
+
+      await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        .toThrowErrorMatchingInlineSnapshot(`
+          "Error parsing module with es-module-lexer. Did you mean to add a transform plugin to support .svelte files?
+
+          <root>/tests/utils/svelte-component.svelte:###:###
+
+             # |     count += 1;
+             # |   }
+          >  # | </script>
+               |          ^
+             # | 
+            ## | <button on:click={handleClick}>
+            ## |   Clicked {count} {count === 1 ? 'time' : 'times'}
+          "
+        `);
+    }),
   );
 });
 

@@ -9,10 +9,7 @@ import type { Plugin } from '../plugin';
 import { createPluginContainer } from '../rollup-plugin-container';
 import { promises as fs } from 'fs';
 import { transformImports } from '../transform-imports';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import MagicString from 'magic-string';
 import { jsExts } from '../extensions-and-detection';
 import { rejectBuild } from '../build-status-tracker';
@@ -95,7 +92,7 @@ export const jsMiddleware = async ({
       res.setHeader('Content-Type', 'application/javascript;charset=utf-8');
       const resolved = await rollupPlugins.resolveId(id);
       const resolvedId = typeof resolved === 'object' ? resolved?.id : resolved;
-      let code: string | false | undefined;
+      let code: string | false | void;
       let map: DecodedSourceMap | RawSourceMap | string | undefined;
       // Decode the inline-code parameter (for runJS)
       if (typeof req.query['inline-code'] === 'string') {
@@ -129,10 +126,12 @@ export const jsMiddleware = async ({
         if (
           !jsExts.test(resolvedId || req.path) &&
           req.query.import === undefined
-        )
-          return next();
+        ) {
+          next();
+          return;
+        }
 
-        code = await fs.readFile(file, 'utf-8');
+        code = await fs.readFile(file, 'utf8');
       }
 
       const transformResult = await rollupPlugins.transform(code, id, map);
@@ -202,10 +201,13 @@ export const jsMiddleware = async ({
         },
       });
 
-      if (!code) return next();
+      if (!code) {
+        next();
+        return;
+      }
 
       res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(code, 'utf-8'),
+        'Content-Length': Buffer.byteLength(code, 'utf8'),
       });
       res.end(code);
     } catch (error) {

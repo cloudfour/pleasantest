@@ -16,7 +16,10 @@ const cache = new Map<string, string>();
 const clientRuntimeMiddleware =
   (root = path.resolve(currentDir, '..')): Middleware =>
   async (req, res, next) => {
-    if (!req.path.startsWith('/@pleasantest')) return next();
+    if (!req.path.startsWith('/@pleasantest')) {
+      next();
+      return;
+    }
     res.setHeader('Content-Type', 'application/javascript;charset=utf-8');
     res.setHeader('Access-Control-Allow-Origin', '*');
     const cached = cache.get(req.path);
@@ -40,7 +43,7 @@ const clientRuntimeMiddleware =
     cache.set(req.path, text);
   };
 
-let cachedServer:
+let cachedServerPromise:
   | Promise<{ port: number; server: Polka; close: () => Promise<void> }>
   | undefined;
 
@@ -49,12 +52,13 @@ let cachedServer:
  * The instance is reused (there should only ever be once instance per node process)
  */
 export const createClientRuntimeServer = async (rootDir?: string) => {
-  if (cachedServer) return cachedServer;
-  return (cachedServer = createServer({
+  if (cachedServerPromise) return cachedServerPromise;
+  return (cachedServerPromise = createServer({
     middleware: [clientRuntimeMiddleware(rootDir)],
   }));
 };
 
 export const cleanupClientRuntimeServer = async () => {
-  await (await cachedServer)?.close();
+  const cachedServer = await cachedServerPromise;
+  await cachedServer?.close();
 };

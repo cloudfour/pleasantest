@@ -5,8 +5,9 @@ import {
   createClientRuntimeServer,
 } from '../../src/module-server/client-runtime-server';
 import path from 'path';
+import { printColorsInErrorMessages } from '../../src/utils';
 
-const runWithUtils = async <Args extends any[], Return extends unknown>(
+const runWithUtils = async <Args extends any[], Return>(
   fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,
 ): Promise<(...args: Args) => Promise<Return>> => {
   const { port } = await createClientRuntimeServer(
@@ -23,7 +24,7 @@ const runWithUtils = async <Args extends any[], Return extends unknown>(
         const msgWithStringEls = msgWithLiveEls
           .map(el => {
             if (el instanceof Element || el instanceof Document)
-              return utils.printElement(el)
+              return utils.printElement(el, ${printColorsInErrorMessages})
             return el
           })
           .join('')

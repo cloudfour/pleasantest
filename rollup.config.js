@@ -1,7 +1,7 @@
-import jestDomConfig from './src/jest-dom/rollup.config';
-import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config';
-import userUtilsConfig from './src/user-util/rollup.config';
-import accessibilityConfig from './src/accessibility/rollup.config';
+import jestDomConfig from './src/jest-dom/rollup.config.js';
+import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config.js';
+import userUtilsConfig from './src/user-util/rollup.config.js';
+import accessibilityConfig from './src/accessibility/rollup.config.js';
 
 import dts from 'rollup-plugin-dts';
 import babel from '@rollup/plugin-babel';

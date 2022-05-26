@@ -1,23 +1,46 @@
-import type { queries, BoundFunctions } from '@testing-library/dom';
-import { jsHandleToArray, removeFuncFromStackTrace } from './utils';
-import type { JSHandle } from 'puppeteer';
+import type { queries } from '@testing-library/dom';
+import {
+  jsHandleToArray,
+  printColorsInErrorMessages,
+  removeFuncFromStackTrace,
+} from './utils';
+import type { ElementHandle, JSHandle, Page } from 'puppeteer';
 import { createClientRuntimeServer } from './module-server/client-runtime-server';
 import type { AsyncHookTracker } from './async-hooks';
 
 type ElementToElementHandle<Input> = Input extends Element
-  ? import('puppeteer').ElementHandle
-  : Input extends Element[]
-  ? import('puppeteer').ElementHandle[]
+  ? ElementHandle<Input>
+  : Input extends (Element | ElementHandle)[]
+  ? { [K in keyof Input]: ElementToElementHandle<Input[K]> }
   : Input;
 
 type Promisify<Input> = Input extends Promise<any> ? Input : Promise<Input>;
-
-type UpdateReturnType<Fn> = Fn extends (...args: infer Args) => infer ReturnType
-  ? (...args: Args) => Promisify<ElementToElementHandle<ReturnType>>
+type ValueOf<Input> = Input extends any[] ? Input[number] : Input[keyof Input];
+type UnArray<Input> = Input extends any[] ? Input[number] : Input;
+type UnPromise<Input> = Input extends Promise<infer Inner> ? Inner : Input;
+/**
+ * Changes type signature of an original testing library query function by:
+ * - Removing the `container` parameter
+ * - Returning a promise, always
+ * - Returning ElementHandles instead of Elements
+ */
+type ChangeDTLFn<DTLFn extends ValueOf<typeof queries>> = DTLFn extends (
+  container: HTMLElement,
+  ...args: infer Args
+) => infer DTLReturn
+  ? <CustomizedReturn extends UnArray<UnPromise<DTLReturn>>>(
+      ...args: Args
+    ) => Promisify<
+      ElementToElementHandle<
+        UnPromise<DTLReturn> extends any[]
+          ? CustomizedReturn[]
+          : CustomizedReturn
+      >
+    >
   : never;
 
-type AsyncDTLQueries = {
-  [K in keyof typeof queries]: UpdateReturnType<typeof queries[K]>;
+export type BoundQueries = {
+  [K in keyof typeof queries]: ChangeDTLFn<typeof queries[K]>;
 };
 
 const queryNames = [
@@ -77,8 +100,6 @@ interface DTLError {
   messageWithElementsStringified: string;
 }
 
-export type BoundQueries = BoundFunctions<AsyncDTLQueries>;
-
 export const getQueriesForElement = (
   page: import('puppeteer').Page,
   asyncHookTracker: AsyncHookTracker,
@@ -129,7 +150,7 @@ export const getQueriesForElement = (
                     const messageWithElementsStringified = messageWithElementsRevived
                       .map(el => {
                         if (el instanceof Element || el instanceof Document)
-                          return printElement(el)
+                          return printElement(el, ${printColorsInErrorMessages})
                         return el
                       })
                       .join('')
@@ -157,7 +178,7 @@ export const getQueriesForElement = (
           // @ts-expect-error messageForBrowser is a custom property that we add to Errors
           error.messageForBrowser = messageWithElementsRevived;
 
-          throw removeFuncFromStackTrace(error, query);
+          throw removeFuncFromStackTrace(error, queries[queryName]);
         }
 
         // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
@@ -182,11 +203,108 @@ export const getQueriesForElement = (
 
       return [
         queryName,
-        (...args: any[]) =>
-          asyncHookTracker.addHook(() => query(...args), queries[queryName]),
+        async (...args: any[]): Promise<any> =>
+          // await is needed for correct stack trace
+          // eslint-disable-next-line no-return-await
+          await asyncHookTracker.addHook(
+            () => query(...args),
+            queries[queryName],
+          ),
       ];
     }),
   );
 
   return queries;
 };
+
+let waitForCounter = 0;
+
+export interface WaitForOptions {
+  /**
+   * The element watched by the MutationObserver which,
+   * when it or its descendants change,
+   * causes the callback to run again (regardless of the interval).
+   * Default: `document.documentElement` (root element)
+   */
+  container?: ElementHandle;
+  /**
+   * The amount of time (milliseconds) that will pass before waitFor "gives up" and throws whatever the callback threw.
+   * Default: 1000ms
+   */
+  timeout?: number;
+  /**
+   * The maximum amount of time (milliseconds) that will pass between each run of the callback.
+   * If the MutationObserver notices a DOM change before this interval triggers,
+   * the callback will run again immediately.
+   * Default: 50ms
+   */
+  interval?: number;
+  /** Manipulate the error thrown when the timeout triggers. */
+  onTimeout?: (error: Error) => Error;
+  /** Options to pass to initialize the MutationObserver. */
+  mutationObserverOptions?: MutationObserverInit;
+}
+
+interface WaitFor {
+  <T>(
+    page: Page,
+    asyncHookTracker: AsyncHookTracker,
+    cb: () => T | Promise<T>,
+    { onTimeout, container, ...opts }: WaitForOptions,
+    wrappedFunction: (...args: any) => any,
+  ): Promise<T>;
+}
+
+export const waitFor: WaitFor = async (
+  page,
+  asyncHookTracker,
+  cb,
+  { onTimeout, container, ...opts },
+  wrappedFunction,
+) =>
+  asyncHookTracker.addHook(async () => {
+    const { port } = await createClientRuntimeServer();
+
+    waitForCounter++;
+    // Functions exposed via page.exposeFunction can't be removed,
+    // So we need a unique name for each variable
+    const browserFuncName = `pleasantest_waitFor_${waitForCounter}`;
+
+    await page.exposeFunction(browserFuncName, cb);
+
+    const evalResult = await page.evaluateHandle(
+      // Using new Function to avoid babel transpiling the import
+      // @ts-expect-error pptr's types don't like new Function
+      new Function(
+        'opts',
+        'container',
+        `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
+        .then(async ({ waitFor }) => {
+          try {
+            const result = await waitFor(${browserFuncName}, { ...opts, container })
+            return { success: true, result }
+          } catch (error) {
+            if (/timed out in waitFor/i.test(error.message)) {
+              // Leave out stack trace so the stack trace is given from Node
+              return { success: false, result: { message: error.message } }
+            }
+            return { success: false, result: error }
+          }
+        })`,
+      ),
+      opts,
+      // Container has to be passed separately because puppeteer won't unwrap nested JSHandles
+      container,
+    );
+    const wasSuccessful = await evalResult.evaluate((r) => r.success);
+    const result = await evalResult.evaluate((r) =>
+      r.success
+        ? r.result
+        : { message: r.result.message, stack: r.result.stack },
+    );
+    if (wasSuccessful) return result;
+    const err = new Error(result.message);
+    if (result.stack) err.stack = result.stack;
+    else removeFuncFromStackTrace(err, asyncHookTracker.addHook);
+    throw onTimeout ? onTimeout(err) : err;
+  }, wrappedFunction);

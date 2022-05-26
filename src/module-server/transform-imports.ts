@@ -32,10 +32,9 @@
 
 import { parse } from 'es-module-lexer';
 import { ErrorWithLocation } from './error-with-location';
-import type {
-  DecodedSourceMap,
-  RawSourceMap,
-} from '@ampproject/remapping/dist/types/types';
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
+import { extname } from 'path';
+import { jsExts } from './extensions-and-detection';
 
 type MaybePromise<T> = Promise<T> | T;
 type ResolveFn = (
@@ -61,14 +60,19 @@ export const transformImports = async (
   let imports;
   try {
     // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
-    imports = (await parse(code, id))[0];
+    const parsed = await parse(code, id);
+    imports = parsed[0];
   } catch (error) {
     if (!('idx' in error)) throw error;
     const linesUntilError = code.slice(0, error.idx).split('\n');
     const line = linesUntilError.length;
     const column = linesUntilError[linesUntilError.length - 1].length;
+    const ext = extname(id);
+    const suggestion = jsExts.test(ext)
+      ? ''
+      : ` Did you mean to add a transform plugin to support ${ext} files?`;
     const modifiedError = new ErrorWithLocation({
-      message: `Error parsing module with es-module-lexer`,
+      message: `Error parsing module with es-module-lexer.${suggestion}`,
       line,
       column,
       filename: id,

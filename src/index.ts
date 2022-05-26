@@ -1,7 +1,10 @@
 import * as puppeteer from 'puppeteer';
 import { relative, join, isAbsolute, dirname } from 'path';
-import type { BoundQueries } from './pptr-testing-library';
-import { getQueriesForElement } from './pptr-testing-library';
+import type { BoundQueries, WaitForOptions } from './pptr-testing-library';
+import {
+  getQueriesForElement,
+  waitFor as innerWaitFor,
+} from './pptr-testing-library';
 import { connectToBrowser } from './connect-to-browser';
 import { parseStackTrace } from 'errorstacks';
 import './extend-expect';
@@ -9,7 +12,7 @@ import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
 import { ansiColorsLog } from './ansi-colors-browser';
 import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
-import type { PleasantestUser } from './user';
+import type { PleasantestUser, UserOpts } from './user';
 import { pleasantestUser } from './user';
 import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 import type { ModuleServerOpts } from './module-server';
@@ -24,7 +27,6 @@ import { createAsyncHookTracker } from './async-hooks';
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
 const ansiRegex = _ansiRegex({ onlyFirst: true });
-export type { PleasantestUser };
 
 export interface PleasantestUtils {
   /**
@@ -67,12 +69,14 @@ export interface PleasantestContext {
   within(element: puppeteer.ElementHandle | null): BoundQueries;
   page: puppeteer.Page;
   user: PleasantestUser;
+  waitFor: <T>(cb: () => T | Promise<T>, opts?: WaitForOptions) => Promise<T>;
 }
 
 export interface WithBrowserOpts {
   headless?: boolean;
   device?: puppeteer.devices.Device;
   moduleServer?: ModuleServerOpts;
+  user?: UserOpts;
 }
 
 interface TestFn {
@@ -228,6 +232,7 @@ const createTab = async ({
     headless = defaultOptions.headless ?? true,
     device = defaultOptions.device,
     moduleServer: moduleServerOpts = {},
+    user: userOpts = {},
   },
 }: {
   testPath: string;
@@ -247,6 +252,8 @@ const createTab = async ({
     port,
     close: closeServer,
   } = await createModuleServer({
+    ...defaultOptions.moduleServer,
+    ...moduleServerOpts,
     ...defaultOptions.moduleServer,
     ...moduleServerOpts,
   });
@@ -467,12 +474,21 @@ const createTab = async ({
     return getQueriesForElement(page, asyncHookTracker, element);
   };
 
+  const waitFor: PleasantestContext['waitFor'] = (
+    cb,
+    opts: WaitForOptions = {},
+  ) => innerWaitFor(page, asyncHookTracker, cb, opts, waitFor);
+
   return {
     screen,
     utils,
     page,
     within,
-    user: await pleasantestUser(page, asyncHookTracker),
+    waitFor,
+    user: await pleasantestUser(page, asyncHookTracker, {
+      ...defaultOptions.user,
+      ...userOpts,
+    }),
     asyncHookTracker,
     cleanupServer: () => closeServer(),
   };
@@ -490,4 +506,10 @@ afterAll(async () => {
   await cleanupClientRuntimeServer();
 });
 
-export { getAccessibilityTree as experimentalGetAccessibilityTree } from './accessibility';
+export {
+  getAccessibilityTree,
+  accessibilityTreeSnapshotSerializer,
+} from './accessibility';
+
+export { type PleasantestUser } from './user';
+export { type WaitForOptions } from './pptr-testing-library';

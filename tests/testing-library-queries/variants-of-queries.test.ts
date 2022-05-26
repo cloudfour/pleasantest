@@ -1,4 +1,6 @@
+import type { ElementHandle } from 'pleasantest';
 import { withBrowser } from 'pleasantest';
+import { printErrorFrames } from '../test-utils';
 
 const singleElementMarkup = `
   <h1>Hello</h1>
@@ -9,12 +11,37 @@ const multipleElementMarkup = `
   <h1>Hello</h1>
 `;
 
+// @ts-expect-error T1 is intentionally unused, assertType is only used at type-time
+const assertType = <T1 extends true>() => {};
+
+// Checks if two types are equal (A extends B and B extends A)
+// Contains special case for ElementHandle's,
+// where ElementHandle<A> extends ElementHandle<B> even if A does not extend A
+type Equal<A, B> = A extends (infer T1)[]
+  ? B extends (infer T2)[]
+    ? Equal<T1, T2>
+    : false
+  : A extends ElementHandle<infer T1>
+  ? B extends ElementHandle<infer T2>
+    ? Equal<T1, T2>
+    : false
+  : B extends A
+  ? A extends B
+    ? true
+    : false
+  : false;
+
 test(
   'findBy',
   withBrowser(async ({ screen, utils }) => {
     // This should work because findByText waits for up to 1s to see the element
     setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
-    await screen.findByText(/Hello/);
+
+    const t1 = await screen.findByText(/Hello/);
+    assertType<Equal<ElementHandle<HTMLElement>, typeof t1>>();
+
+    const t2 = await screen.findByText<HTMLInputElement>(/Hello/);
+    assertType<Equal<ElementHandle<HTMLInputElement>, typeof t2>>();
 
     await expect(screen.findByText(/Hellooooo/, {}, { timeout: 5 })).rejects
       .toThrowErrorMatchingInlineSnapshot(`
@@ -40,6 +67,43 @@ test(
           `);
   }),
   10_000,
+);
+
+test(
+  'getBy',
+  withBrowser(async ({ screen, utils }) => {
+    await utils.injectHTML('<h1>Hi</h1>');
+    const error = await screen.getByRole('banner').catch((error) => error);
+    expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
+      "Error: Unable to find an accessible element with the role \\"banner\\"
+
+      Here are the accessible roles:
+
+        document:
+
+        Name \\"\\":
+        <body>
+        <h1>Hi</h1>
+      </body>
+
+        --------------------------------------------------
+        heading:
+
+        Name \\"Hi\\":
+        <h1>Hi</h1>
+
+        --------------------------------------------------
+
+      Within: #document
+      -------------------------------------------------------
+      tests/testing-library-queries/variants-of-queries.test.ts
+
+          const error = await screen.getByRole('banner').catch((error) => error);
+                        ^
+      -------------------------------------------------------
+      dist/cjs/index.cjs"
+    `);
+  }),
 );
 
 test(
@@ -105,6 +169,14 @@ test(
     // This should work because findAllByText waits for up to 1s to find any matching elements
     setTimeout(() => utils.injectHTML(singleElementMarkup), 5);
     expect(await screen.findAllByText(/Hello/)).toHaveLength(1);
+
+    const t1 = await screen.findAllByText(/Hello/);
+    assertType<Equal<ElementHandle<HTMLElement>[], typeof t1>>();
+
+    const t2 = await screen.findAllByText<HTMLHeadingElement>(/Hello/);
+    assertType<Equal<ElementHandle<HTMLHeadingElement>[], typeof t2>>();
+
+    assertType<Equal<typeof t1, ElementHandle<HTMLElement>[]>>();
 
     await expect(screen.findAllByText(/Hellooooo/, {}, { timeout: 5 })).rejects
       .toThrowErrorMatchingInlineSnapshot(`

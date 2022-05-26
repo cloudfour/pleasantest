@@ -26,6 +26,7 @@
     "jsxFactory": "h"
   },
   "include": [
+    "*.ts",
     "src/**/*.ts",
     "tests/**/*.ts",
     "tests/**/*.tsx",

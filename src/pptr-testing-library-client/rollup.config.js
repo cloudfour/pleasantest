@@ -2,8 +2,8 @@ import babel from '@rollup/plugin-babel';
 import * as path from 'path';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
-import { rollupPluginAriaQuery } from '../rollup-plugin-aria-query';
-import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api';
+import { rollupPluginAriaQuery } from '../rollup-plugin-aria-query.js';
+import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
@@ -60,7 +60,17 @@ const config = {
     babel({ babelHelpers: 'bundled', extensions }),
     nodeResolve({ extensions }),
     removeCloneNodePlugin,
-    terser({ ecma: 2019 }),
+    terser({
+      ecma: 2019,
+      module: true,
+      compress: {
+        passes: 3,
+        global_defs: {
+          jest: false,
+          'globalVar.process': undefined,
+        },
+      },
+    }),
   ],
   external: [],
   treeshake: { moduleSideEffects: 'no-external' },
