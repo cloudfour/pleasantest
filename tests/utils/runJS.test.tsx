@@ -168,6 +168,26 @@ test(
               thisVariableDoesntExist\`,
               ^"
       `);
+
+    // Edge case: Escaped backslashes (because it is in a code string)
+    // get converted into single backslashes,
+    // and the source map must still work
+    const error3 = await utils
+      .runJS(
+        `
+        // This is code with extra backslashes \\\\
+        throw new Error('blah')`,
+      )
+      .catch((error) => error);
+
+    expect(await printErrorFrames(error3)).toMatchInlineSnapshot(`
+      "Error: blah
+      -------------------------------------------------------
+      tests/utils/runJS.test.tsx
+
+              throw new Error('blah')\`,
+                    ^"
+    `);
   }),
 );
 

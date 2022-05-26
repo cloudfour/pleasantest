@@ -97,10 +97,11 @@ export const jsMiddleware = async ({
       const resolvedId = typeof resolved === 'object' ? resolved?.id : resolved;
       let code: string | false | undefined;
       let map: DecodedSourceMap | RawSourceMap | string | undefined;
+      // Decode the inline-code parameter (for runJS)
       if (typeof req.query['inline-code'] === 'string') {
         code = req.query['inline-code'];
         const fileSrc = await fs.readFile(file, 'utf8');
-        const inlineStartIdx = fileSrc.indexOf(code);
+        const inlineStartIdx = fileSrc.indexOf(code.replace(/\\/g, '\\\\'));
         if (inlineStartIdx !== -1) {
           const str = new MagicString(fileSrc);
           str.remove(0, inlineStartIdx);

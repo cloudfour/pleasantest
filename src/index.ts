@@ -11,7 +11,7 @@ import _ansiRegex from 'ansi-regex';
 import { fileURLToPath } from 'url';
 import type { PleasantestUser } from './user';
 import { pleasantestUser } from './user';
-import { assertElementHandle } from './utils';
+import { assertElementHandle, removeFuncFromStackTrace } from './utils';
 import type { ModuleServerOpts } from './module-server';
 import { createModuleServer } from './module-server';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
@@ -45,7 +45,7 @@ export interface PleasantestUtils {
   /** Set the contents of document.body */
   injectHTML(html: string): Promise<void>;
 
-  /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. */
+  /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. TODO document postcss modules usage */
   loadCSS(cssPath: string): Promise<CSSModuleExport | undefined>;
   /** Load a JS (or TS, JSX) file into the browser. Pass a path that will be resolved from your test file. */
   loadJS(jsPath: string): Promise<void>;
@@ -332,7 +332,7 @@ const createTab = async ({
       // This uses the testPath as the url so that if there are relative imports
       // in the inline code, the relative imports are resolved relative to the test file
       const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
-      const res = await page.evaluate(
+      const result = await page.evaluate(
         new Function(
           '...args',
           `return import(${JSON.stringify(url)})
@@ -361,7 +361,7 @@ const createTab = async ({
       // It only throws the first one but that is probably OK
       if (errorsFromBuild) throw errorsFromBuild[0];
 
-      await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
+      await sourceMapErrorFromBrowser(result, requestCache, port, runJS);
     }, runJS);
 
   const injectHTML: PleasantestUtils['injectHTML'] = (html) =>
@@ -378,6 +378,7 @@ const createTab = async ({
       () =>
         page.evaluate((css) => {
           const styleTag = document.createElement('style');
+          // TODO: preprocess? rewrite imports?
           styleTag.innerHTML = css;
           document.head.append(styleTag);
         }, css),
@@ -386,15 +387,44 @@ const createTab = async ({
 
   const loadCSS: PleasantestUtils['loadCSS'] = (cssPath) =>
     asyncHookTracker.addHook(async () => {
+      const buildStatus = createBuildStatusTracker();
       const fullPath = isAbsolute(cssPath)
         ? relative(process.cwd(), cssPath)
         : join(dirname(testPath), cssPath);
-      const result = await page.evaluate(
+      const result: any = await page.evaluate(
         `import(${JSON.stringify(
-          `http://localhost:${port}/${fullPath}?import`,
-        )})`,
+          `http://localhost:${port}/${fullPath}?import&build-id=${buildStatus.buildId}`,
+        )})
+          .then(result => ({ success: true, result }))
+          .catch(e => ({
+            success: false,
+            result: e instanceof Error ? { message: e.message, stack: e.stack } : e
+          }))`,
       );
-      return result as CSSModuleExport;
+
+      const errorsFromBuild = buildStatus.complete();
+      // It only throws the first one but that is probably OK
+      if (errorsFromBuild && errorsFromBuild.length > 0) {
+        // If it already has a distinct stack trace, use that
+        if (errorsFromBuild[0].message !== errorsFromBuild[0].stack)
+          throw errorsFromBuild[0];
+        // Otherwise, add a stack trace originating from the loadCSS call
+        const error = new Error(errorsFromBuild[0].message);
+        throw removeFuncFromStackTrace(error, asyncHookTracker.addHook);
+      }
+
+      if (result.success) {
+        return result.result as CSSModuleExport;
+      }
+      // await sourceMapErrorFromBrowser(
+      //   result.result,
+      //   requestCache,
+      //   port,
+      //   loadJS,
+      // );
+      const error = new Error(result.result.message);
+      error.stack = result.result.stack;
+      throw error;
     }, loadCSS);
 
   const loadJS: PleasantestUtils['loadJS'] = (jsPath) =>
@@ -404,7 +434,7 @@ const createTab = async ({
         : jsPath;
       const buildStatus = createBuildStatusTracker();
       const url = `http://localhost:${port}/${fullPath}?build-id=${buildStatus.buildId}`;
-      const res = await page.evaluate(
+      const result = await page.evaluate(
         `import(${JSON.stringify(url)})
           .then(mod => {})
           .catch(e => e instanceof Error
@@ -416,7 +446,7 @@ const createTab = async ({
       // It only throws the first one but that is probably OK
       if (errorsFromBuild) throw errorsFromBuild[0];
 
-      await sourceMapErrorFromBrowser(res, requestCache, port, loadJS);
+      await sourceMapErrorFromBrowser(result, requestCache, port, loadJS);
     }, loadJS);
 
   const utils: PleasantestUtils = {

@@ -37,6 +37,7 @@
   - Source map handling added to transform hook
   - Error handling (with code frame, using source maps) added to transform hook
   - Stubbed out options hook was added
+  - this.error context function was adjusted to change its stack trace when no source location is passed
   */
 
 import { resolve, dirname } from 'path';
@@ -53,6 +54,7 @@ import type {
   RawSourceMap,
 } from '@ampproject/remapping/dist/types/types';
 import { ErrorWithLocation } from './error-with-location';
+import { removeFuncFromStackTrace } from '../utils';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */
 const popIndex = (array: any[], index: number) => {
@@ -143,11 +145,18 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       console.log(`[${plugin?.name}]`, ...args);
     },
     error(error, pos) {
-      if (pos === undefined) {
-        if (typeof error === 'string') throw new Error(error);
+      if (
+        pos === undefined ||
+        (typeof pos === 'object' &&
+          // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
+          pos.line === undefined)
+      ) {
+        if (typeof error === 'string')
+          throw removeFuncFromStackTrace(new Error(error), this.error);
         throw error;
       }
 
+      // The filename will get attached by whichever hook was called
       throw new ErrorWithLocation({
         message: `[${plugin?.name}] ${error}`,
         line: typeof pos === 'number' ? pos : pos.line,

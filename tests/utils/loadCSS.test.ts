@@ -1,6 +1,6 @@
-import { assert } from 'console';
 import * as path from 'path';
 import { withBrowser } from 'pleasantest';
+import { formatErrorWithCodeFrame } from '../test-utils';
 
 test(
   'CSS file with relative path',
@@ -50,7 +50,7 @@ test(
   }),
 );
 
-test.only(
+test(
   'Allows using CSS Modules through postcss',
   // TODO: make it an option or file extension, not default
   withBrowser(async ({ utils }) => {
@@ -70,20 +70,26 @@ test.only(
   }),
 );
 
-test.only(
+test(
   'Allows using CSS Modules through postcss imported from JS file',
   withBrowser(async ({ utils }) => {
     await utils.runJS(`
-      // import * as cssModule from './external-css-modules.css'
-      // console.log(cssModule)
-      // console.oog('hi')
-      throw 1
+      const assert = (condition) => {
+        if (!condition) throw new Error("Assertion failed")
+      }
+    
+      import * as importResult from './external-css-modules.css'
+
+      assert(importResult.foo === importResult.default.foo)
+      assert(typeof importResult.foo === 'string')
+      assert(importResult.foo.length > 5)
+      assert(/^_foo_[\\d_a-z]{0,8}$/.test(importResult.foo))
     `);
   }),
 );
 
 test(
-  'sass file',
+  'sass/scss processing',
   withBrowser(async ({ utils, screen }) => {
     await utils.injectHTML(`
       <h1>I'm a heading</h1>
@@ -95,10 +101,51 @@ test(
     await utils.loadCSS('./external.sass');
 
     await expect(heading).not.toBeVisible();
+
+    const error1 = utils.loadCSS('./external-with-syntax-error.scss');
+    await expect(formatErrorWithCodeFrame(error1)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+        "[pleasantest-sass] [css-plugin] There is no module with the namespace \\"variables\\".
+
+        tests/utils/external-with-syntax-error.scss:2:12
+
+          # | h1 {
+        > # |   display: variables.$none
+            |            ^
+          # | }
+          # | 
+          # | 
+        "
+      `);
+    const error2 = utils.runJS(`
+      import './external-with-syntax-error.scss'
+    `);
+    await expect(formatErrorWithCodeFrame(error2)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+        "[pleasantest-sass] [css-plugin] There is no module with the namespace \\"variables\\".
+
+        tests/utils/external-with-syntax-error.scss:2:12
+
+          # | h1 {
+        > # |   display: variables.$none
+            |            ^
+          # | }
+          # | 
+          # | 
+        "
+      `);
   }),
 );
 
-test.todo('throws useful error message when imported file has syntax error');
+test.only(
+  'throws useful error message when imported file has syntax error',
+  withBrowser.headed(async ({ utils }) => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // await utils.loadCSS('./external-with-syntax-error.css');
+    await utils.loadCSS('./external-importing-syntax-error.css');
+    throw 1;
+  }),
+);
 
 test(
   'imported stylesheet has reference to another stylesheet',

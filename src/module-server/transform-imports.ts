@@ -85,6 +85,11 @@ export const transformImports = async (
           sourceLocation.column === null ? undefined : sourceLocation.column;
       }
       modifiedError.filename = sourceLocation.source || id;
+    } else {
+      // If there is no source map,
+      // make the error point to the version of the code the error came from,
+      // not the verison on disk
+      modifiedError.code = code;
     }
     throw modifiedError;
   }
