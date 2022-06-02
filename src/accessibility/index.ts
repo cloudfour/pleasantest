@@ -1,8 +1,18 @@
-import type { ElementHandle, Page } from 'puppeteer';
+import type { ElementHandle, Page, Serializable } from 'puppeteer';
 import { createClientRuntimeServer } from '../module-server/client-runtime-server';
-import { assertElementHandle } from '../utils';
+import {
+  assertElementHandle,
+  jsHandleToArray,
+  printColorsInErrorMessages,
+} from '../utils';
 import type { AsyncHookTracker } from '../async-hooks';
 import { activeAsyncHookTrackers } from '../async-hooks';
+import type axe from 'axe-core';
+
+/**
+ * External dependencies
+ */
+import AxePuppeteer from '@axe-core/puppeteer';
 
 const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 
@@ -92,3 +102,174 @@ export const accessibilityTreeSnapshotSerializer: import('pretty-format').NewPlu
 // This tells Jest how to print the accessibility tree (without adding extra quotes)
 // https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
 expect.addSnapshotSerializer(accessibilityTreeSnapshotSerializer);
+
+// Based on https://github.com/WordPress/gutenberg/blob/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe/src/index.js
+
+/** Formats the list of violations object returned by Axe analysis. */
+async function formatViolations(violations: axe.Result[], page: Page) {
+  const { port } = await createClientRuntimeServer();
+  const formattedHandle = await page.evaluateHandle((violations) => {
+    const output: (string | Element)[] = [];
+
+    // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
+    const findElement = (node: axe.NodeResult) =>
+      [...document.querySelectorAll(node.target as unknown as string)].find(
+        (el) => el.outerHTML === node.html,
+      );
+
+    for (const { help, helpUrl, id, nodes } of violations) {
+      // The dollar signs are used to indicate which part should be bolded/red
+      // We can't directly call the color functions here since we haven't imported them
+      // And this function is toString'd into the browser.
+      output.push(`
+$$$${help}$$$ (${id})
+${helpUrl}
+Affected Nodes:
+`);
+
+      for (const node of nodes) {
+        output.push('\n', findElement(node) || node.html, '\n');
+        if (node.any.length > 0) {
+          output.push(
+            `Fix ${
+              node.any.length > 1 ? 'any of the following' : 'the following'
+            }:\n`,
+          );
+          for (const item of node.any) output.push(`  • ${item.message}\n`);
+        }
+
+        if (node.all.length > 0 || node.none.length > 0) {
+          output.push(
+            `Fix ${
+              node.all.length > 1 ? 'all of the following' : 'the following'
+            }:\n`,
+          );
+          for (const item of [...node.all, ...node.none])
+            output.push(`  • ${item.message}.\n`);
+        }
+      }
+    }
+    return output;
+  }, violations as unknown as Serializable);
+
+  const outputHandle = await page.evaluateHandle(
+    // Using new Function to avoid babel transpiling the import
+    // @ts-expect-error pptr's types don't like new Function
+    new Function(
+      'formattedArr',
+      `return import("http://localhost:${port}/@pleasantest/accessibility")
+        .then(({ printElement, colors }) => {
+          let messageWithElementsStringified = '';
+          const messageWithElementsRevived = [];
+          for (let chunk of formattedArr) {
+            if (typeof chunk === 'string') {
+              chunk = chunk.replace(
+                /\\$\\$\\$(.*?)\\$\\$\\$/g,
+                (_, ruleText) => colors.red(colors.bold(ruleText))
+              )
+            }
+            messageWithElementsRevived.push(chunk);
+            if (typeof chunk === 'string') {
+              messageWithElementsStringified += chunk;
+            } else {
+              messageWithElementsStringified += printElement(chunk, ${printColorsInErrorMessages});
+            }
+          }
+
+          return { messageWithElementsStringified, messageWithElementsRevived };
+        })`,
+    ),
+    formattedHandle,
+  );
+
+  const { messageWithElementsRevived, messageWithElementsStringified } =
+    Object.fromEntries(await outputHandle.getProperties());
+
+  return {
+    messageWithElementsStringified:
+      (await messageWithElementsStringified.jsonValue()) as string,
+    messageWithElementsRevived: await jsHandleToArray(
+      messageWithElementsRevived,
+    ),
+  };
+}
+
+interface ToPassAxeTestsOpts {
+  /** CSS selector(s) to add to the list of elements to include in analysis. */
+  include?: string | string[];
+  /** CSS selector(s) to add to the list of elements to exclude from analysis. */
+  exclude?: string | string[];
+  /** The list of Axe rules to skip from verification. */
+  disabledRules?: string | string[];
+  /** A flexible way to configure how Axe run operates, see https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#options-parameter. */
+  options?: axe.RunOptions;
+  /** Axe configuration object, see https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#api-name-axeconfigure. */
+  config?: axe.Spec;
+}
+
+/**
+ * Defines async matcher to check whether a given Puppeteer's page instance passes Axe accessibility tests.
+ */
+async function toPassAxeTests(
+  this: jest.MatcherUtils,
+  page: Page,
+  { include, exclude, disabledRules, options, config }: ToPassAxeTestsOpts = {},
+): Promise<jest.CustomMatcherResult> {
+  const axe = new AxePuppeteer(page);
+
+  if (include) axe.include(include);
+  if (exclude) axe.exclude(exclude);
+  if (options) axe.options(options);
+  if (disabledRules) axe.disableRules(disabledRules);
+  if (config) axe.configure(config);
+
+  const { violations } = await axe.analyze();
+  const formattedViolations = await formatViolations(violations, page);
+
+  const pass = violations.length === 0;
+  const foundViolationsMessage = `${this.utils.matcherHint(
+    '.toPassAxeTests',
+    'page',
+    '',
+  )}
+Expected page to pass Axe accessibility tests.
+Violations found:
+`;
+
+  const expectedViolationsMessage = `${this.utils.matcherHint(
+    '.not.toPassAxeTests',
+    'page',
+    '',
+  )}
+
+Expected page to contain accessibility check violations.
+No violations found.`;
+  const message = pass
+    ? () => expectedViolationsMessage
+    : () =>
+        foundViolationsMessage +
+        formattedViolations.messageWithElementsStringified;
+
+  const output = { message, pass };
+
+  if (!pass) {
+    // @ts-expect-error This is a custom property we are using to customize the message inside the browser
+    output.messageForBrowser = [
+      foundViolationsMessage,
+      ...formattedViolations.messageWithElementsRevived,
+    ];
+  }
+
+  return output;
+}
+
+expect.extend({ toPassAxeTests });
+
+declare global {
+  // eslint-disable-next-line @cloudfour/typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toPassAxeTests(): Promise<R>;
+    }
+  }
+}

@@ -19,6 +19,7 @@ const external = [
   'esbuild',
   /postcss/,
   /mime/,
+  '@axe-core/puppeteer',
 ];
 
 /** @type {import('rollup').RollupOptions} */
