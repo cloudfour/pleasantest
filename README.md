@@ -854,9 +854,9 @@ test(
 
 - `include`: `string | string[]`: CSS selector(s) to add to the list of elements to include in analysis.
 - `exclude`: `string | string[]`: CSS selector(s) to add to the list of elements to exclude from analysis.
-- `disabledRules`: `string | string[]`: The list of Axe rules to skip from verification.
-- `options`: `axe.RunOptions`: A flexible way to [configure how Axe run operates](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#options-parameter).
-- `config`: `axe.Spec`: [Axe configuration object](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#api-name-axeconfigure).
+- `disabledRules`: `string | string[]`: The list of [Axe rules](https://github.com/dequelabs/axe-core/tree/v4.4.2/lib/rules) to skip from verification.
+- `options`: [`axe.RunOptions`](https://github.com/dequelabs/axe-core/blob/v4.4.2/axe.d.ts#L89): A flexible way to [configure how Axe run operates](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#options-parameter).
+- `config`: [`axe.Spec`](https://github.com/dequelabs/axe-core/blob/v4.4.2/axe.d.ts#L195): [Axe configuration object](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#api-name-axeconfigure).
 
 ## Puppeteer Tips
 
