@@ -35,7 +35,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
   - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
-  - [`toPassAxeTests`](#topassaxetests--options-topassaxetestsopts)
+  - [`toPassAxeTests`](#expectpagetopassaxetestsopts-topassaxetestsopts)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
