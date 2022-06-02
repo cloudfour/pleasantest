@@ -4,15 +4,11 @@ import {
   assertElementHandle,
   jsHandleToArray,
   printColorsInErrorMessages,
+  removeFuncFromStackTrace,
 } from '../utils';
 import type { AsyncHookTracker } from '../async-hooks';
 import { activeAsyncHookTrackers } from '../async-hooks';
 import type axe from 'axe-core';
-
-/**
- * External dependencies
- */
-import AxePuppeteer from '@axe-core/puppeteer';
 
 const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 
@@ -215,6 +211,18 @@ async function toPassAxeTests(
   page: Page,
   { include, exclude, disabledRules, options, config }: ToPassAxeTestsOpts = {},
 ): Promise<jest.CustomMatcherResult> {
+  let AxePuppeteer: typeof import('@axe-core/puppeteer').default;
+  try {
+    const axePuppeteerModule = await import('@axe-core/puppeteer');
+    AxePuppeteer = axePuppeteerModule.default;
+  } catch {
+    throw removeFuncFromStackTrace(
+      new Error(
+        'Install @axe-core/puppeteer and axe-core to use the toPassAxeTests matcher',
+      ),
+      toPassAxeTests,
+    );
+  }
   const axe = new AxePuppeteer(page);
 
   if (include) axe.include(include);

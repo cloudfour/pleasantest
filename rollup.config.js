@@ -56,7 +56,7 @@ const mainConfig = {
 const typesConfig = {
   input: 'src/index.ts',
   output: [{ file: 'dist/index.d.ts', format: 'es' }],
-  external: [...external, 'polka'],
+  external: [...external, 'polka', 'axe-core'],
   plugins: [dts({ respectExternal: true })],
 };
 
