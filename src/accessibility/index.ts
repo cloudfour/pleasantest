@@ -269,7 +269,7 @@ declare global {
   // eslint-disable-next-line @cloudfour/typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toPassAxeTests(): Promise<R>;
+      toPassAxeTests(opts?: ToPassAxeTestsOpts): Promise<R>;
     }
   }
 }

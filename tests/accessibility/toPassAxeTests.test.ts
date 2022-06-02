@@ -60,6 +60,14 @@ test(
         "
       `);
     await expect(page).not.toPassAxeTests();
+    await expect(page).toPassAxeTests({
+      disabledRules: [
+        'image-alt',
+        'landmark-one-main',
+        'page-has-heading-one',
+        'region',
+      ],
+    });
     await utils.injectHTML(`
       <main>
         <h1>An example page</h1>
