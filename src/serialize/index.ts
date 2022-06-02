@@ -151,9 +151,16 @@ export const printElement = (
         typeof el[attr.name as keyof Element] === 'boolean'
       )
         return highlight.attribute(attr.name);
+      const truncatedAttrValue =
+        // Special case: <path d="..." /> is unlikely to be useful so it is cut shorter
+        attr.value.length > 40 && attr.name === 'd' && tagName === 'path'
+          ? `${attr.value.slice(0, 30)}[...]`
+          : attr.value.length > 150
+          ? `${attr.value.slice(0, 150)}[...]`
+          : attr.value;
       return `${highlight.attribute(attr.name)}${highlight.equals(
         '=',
-      )}${highlight.string(`"${attr.value}"`)}`;
+      )}${highlight.string(`"${truncatedAttrValue}"`)}`;
     })
     .join(splitAttrs ? '\n  ' : ' ')}${
     selfClosing

@@ -110,9 +110,12 @@ async function formatViolations(violations: axe.Result[], page: Page) {
     // eslint-disable-next-line @cloudfour/unicorn/consistent-function-scoping
     const findElement = (node: axe.NodeResult) =>
       [...document.querySelectorAll(node.target as unknown as string)].find(
-        (el) => el.outerHTML === node.html,
+        (el) =>
+          el.outerHTML === node.html ||
+          // For long strings, axe-core returns only the opening tag
+          // https://github.com/dequelabs/axe-core/blob/v4.4.2/lib/core/utils/dq-element.js#L11
+          el.outerHTML.slice(0, el.outerHTML.indexOf('>') + 1) === node.html,
       );
-
     for (const { help, helpUrl, id, nodes } of violations) {
       // The dollar signs are used to indicate which part should be bolded/red
       // We can't directly call the color functions here since we haven't imported them
