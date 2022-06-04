@@ -21,7 +21,7 @@
     "@rollup/plugin-node-resolve": "13.3.0",
     "@testing-library/dom": "8.13.0",
     "@testing-library/jest-dom": "5.15.1",
-    "@types/jest": "27.5.1",
+    "@types/jest": "27.5.2",
     "@types/node": "12.20.52",
     "@types/polka": "0.5.4",
     "@types/puppeteer": "5.4.6",
