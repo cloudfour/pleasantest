@@ -1,5 +1,39 @@
 # pleasantest
 
+## 2.2.0
+
+### Minor Changes
+
+- [#494](https://github.com/cloudfour/pleasantest/pull/494) [`730300e`](https://github.com/cloudfour/pleasantest/commit/730300e354b90b250466b75484f5ea9167e552e6) Thanks [@calebeby](https://github.com/calebeby)! - New assertion: `expect(page).toPassAxeTests()`
+
+  This assertion is based on the [`jest-puppeteer-axe`](https://github.com/WordPress/gutenberg/tree/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe) package. (That package already works with Pleasantest, our new feature just formats error messages a little differently)
+
+  It allows you to pass a page to be checked with the [axe accessibility linter](https://github.com/dequelabs/axe-core).
+
+  ```js
+  test(
+    'Axe tests',
+    withBrowser(async ({ utils, page }) => {
+      await utils.injectHTML(`
+        <h1>Some html</h1>
+      `);
+
+      await expect(page).toPassAxeTests();
+    }),
+  );
+  ```
+
+* [#459](https://github.com/cloudfour/pleasantest/pull/459) [`d36f234`](https://github.com/cloudfour/pleasantest/commit/d36f234db3067ab039e7cb92c5220e52ba9c4de4) Thanks [@renovate](https://github.com/apps/renovate)! - Update dependency `@testing-library/dom` to `v8.13.0`.
+
+  This adds support to filtering `ByRole` queries by description:
+
+  ```ts
+  // Select by accessible role and description
+  await screen.getByRole('button', {
+    description: /^items in the trash will be/i,
+  });
+  ```
+
 ## 2.1.0
 
 ### Minor Changes
