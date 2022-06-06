@@ -37,7 +37,7 @@
   ],
   "prConcurrentLimit": 5,
   "branchConcurrentLimit": 15,
-  "stabilityDays": 3,
+  "stabilityDays": 4,
   "prCreation": "status-success",
   "dependencyDashboard": true
 }
