@@ -12,7 +12,7 @@ export * as colors from 'kolorist';
 export { printElement } from '../serialize';
 
 // We haver to tell kolorist to print the colors
-// beacuse by default it won't since we are in the browser
+// because by default it won't since we are in the browser
 // (the colored message gets sent to node to be printed)
 colors.options.enabled = true;
 colors.options.supportLevel = 1;
