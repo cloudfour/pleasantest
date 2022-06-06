@@ -35,6 +35,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
   - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
+  - [`toPassAxeTests`](#expectpagetopassaxetestsopts-topassaxetestsopts)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
 - [Limitations](#limitationsarchitectural-decisions)
@@ -829,6 +830,33 @@ The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you
 Disabling these options can be used to reduce the output or to exclude text that is intended to frequently change.
 
 The returned `Promise` wraps an `AccessibilityTreeSnapshot`, which can be passed directly as the `expect` first parameter in `expect(___).toMatchInlineSnapshot()`. The returned object can also be converted to a string using `String(accessibilityTreeSnapshot)`.
+
+### `expect(page).toPassAxeTests(opts?: ToPassAxeTestsOpts)`
+
+This assertion, based on [`jest-puppeteer-axe`](https://github.com/WordPress/gutenberg/tree/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe), allows you to check a page using the [axe accessibility linter](https://github.com/dequelabs/axe-core).
+
+To use this assertion, you **must install `@axe-core/puppeteer` and `axe-core`**. They are optional peer dependencies for Pleasantest, but are needed for the `toPassAxeTests` assertion.
+
+```js
+test(
+  'Axe tests',
+  withBrowser(async ({ utils, page }) => {
+    await utils.injectHTML(`
+      <h1>Some html</h1>
+    `);
+
+    await expect(page).toPassAxeTests();
+  }),
+);
+```
+
+`ToPassAxeTestsOpts` (all properties are optional):
+
+- `include`: `string | string[]`: CSS selector(s) to add to the list of elements to include in analysis.
+- `exclude`: `string | string[]`: CSS selector(s) to add to the list of elements to exclude from analysis.
+- `disabledRules`: `string | string[]`: The list of [Axe rules](https://github.com/dequelabs/axe-core/tree/v4.4.2/lib/rules) to skip from verification.
+- `options`: [`axe.RunOptions`](https://github.com/dequelabs/axe-core/blob/v4.4.2/axe.d.ts#L89): A flexible way to [configure how Axe run operates](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#options-parameter).
+- `config`: [`axe.Spec`](https://github.com/dequelabs/axe-core/blob/v4.4.2/axe.d.ts#L195): [Axe configuration object](https://github.com/dequelabs/axe-core/blob/HEAD/doc/API.md#api-name-axeconfigure).
 
 ## Puppeteer Tips
 

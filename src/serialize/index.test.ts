@@ -162,4 +162,21 @@ describe('printElement', () => {
       `"<input required value=\\"\\" />"`,
     );
   });
+  it('truncates long attributes', () => {
+    const el = document.createElement('a');
+    el.setAttribute(
+      'href',
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
+    expect(printElement(el, false)).toMatchInlineSnapshot(
+      `"<a href=\\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[...]\\" />"`,
+    );
+  });
+  it('truncates <path d="..." /> very short', () => {
+    const el = document.createElement('path');
+    el.setAttribute('d', 'svgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvg');
+    expect(printElement(el, false)).toMatchInlineSnapshot(
+      `"<path d=\\"svgsvgsvgsvgsvgsvgsvgsvgsvgsvg[...]\\" />"`,
+    );
+  });
 });

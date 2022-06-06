@@ -6,6 +6,16 @@ import {
 // @ts-expect-error This is a fake file that triggers a rollup plugin
 import requiredOwnedElementsMap from 'generated:requiredOwnedElements';
 import type { AccessibilityTreeOptions } from '.';
+import * as colors from 'kolorist';
+
+export * as colors from 'kolorist';
+export { printElement } from '../serialize';
+
+// We haver to tell kolorist to print the colors
+// because by default it won't since we are in the browser
+// (the colored message gets sent to node to be printed)
+colors.options.enabled = true;
+colors.options.supportLevel = 1;
 
 const indent = (text: string, indenter = '  ') =>
   indenter + text.split('\n').join(`\n${indenter}`);

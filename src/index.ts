@@ -138,7 +138,9 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
         await cleanup(false);
         throw forgotAwaitError;
       }
-      const messageForBrowser: undefined | unknown[] =
+      const messageForBrowser:
+        | undefined
+        | (Element | string | number | boolean)[] =
         // This is how we attach the elements to the error from testing-library
         error?.messageForBrowser ||
         // This is how we attach the elements to the error from jest-dom
@@ -159,10 +161,28 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
         }
 
         if (messageForBrowser) {
+          // Combine adjacent string chunks
+          // So the browser does not insert extra line breaks/indents between the lines
+          const normalizedMessageForBrowser = messageForBrowser.reduce(
+            (acc, chunk) => {
+              if (
+                typeof chunk !== 'object' &&
+                acc.length > 0 &&
+                typeof acc[acc.length - 1] === 'string'
+              )
+                acc[acc.length - 1] += String(chunk);
+              else acc.push(typeof chunk === 'object' ? chunk : String(chunk));
+              return acc;
+            },
+            [] as (string | Element)[],
+          );
           failureMessage.push(
-            ...messageForBrowser.map((segment: unknown, i) => {
+            ...normalizedMessageForBrowser.map((segment, i) => {
               if (typeof segment !== 'string') return segment;
-              if (i !== 0 && typeof messageForBrowser[i - 1] !== 'string') {
+              if (
+                i !== 0 &&
+                typeof normalizedMessageForBrowser[i - 1] !== 'string'
+              ) {
                 return indent(segment, false);
               }
 

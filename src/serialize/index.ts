@@ -129,7 +129,7 @@ export const printElement = (
   const tagName = el.tagName.toLowerCase();
   const selfClosing = el.childNodes.length === 0;
   // We haver to tell kolorist to print the colors
-  // beacuse by default it won't since we are in the browser
+  // because by default it won't since we are in the browser
   // (the colored message gets sent to node to be printed)
   colors.options.enabled = true;
   colors.options.supportLevel = 1;
@@ -151,9 +151,16 @@ export const printElement = (
         typeof el[attr.name as keyof Element] === 'boolean'
       )
         return highlight.attribute(attr.name);
+      const truncatedAttrValue =
+        // Special case: <path d="..." /> is unlikely to be useful so it is cut shorter
+        attr.value.length > 40 && attr.name === 'd' && tagName === 'path'
+          ? `${attr.value.slice(0, 30)}[...]`
+          : attr.value.length > 150
+          ? `${attr.value.slice(0, 150)}[...]`
+          : attr.value;
       return `${highlight.attribute(attr.name)}${highlight.equals(
         '=',
-      )}${highlight.string(`"${attr.value}"`)}`;
+      )}${highlight.string(`"${truncatedAttrValue}"`)}`;
     })
     .join(splitAttrs ? '\n  ' : ' ')}${
     selfClosing
