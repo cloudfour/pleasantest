@@ -12,6 +12,10 @@
       "rangeStrategy": "bump"
     },
     {
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
+    },
+    {
       "matchPackageNames": ["puppeteer"],
       "prBodyNotes": [
         ":warning: **Warning:** Manually update the version numbers in URL's in README"
