@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import { environmentVariablesPlugin } from './plugins/environment-variables-plugin';
 import * as esbuild from 'esbuild';
 import { parse } from 'cjs-module-lexer';
-// @ts-expect-error @types/node@12 doesn't like this import
 import { createRequire } from 'module';
 import { isBareImport } from './extensions-and-detection';
 let npmCache: RollupCache | undefined;
