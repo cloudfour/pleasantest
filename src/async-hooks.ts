@@ -5,7 +5,7 @@
  * so we should throw an error that indicates that.
  */
 
-import { removeFuncFromStackTrace } from './utils';
+import { removeFuncFromStackTrace } from './utils.js';
 
 /**
  * Set of all active async hook trackers

@@ -1,12 +1,13 @@
 import type { ElementHandle, JSHandle, Page } from 'puppeteer';
-import type { AsyncHookTracker } from './async-hooks';
-import { createClientRuntimeServer } from './module-server/client-runtime-server';
+
+import type { AsyncHookTracker } from './async-hooks.js';
+import { createClientRuntimeServer } from './module-server/client-runtime-server.js';
 import {
   assertElementHandle,
   jsHandleToArray,
   printColorsInErrorMessages,
   removeFuncFromStackTrace,
-} from './utils';
+} from './utils.js';
 
 export interface PleasantestUser {
   /** Clicks an element, if the element is visible and not covered by another element */

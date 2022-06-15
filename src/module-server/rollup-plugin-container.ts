@@ -39,17 +39,19 @@
   - Stubbed out options hook was added
   */
 
-import { resolve, dirname } from 'path';
+import { dirname, resolve } from 'node:path';
+
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import { Parser } from 'acorn';
 import type {
   LoadResult,
-  PluginContext as RollupPluginContext,
   ResolveIdResult,
+  PluginContext as RollupPluginContext,
 } from 'rollup';
-import type { Plugin } from './plugin';
-import { combineSourceMaps } from './combine-source-maps';
-import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
-import { ErrorWithLocation } from './error-with-location';
+
+import { combineSourceMaps } from './combine-source-maps.js';
+import { ErrorWithLocation } from './error-with-location.js';
+import type { Plugin } from './plugin.js';
 
 /** Fast splice(x,1) when order doesn't matter (h/t Rich) */
 const popIndex = (array: any[], index: number) => {

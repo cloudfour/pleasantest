@@ -1,12 +1,17 @@
-import { dirname, join } from 'path';
-import type { Plugin } from '../plugin';
-import { promises as fs } from 'fs';
-import { fileURLToPath } from 'url';
-import { jsExts, isBareImport, npmPrefix } from '../extensions-and-detection';
-import { changeErrorMessage } from '../../utils';
-import { bundleNpmModule } from '../bundle-npm-module';
-import { resolveFromNodeModules } from '../node-resolve';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { changeErrorMessage } from '../../utils.js';
+import { bundleNpmModule } from '../bundle-npm-module.js';
+import {
+  isBareImport,
+  jsExts,
+  npmPrefix,
+} from '../extensions-and-detection.js';
+import { resolveFromNodeModules } from '../node-resolve.js';
+import type { Plugin } from '../plugin.js';
 
 // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
 const installFolder = dirname(dirname(dirname(fileURLToPath(import.meta.url))));

@@ -1,10 +1,11 @@
-import * as childProcess from 'child_process';
-import * as path from 'path';
-import { promises as fs } from 'fs';
+import * as childProcess from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 import * as puppeteer from 'puppeteer';
 // @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
-import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
-import { fileURLToPath } from 'url';
 
 // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
 const installFolder = path.dirname(

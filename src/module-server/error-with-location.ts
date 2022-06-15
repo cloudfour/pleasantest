@@ -1,6 +1,7 @@
+import { promises as fs } from 'node:fs';
+
 import * as colors from 'kolorist';
 import { createCodeFrame } from 'simple-code-frame';
-import { promises as fs } from 'fs';
 
 export class ErrorWithLocation extends Error {
   filename?: string;

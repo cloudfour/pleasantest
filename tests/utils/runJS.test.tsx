@@ -1,11 +1,12 @@
-import { withBrowser } from 'pleasantest';
-import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
-import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
-import vuePlugin from 'rollup-plugin-vue';
-import sveltePlugin from 'rollup-plugin-svelte';
-import sveltePreprocess from 'svelte-preprocess';
 import aliasPlugin from '@rollup/plugin-alias';
 import babel from '@rollup/plugin-babel';
+import { withBrowser } from 'pleasantest';
+import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
+import sveltePlugin from 'rollup-plugin-svelte';
+import vuePlugin from 'rollup-plugin-vue';
+import sveltePreprocess from 'svelte-preprocess';
+
+import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils.ts';
 
 const createHeading = async ({
   utils,

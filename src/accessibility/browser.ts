@@ -1,12 +1,13 @@
 import {
-  getRole,
-  computeAccessibleName,
   computeAccessibleDescription,
+  computeAccessibleName,
+  getRole,
 } from 'dom-accessibility-api';
 // @ts-expect-error This is a fake file that triggers a rollup plugin
 import requiredOwnedElementsMap from 'generated:requiredOwnedElements';
-import type { AccessibilityTreeOptions } from '.';
 import * as colors from 'kolorist';
+
+import type { AccessibilityTreeOptions } from '.';
 
 export * as colors from 'kolorist';
 export { printElement } from '../serialize';

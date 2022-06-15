@@ -1,8 +1,9 @@
-import type { PleasantestUtils } from 'pleasantest';
-import { getAccessibilityTree, withBrowser, devices } from 'pleasantest';
+import * as path from 'node:path';
 
 import { Liquid } from 'liquidjs';
-import * as path from 'path';
+import type { PleasantestUtils } from 'pleasantest';
+import { devices, getAccessibilityTree, withBrowser } from 'pleasantest';
+
 const iPhone = devices['iPhone 11'];
 
 // This particular example uses Liquid to load templates with data,

@@ -1,5 +1,6 @@
 // @ts-expect-error types are not defined for this internal import
 import { configure } from '@testing-library/dom/dist/config';
+
 import { addToElementCache } from '../serialize';
 // @ts-expect-error types are not defined for this internal import
 export * from '@testing-library/dom/dist/queries';

@@ -1,4 +1,4 @@
-import { printErrorFrames } from './test-utils';
+import { printErrorFrames } from './test-utils.js';
 
 test('printErrorFrames with native stack trace', async () => {
   const error = await fnThatThrows().catch((error) => error);

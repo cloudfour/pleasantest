@@ -1,7 +1,9 @@
+import { posix, relative, resolve, sep } from 'node:path';
+
 import postcssPlugin from 'rollup-plugin-postcss';
-import { transformCssImports } from '../transform-css-imports';
-import { posix, relative, resolve, sep } from 'path';
-import { cssExts } from '../extensions-and-detection';
+
+import { cssExts } from '../extensions-and-detection.js';
+import { transformCssImports } from '../transform-css-imports.js';
 
 export const cssPlugin = ({
   returnCSS = false,

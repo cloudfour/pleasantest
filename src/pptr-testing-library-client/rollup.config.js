@@ -1,7 +1,9 @@
+import * as path from 'node:path';
+
 import babel from '@rollup/plugin-babel';
-import * as path from 'path';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+
 import { rollupPluginAriaQuery } from '../rollup-plugin-aria-query.js';
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 

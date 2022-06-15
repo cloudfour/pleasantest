@@ -1,11 +1,13 @@
-import type { ElementHandle } from 'puppeteer';
+import path from 'node:path';
+
 import { withBrowser } from 'pleasantest';
+import type { ElementHandle } from 'puppeteer';
+
 import {
   cleanupClientRuntimeServer,
   createClientRuntimeServer,
-} from '../../src/module-server/client-runtime-server';
-import path from 'path';
-import { printColorsInErrorMessages } from '../../src/utils';
+} from '../../src/module-server/client-runtime-server.js';
+import { printColorsInErrorMessages } from '../../src/utils.js';
 
 const runWithUtils = async <Args extends any[], Return>(
   fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,

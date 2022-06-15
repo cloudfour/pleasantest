@@ -1,10 +1,12 @@
-import { dirname, join, posix, relative, resolve as pResolve } from 'path';
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
+import { dirname, join, resolve as pResolve, posix, relative } from 'node:path';
+
 import { resolve, legacy as resolveLegacy } from 'resolve.exports';
+
 import {
   isBareImport,
   isRelativeOrAbsoluteImport,
-} from './extensions-and-detection';
+} from './extensions-and-detection.js';
 
 // Only used for node_modules
 const resolveCache = new Map<string, ResolveResult>();

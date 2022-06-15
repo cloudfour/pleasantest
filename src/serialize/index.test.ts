@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  * @jest-environment-options {"customExportConditions": ["require"]}
  */
-import { printElement, deserialize, serialize } from '.';
+import { deserialize, printElement, serialize } from '.';
 
 test('objects', () => {
   const input = { 1234: { abcd: 'abc' } };

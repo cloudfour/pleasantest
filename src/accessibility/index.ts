@@ -1,14 +1,15 @@
+import type axe from 'axe-core';
 import type { ElementHandle, Page, Serializable } from 'puppeteer';
-import { createClientRuntimeServer } from '../module-server/client-runtime-server';
+
+import type { AsyncHookTracker } from '../async-hooks.js';
+import { activeAsyncHookTrackers } from '../async-hooks.js';
+import { createClientRuntimeServer } from '../module-server/client-runtime-server.js';
 import {
   assertElementHandle,
   jsHandleToArray,
   printColorsInErrorMessages,
   removeFuncFromStackTrace,
-} from '../utils';
-import type { AsyncHookTracker } from '../async-hooks';
-import { activeAsyncHookTrackers } from '../async-hooks';
-import type axe from 'axe-core';
+} from '../utils.js';
 
 const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 

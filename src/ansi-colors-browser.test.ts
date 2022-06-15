@@ -1,5 +1,9 @@
 import * as colors from 'kolorist';
-import { ansiColorsLog, colors as browserColors } from './ansi-colors-browser';
+
+import {
+  ansiColorsLog,
+  colors as browserColors,
+} from './ansi-colors-browser.js';
 
 // For some reason the tests fail without this
 colors.options.enabled = true;

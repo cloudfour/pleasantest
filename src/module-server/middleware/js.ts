@@ -1,19 +1,21 @@
-import { dirname, posix, relative, resolve, sep } from 'path';
+import { promises as fs } from 'node:fs';
+import { dirname, posix, relative, resolve, sep } from 'node:path';
+
+import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
+import MagicString from 'magic-string';
 import type polka from 'polka';
 import type {
   PartialResolvedId,
   ResolveIdResult,
   SourceDescription,
 } from 'rollup';
-import type { Plugin } from '../plugin';
-import { createPluginContainer } from '../rollup-plugin-container';
-import { promises as fs } from 'fs';
-import { transformImports } from '../transform-imports';
-import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
-import MagicString from 'magic-string';
-import { jsExts } from '../extensions-and-detection';
-import { rejectBuild } from '../build-status-tracker';
-import { ErrorWithLocation } from '../error-with-location';
+
+import { rejectBuild } from '../build-status-tracker.js';
+import { ErrorWithLocation } from '../error-with-location.js';
+import { jsExts } from '../extensions-and-detection.js';
+import type { Plugin } from '../plugin.js';
+import { createPluginContainer } from '../rollup-plugin-container.js';
+import { transformImports } from '../transform-imports.js';
 
 interface JSMiddlewareOpts {
   root: string;
