@@ -10,7 +10,10 @@ import {
 import { printColorsInErrorMessages } from '../../src/utils.js';
 
 const runWithUtils = async <Args extends any[], Return>(
-  fn: (userUtil: typeof import('../../src/user-util'), ...args: Args) => Return,
+  fn: (
+    userUtil: typeof import('../../src/user-util/index.js'),
+    ...args: Args
+  ) => Return,
 ): Promise<(...args: Args) => Promise<Return>> => {
   const { port } = await createClientRuntimeServer(
     path.join(process.cwd(), 'dist'),

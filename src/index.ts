@@ -11,10 +11,10 @@ import { ansiColorsLog } from './ansi-colors-browser.js';
 import type { AsyncHookTracker } from './async-hooks.js';
 import { createAsyncHookTracker } from './async-hooks.js';
 import { connectToBrowser } from './connect-to-browser.js';
-import type { ModuleServerOpts } from './module-server';
-import { createModuleServer } from './module-server';
 import { createBuildStatusTracker } from './module-server/build-status-tracker.js';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server.js';
+import type { ModuleServerOpts } from './module-server/index.js';
+import { createModuleServer } from './module-server/index.js';
 import type { BoundQueries, WaitForOptions } from './pptr-testing-library.js';
 import {
   getQueriesForElement,
@@ -493,7 +493,7 @@ afterAll(async () => {
 export {
   getAccessibilityTree,
   accessibilityTreeSnapshotSerializer,
-} from './accessibility';
+} from './accessibility/index.js';
 
 export { type PleasantestUser } from './user.js';
 export { type WaitForOptions } from './pptr-testing-library.js';

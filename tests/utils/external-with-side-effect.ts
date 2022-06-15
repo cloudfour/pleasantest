@@ -1,5 +1,7 @@
-interface Window {
-  foo: string;
+declare global {
+  interface Window {
+    foo: string;
+  }
 }
 
 window.foo = 'hi';

@@ -70,7 +70,10 @@ export const pleasantestUser = async (
 ) => {
   const { port } = await createClientRuntimeServer();
   const runWithUtils = <Args extends any[], Return>(
-    fn: (userUtil: typeof import('./user-util'), ...args: Args) => Return,
+    fn: (
+      userUtil: typeof import('./user-util/index.js'),
+      ...args: Args
+    ) => Return,
   ): ((...args: Args) => Promise<Return>) =>
     new Function(
       '...args',

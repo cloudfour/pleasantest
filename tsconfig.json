@@ -4,18 +4,56 @@
     "strictBindCallApply": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "paths": {
-      "pleasantest": ["./src"],
-      "puppeteer": ["./node_modules/@types/puppeteer"]
+      // Self-reference to the src types, so that running `npm run type` does not depend on dist/index.d.ts existing
+      "pleasantest": ["./src/index.ts"],
+
+      // These dependencies have export maps but don't have their types defined inside the export maps
+      "puppeteer": ["./node_modules/@types/puppeteer/index.d.ts"],
+      "errorstacks": ["./node_modules/errorstacks/dist/types/index.d.ts"],
+      "dom-accessibility-api": [
+        "./node_modules/dom-accessibility-api/dist/index.d.ts"
+      ],
+      "es-module-lexer": ["./node_modules/es-module-lexer/types/lexer.d.ts"],
+      "simple-code-frame": [
+        "./node_modules/simple-code-frame/dist/types/index.d.ts"
+      ],
+      "kolorist": ["./node_modules/kolorist/dist/types/index.d.ts"],
+      "resolve.exports": ["./node_modules/resolve.exports/index.d.ts"],
+      "mime/lite": ["./node_modules/@types/mime/lite.d.ts"],
+
+      // These dependencies have type declarations that aren't compatable with TS moduleResolution: node16
+      // These are used in src/types.d.ts
+      "rollup-plugin-commonjs-original-types": [
+        "./node_modules/@rollup/plugin-commonjs/types/index.d.ts"
+      ],
+      "svelte-preprocess-original-types": [
+        "./node_modules/svelte-preprocess/dist/index.d.ts"
+      ],
+      "rollup-plugin-vue-original-types": [
+        "./node_modules/rollup-plugin-vue/dist/index.d.ts"
+      ],
+      "rollup-plugin-svelte-original-types": [
+        "./node_modules/rollup-plugin-svelte/index.d.ts"
+      ],
+      "rollup-plugin-alias-original-types": [
+        "./node_modules/@rollup/plugin-alias/types/index.d.ts"
+      ],
+      "rollup-plugin-postcss-original-types": [
+        "./node_modules/rollup-plugin-postcss/types/index.d.ts"
+      ],
+      "magic-string-original-types": ["./node_modules/magic-string/index.d.ts"],
+      "amp-remapping-original-types": [
+        "./node_modules/@ampproject/remapping/dist/types/remapping.d.ts"
+      ]
     },
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "importsNotUsedAsValues": "error",
-    "target": "ES2019",
+    "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["jest"],
     "allowJs": true,

@@ -1,11 +1,11 @@
-import { addToElementCache, serialize } from '../serialize';
+import { addToElementCache, serialize } from '../serialize/index.js';
 // @ts-expect-error types are not provided for this sub-path import
 export * from '@testing-library/jest-dom/matchers';
 export {
   reviveElementsInString,
   printElement,
   deserialize,
-} from '../serialize';
+} from '../serialize/index.js';
 
 const runUtilInNode = (name: string, args: any[]) => {
   // If there are nested calls to $JEST_UTILS$

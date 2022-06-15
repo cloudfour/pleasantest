@@ -218,7 +218,7 @@ async function toPassAxeTests(
   let AxePuppeteer: typeof import('@axe-core/puppeteer').default;
   try {
     const axePuppeteerModule = await import('@axe-core/puppeteer');
-    AxePuppeteer = axePuppeteerModule.default;
+    AxePuppeteer = axePuppeteerModule.AxePuppeteer;
   } catch {
     throw removeFuncFromStackTrace(
       new Error(

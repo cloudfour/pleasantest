@@ -3,9 +3,9 @@ import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
 import startDisownedBrowserPath from 'bundle:./start-disowned-browser';
 import * as puppeteer from 'puppeteer';
-// @ts-expect-error the bundle: syntax is from a plugin in the rollup config and TS does not know about it
 
 // This is the folder that Pleasantest is installed in (e.g. <something>/node_modules/pleasantest)
 const installFolder = path.dirname(

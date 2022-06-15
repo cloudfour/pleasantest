@@ -7,10 +7,10 @@ import {
 import requiredOwnedElementsMap from 'generated:requiredOwnedElements';
 import * as colors from 'kolorist';
 
-import type { AccessibilityTreeOptions } from '.';
+import type { AccessibilityTreeOptions } from './index.js';
 
 export * as colors from 'kolorist';
-export { printElement } from '../serialize';
+export { printElement } from '../serialize/index.js';
 
 // We haver to tell kolorist to print the colors
 // because by default it won't since we are in the browser
