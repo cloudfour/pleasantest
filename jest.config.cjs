@@ -2,6 +2,10 @@ module.exports = {
   testEnvironment: 'node',
   moduleNameMapper: {
     '^pleasantest$': '<rootDir>/dist/cjs/index.cjs',
+    // Since TS requires that relative imports to .ts files use the .js extension in the import,
+    // this line is needed to tell Jest that when a .js file is imported,
+    // it may need to look for the corresponding .ts file on disk.
+    '^(.+)\\.js$': ['$1.js', '$1.ts'],
   },
   testRunner: 'jest-circus/runner',
   watchPathIgnorePatterns: [

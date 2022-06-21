@@ -1,15 +1,16 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
-import type { AsyncHookTracker } from './async-hooks';
-import { activeAsyncHookTrackers } from './async-hooks';
-import { createClientRuntimeServer } from './module-server/client-runtime-server';
-import { deserialize, serialize } from './serialize';
+
+import type { AsyncHookTracker } from './async-hooks.js';
+import { activeAsyncHookTrackers } from './async-hooks.js';
+import { createClientRuntimeServer } from './module-server/client-runtime-server.js';
+import { deserialize, serialize } from './serialize/index.js';
 import {
   isElementHandle,
   isPromise,
   jsHandleToArray,
   printColorsInErrorMessages,
   removeFuncFromStackTrace,
-} from './utils';
+} from './utils.js';
 
 const methods = [
   'toBeInTheDocument',

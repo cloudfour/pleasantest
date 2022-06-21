@@ -1,5 +1,6 @@
 import { withBrowser } from 'pleasantest';
-import { printErrorFrames } from '../test-utils';
+
+import { printErrorFrames } from '../test-utils.js';
 
 test(
   'Stack frames are correct',

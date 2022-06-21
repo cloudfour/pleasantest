@@ -1,17 +1,18 @@
+import type * as esbuild from 'esbuild';
 import type polka from 'polka';
 import type { SourceDescription } from 'rollup';
-import type { Plugin } from './plugin';
-import { indexHTMLMiddleware } from './middleware/index-html';
-import { jsMiddleware } from './middleware/js';
-import { npmPlugin } from './plugins/npm-plugin';
-import { environmentVariablesPlugin } from './plugins/environment-variables-plugin';
-import { resolveExtensionsPlugin } from './plugins/resolve-extensions-plugin';
-import { createServer } from './server';
-import { esbuildPlugin } from './plugins/esbuild-plugin';
-import { cssPlugin } from './plugins/css';
-import { cssMiddleware } from './middleware/css';
-import { staticMiddleware } from './middleware/static';
-import type * as esbuild from 'esbuild';
+
+import { cssMiddleware } from './middleware/css.js';
+import { indexHTMLMiddleware } from './middleware/index-html.js';
+import { jsMiddleware } from './middleware/js.js';
+import { staticMiddleware } from './middleware/static.js';
+import type { Plugin } from './plugin.js';
+import { cssPlugin } from './plugins/css.js';
+import { environmentVariablesPlugin } from './plugins/environment-variables-plugin.js';
+import { esbuildPlugin } from './plugins/esbuild-plugin.js';
+import { npmPlugin } from './plugins/npm-plugin.js';
+import { resolveExtensionsPlugin } from './plugins/resolve-extensions-plugin.js';
+import { createServer } from './server.js';
 
 export interface ModuleServerOpts {
   root?: string;

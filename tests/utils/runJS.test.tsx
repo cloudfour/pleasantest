@@ -1,11 +1,12 @@
+import aliasPlugin from '@rollup/plugin-alias';
+import { babel } from '@rollup/plugin-babel';
 import { withBrowser } from 'pleasantest';
 import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
-import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
-import vuePlugin from 'rollup-plugin-vue';
 import sveltePlugin from 'rollup-plugin-svelte';
+import vuePlugin from 'rollup-plugin-vue';
 import sveltePreprocess from 'svelte-preprocess';
-import aliasPlugin from '@rollup/plugin-alias';
-import babel from '@rollup/plugin-babel';
+
+import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils.js';
 
 const createHeading = async ({
   utils,
@@ -442,7 +443,14 @@ describe('Ecosystem interoperability', () => {
     withBrowser(
       {
         moduleServer: {
-          plugins: [sveltePlugin({ preprocess: sveltePreprocess() })],
+          plugins: [
+            sveltePlugin({
+              preprocess: sveltePreprocess({
+                // Does not work with module set to nodenext, works with either commonjs or esnext
+                typescript: { compilerOptions: { module: 'commonjs' } },
+              }),
+            }),
+          ],
         },
       },
       async ({ utils, screen, user }) => {

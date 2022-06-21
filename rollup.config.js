@@ -1,11 +1,12 @@
+import babel from '@rollup/plugin-babel';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import dts from 'rollup-plugin-dts';
+
+import accessibilityConfig from './src/accessibility/rollup.config.js';
 import jestDomConfig from './src/jest-dom/rollup.config.js';
 import pptrTestingLibraryConfig from './src/pptr-testing-library-client/rollup.config.js';
 import userUtilsConfig from './src/user-util/rollup.config.js';
-import accessibilityConfig from './src/accessibility/rollup.config.js';
 
-import dts from 'rollup-plugin-dts';
-import babel from '@rollup/plugin-babel';
-import nodeResolve from '@rollup/plugin-node-resolve';
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const external = [

@@ -1,7 +1,9 @@
+import { extname } from 'node:path';
+
 import * as esbuild from 'esbuild';
-import { extname } from 'path';
-import type { Plugin } from '../plugin';
-import { jsExts } from '../extensions-and-detection';
+
+import { jsExts } from '../extensions-and-detection.js';
+import type { Plugin } from '../plugin.js';
 
 const shouldProcess = (id: string) => {
   if (id[0] === '\0') return false;

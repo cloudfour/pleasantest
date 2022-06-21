@@ -1,5 +1,6 @@
 import { withBrowser } from 'pleasantest';
-import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils';
+
+import { formatErrorWithCodeFrame, printErrorFrames } from '../test-utils.js';
 
 test(
   'loads and executes .ts file with transpiling',

@@ -1,8 +1,10 @@
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { Middleware, Polka } from 'polka';
-import { fileURLToPath } from 'url';
-import { createServer } from './server';
-import { promises as fs } from 'fs';
+
+import { createServer } from './server.js';
 
 let currentDir: string;
 try {

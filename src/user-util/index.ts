@@ -1,4 +1,4 @@
-export { printElement } from '../serialize';
+export { printElement } from '../serialize/index.js';
 
 export const assertAttached = (el: Element) => {
   if (!el.isConnected) {

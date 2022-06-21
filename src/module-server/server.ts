@@ -1,5 +1,6 @@
-import { Console } from 'console';
-import type { AddressInfo, Socket } from 'net';
+import { Console } from 'node:console';
+import type { AddressInfo, Socket } from 'node:net';
+
 import type { Polka } from 'polka';
 import polka from 'polka';
 

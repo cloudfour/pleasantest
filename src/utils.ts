@@ -1,5 +1,5 @@
-import type { ElementHandle, JSHandle } from 'puppeteer';
 import * as kolorist from 'kolorist';
+import type { ElementHandle, JSHandle } from 'puppeteer';
 
 export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   const properties = await arrayHandle.getProperties();

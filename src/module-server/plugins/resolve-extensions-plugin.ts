@@ -1,7 +1,7 @@
-import type { Plugin } from '../plugin';
-import { isRelativeOrAbsoluteImport } from '../extensions-and-detection';
-import { resolveRelativeOrAbsolute } from '../node-resolve';
-import { changeErrorMessage } from '../../utils';
+import { changeErrorMessage } from '../../utils.js';
+import { isRelativeOrAbsoluteImport } from '../extensions-and-detection.js';
+import { resolveRelativeOrAbsolute } from '../node-resolve.js';
+import type { Plugin } from '../plugin.js';
 
 /**
  * Handles resolving './foo' to './foo.js', and './foo/index.js', and resolving through './foo/package.json'

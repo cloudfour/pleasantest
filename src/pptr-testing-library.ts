@@ -1,12 +1,13 @@
 import type { queries } from '@testing-library/dom';
+import type { ElementHandle, JSHandle, Page } from 'puppeteer';
+
+import type { AsyncHookTracker } from './async-hooks.js';
+import { createClientRuntimeServer } from './module-server/client-runtime-server.js';
 import {
   jsHandleToArray,
   printColorsInErrorMessages,
   removeFuncFromStackTrace,
-} from './utils';
-import type { ElementHandle, JSHandle, Page } from 'puppeteer';
-import { createClientRuntimeServer } from './module-server/client-runtime-server';
-import type { AsyncHookTracker } from './async-hooks';
+} from './utils.js';
 
 type ElementToElementHandle<Input> = Input extends Element
   ? ElementHandle<Input>

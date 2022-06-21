@@ -1,6 +1,7 @@
 // @ts-expect-error types are not defined for this internal import
 import { configure } from '@testing-library/dom/dist/config';
-import { addToElementCache } from '../serialize';
+
+import { addToElementCache } from '../serialize/index.js';
 // @ts-expect-error types are not defined for this internal import
 export * from '@testing-library/dom/dist/queries';
 // @ts-expect-error types are not defined for this internal import
@@ -10,7 +11,7 @@ export {
   reviveElementsInString,
   printElement,
   addToElementCache,
-} from '../serialize';
+} from '../serialize/index.js';
 
 (configure as typeof import('@testing-library/dom').configure)({
   getElementError(message, container) {

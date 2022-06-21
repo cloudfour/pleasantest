@@ -1,8 +1,10 @@
-import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { dirname, join, normalize, posix, sep } from 'path';
-import { changeErrorMessage } from '../utils';
-import { nodeResolve } from './node-resolve';
+import { promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, normalize, posix, sep } from 'node:path';
+
+import { changeErrorMessage } from '../utils.js';
+
+import { nodeResolve } from './node-resolve.js';
 
 const createdPaths: string[] = [];
 

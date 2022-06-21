@@ -1,4 +1,4 @@
-import type { Plugin } from '../plugin';
+import type { Plugin } from '../plugin.js';
 
 /**
  * Passes environment variables to pass into the bundle.  They can be accessed via import.meta.env.<name> (or process.env.<name> for compatability)

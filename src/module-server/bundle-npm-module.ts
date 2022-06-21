@@ -1,12 +1,15 @@
+import { promises as fs } from 'node:fs';
+import { createRequire } from 'node:module';
+
+import commonjs from '@rollup/plugin-commonjs';
+import { parse } from 'cjs-module-lexer';
+import * as esbuild from 'esbuild';
 import type { Plugin, RollupCache } from 'rollup';
 import { rollup } from 'rollup';
-import { promises as fs } from 'fs';
-import commonjs from '@rollup/plugin-commonjs';
-import { environmentVariablesPlugin } from './plugins/environment-variables-plugin';
-import * as esbuild from 'esbuild';
-import { parse } from 'cjs-module-lexer';
-import { createRequire } from 'module';
-import { isBareImport } from './extensions-and-detection';
+
+import { isBareImport } from './extensions-and-detection.js';
+import { environmentVariablesPlugin } from './plugins/environment-variables-plugin.js';
+
 let npmCache: RollupCache | undefined;
 
 /**

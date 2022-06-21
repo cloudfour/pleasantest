@@ -1,8 +1,10 @@
-import { join, posix, sep, resolve } from 'path';
-import { parseStackTrace } from 'errorstacks';
+import { join, posix, resolve, sep } from 'node:path';
+
 import _ansiRegex from 'ansi-regex';
-import { printStackLine, removeFuncFromStackTrace } from './utils';
+import { parseStackTrace } from 'errorstacks';
 import type { SourceDescription } from 'rollup';
+
+import { printStackLine, removeFuncFromStackTrace } from './utils.js';
 
 export const sourceMapErrorFromBrowser = async (
   res: unknown,

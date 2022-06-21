@@ -30,11 +30,13 @@
   - Parsing errors are thrown with code frame
   */
 
-import { parse } from 'es-module-lexer';
-import { ErrorWithLocation } from './error-with-location';
+import { extname } from 'node:path';
+
 import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
-import { extname } from 'path';
-import { jsExts } from './extensions-and-detection';
+import { parse } from 'es-module-lexer';
+
+import { ErrorWithLocation } from './error-with-location.js';
+import { jsExts } from './extensions-and-detection.js';
 
 type MaybePromise<T> = Promise<T> | T;
 type ResolveFn = (

@@ -28,13 +28,14 @@
     "@babel/preset-typescript": "7.16.7",
     "@changesets/changelog-github": "0.4.5",
     "@changesets/cli": "2.23.0",
-    "@cloudfour/eslint-plugin": "19.0.0",
+    "@cloudfour/eslint-plugin": "20.0.2",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-babel": "5.3.1",
     "@rollup/plugin-node-resolve": "13.3.0",
     "@testing-library/dom": "8.13.0",
     "@testing-library/jest-dom": "5.15.1",
     "@types/jest": "28.1.1",
+    "@types/mime": "2.0.3",
     "@types/node": "14.18.21",
     "@types/polka": "0.5.4",
     "@types/puppeteer": "5.4.6",
@@ -120,7 +121,8 @@
   "main": "./dist/cjs/index.cjs",
   "exports": {
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "types": "./dist/index.d.ts"
   },
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -143,5 +145,6 @@
       "remark-lint-no-dead-urls"
     ]
   },
-  "repository": "cloudfour/pleasantest"
+  "repository": "cloudfour/pleasantest",
+  "type": "module"
 }

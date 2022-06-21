@@ -1,7 +1,8 @@
-import { posix, resolve } from 'path';
-import type polka from 'polka';
-import { promises as fs, createReadStream } from 'fs';
+import { createReadStream, promises as fs } from 'node:fs';
+import { posix, resolve } from 'node:path';
+
 import mime from 'mime/lite';
+import type polka from 'polka';
 
 interface StaticMiddlewareOpts {
   root: string;

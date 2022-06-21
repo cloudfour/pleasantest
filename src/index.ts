@@ -1,28 +1,31 @@
+import { Console } from 'node:console';
+import { dirname, isAbsolute, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import _ansiRegex from 'ansi-regex';
+import { parseStackTrace } from 'errorstacks';
+import { bgRed, bold, options as koloristOpts, red, white } from 'kolorist';
 import * as puppeteer from 'puppeteer';
-import { relative, join, isAbsolute, dirname } from 'path';
-import type { BoundQueries, WaitForOptions } from './pptr-testing-library';
+
+import { ansiColorsLog } from './ansi-colors-browser.js';
+import type { AsyncHookTracker } from './async-hooks.js';
+import { createAsyncHookTracker } from './async-hooks.js';
+import { connectToBrowser } from './connect-to-browser.js';
+import { createBuildStatusTracker } from './module-server/build-status-tracker.js';
+import { cleanupClientRuntimeServer } from './module-server/client-runtime-server.js';
+import type { ModuleServerOpts } from './module-server/index.js';
+import { createModuleServer } from './module-server/index.js';
+import type { BoundQueries, WaitForOptions } from './pptr-testing-library.js';
 import {
   getQueriesForElement,
   waitFor as innerWaitFor,
-} from './pptr-testing-library';
-import { connectToBrowser } from './connect-to-browser';
-import { parseStackTrace } from 'errorstacks';
-import './extend-expect';
-import { bgRed, white, options as koloristOpts, bold, red } from 'kolorist';
-import { ansiColorsLog } from './ansi-colors-browser';
-import _ansiRegex from 'ansi-regex';
-import { fileURLToPath } from 'url';
-import type { PleasantestUser, UserOpts } from './user';
-import { pleasantestUser } from './user';
-import { assertElementHandle } from './utils';
-import type { ModuleServerOpts } from './module-server';
-import { createModuleServer } from './module-server';
-import { cleanupClientRuntimeServer } from './module-server/client-runtime-server';
-import { Console } from 'console';
-import { createBuildStatusTracker } from './module-server/build-status-tracker';
-import { sourceMapErrorFromBrowser } from './source-map-error-from-browser';
-import type { AsyncHookTracker } from './async-hooks';
-import { createAsyncHookTracker } from './async-hooks';
+} from './pptr-testing-library.js';
+import { sourceMapErrorFromBrowser } from './source-map-error-from-browser.js';
+import type { PleasantestUser, UserOpts } from './user.js';
+import { pleasantestUser } from './user.js';
+import { assertElementHandle } from './utils.js';
+
+import './extend-expect.js';
 
 export { JSHandle, ElementHandle } from 'puppeteer';
 koloristOpts.enabled = true;
@@ -490,7 +493,7 @@ afterAll(async () => {
 export {
   getAccessibilityTree,
   accessibilityTreeSnapshotSerializer,
-} from './accessibility';
+} from './accessibility/index.js';
 
-export { type PleasantestUser } from './user';
-export { type WaitForOptions } from './pptr-testing-library';
+export { type PleasantestUser } from './user.js';
+export { type WaitForOptions } from './pptr-testing-library.js';
