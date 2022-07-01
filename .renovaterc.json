@@ -35,7 +35,7 @@
       "matchDepTypes": ["devDependencies"],
       "prCreation": "immediate",
       "stabilityDays": 0,
-      "schedule": "every 1 month on the first day of the month before 9am",
+      "schedule": "every 1 month on the first day of the month before 7am",
       "groupName": "compatibility testing-only dependencies"
     }
   ],
