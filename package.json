@@ -42,7 +42,7 @@
     "@vue/compiler-sfc": "3.2.37",
     "ansi-regex": "6.0.1",
     "aria-query": "*",
-    "axe-core": "4.4.2",
+    "axe-core": "4.4.3",
     "babel-plugin-un-cjs": "2.5.0",
     "dom-accessibility-api": "0.5.14",
     "errorstacks": "2.4.0",
