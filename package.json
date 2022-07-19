@@ -84,7 +84,7 @@
     "mime": "^3.0.0",
     "postcss": "^8.4.14",
     "puppeteer": "^13.5.2",
-    "rollup": "^2.76.0",
+    "rollup": "^2.77.0",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
   },
