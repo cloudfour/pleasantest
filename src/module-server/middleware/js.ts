@@ -108,7 +108,7 @@ export const jsMiddleware = async ({
           const str = new MagicString(fileSrc);
           str.remove(0, inlineStartIdx);
           str.remove(inlineStartIdx + code.length, fileSrc.length);
-          // TODO: gross
+          // Account for the injected import.meta.pleasantestArgs code in the source map
           str.prepend(injectedArgsCode);
           map = str.generateMap({
             hires: true,
