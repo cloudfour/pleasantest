@@ -197,9 +197,6 @@ Received ${this.utils.printReceived(arg)}`,
           () => matcher.call(this, elementHandle, ...matcherArgs),
           matchers[methodName],
         );
-        // AddHook resolves to undefined if the function throws after the async hook tracker closes
-        // Because it needs to not trigger an unhandled promise rejection
-        if (res === undefined) return { pass: !this.isNot, message: () => '' };
         return res;
       }
       return matcher.call(this, elementHandle, ...matcherArgs);

@@ -16,13 +16,11 @@ export const makeCallableJSHandle = <
   browserFunction: JSHandle<BrowserFunction>,
 ): ((
   ...args: Parameters<BrowserFunction>
-) => Promisify<JSHandleify<ReturnType<BrowserFunction>>>) => {
-  return (...args) =>
+) => Promisify<JSHandleify<ReturnType<BrowserFunction>>>) => (...args) =>
     browserFunction.evaluateHandle(
       (browserFn, ...args) => browserFn(...args),
       ...args,
     ) as any;
-};
 
 export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   const properties = await arrayHandle.getProperties();
