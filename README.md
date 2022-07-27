@@ -93,7 +93,7 @@ test(
 
 #### Option 1: Rendering using a client-side framework
 
-If your app is client-side rendered, you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to tell Pleasantest how to render your app:
+If your app is client-side rendered, you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-browserargs-unknown-promiserecordstring-unknown) to tell Pleasantest how to render your app:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -367,7 +367,7 @@ Call Signatures:
 
 - `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
 - `device`: Device Object [described here](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-pageemulateoptions).
-- `moduleServer`: Module Server options object (all properties are optional). They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
+- `moduleServer`: Module Server options object (all properties are optional). They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-browserargs-unknown-promiserecordstring-unknown) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
   - `plugins`: Array of Rollup, Vite, or WMR plugins to add.
   - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
   - `esbuild`: ([`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`) Options to pass to esbuild. Set to false to disable esbuild.
@@ -1071,7 +1071,7 @@ Jest uses [jsdom](https://github.com/jsdom/jsdom) and exposes browser-like globa
   );
   ```
 
-- **No Synchronous DOM Access**: Because Jest runs your tests, Pleasantest will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-promisevoid) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Pleasantest tests.
+- **No Synchronous DOM Access**: Because Jest runs your tests, Pleasantest will never support synchronously and directly modifying the DOM. While you can use [`utils.runJS`](#pleasantestutilsrunjscode-string-browserargs-unknown-promiserecordstring-unknown) to execute snippets of code in the browser, all other browser manipulation must be through the provided asynchronous APIs. This is an advantage [jsdom](https://github.com/jsdom/jsdom)-based tests will always have over Pleasantest tests.
 
 ### Temporary Limitations
 
