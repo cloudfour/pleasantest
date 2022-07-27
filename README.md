@@ -35,7 +35,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
   - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
-  - [`makeCallableJSHandle`](#makecallablejshandle)
+  - [`makeCallableJSHandle`](#makecallablejshandlebrowserfunction-jshandlefunction-function)
   - [`toPassAxeTests`](#expectpagetopassaxetestsopts-topassaxetestsopts)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
@@ -723,7 +723,7 @@ test(
 );
 ```
 
-If you export a function from the browser, the easiest way to call it in Node is to use [`makeCallableJSHandle`](#makecallablejshandle).
+If you export a function from the browser, the easiest way to call it in Node is to use [`makeCallableJSHandle`](#makecallablejshandlebrowserfunction-jshandlefunction-function).
 
 For TypeScript users, `runJS` accepts an optional type parameter, to specify the exported types of the in-browser module that is passed in. The default value for this parameter is `Record<string, unknown>` (an object with string properties and unknown values). Note that this type does not include `JSHandles`, those are wrapped in the return type from `runJS` automatically.
 
