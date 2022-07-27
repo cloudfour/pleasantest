@@ -10,13 +10,13 @@ type JSHandleify<T> = T extends JSHandle<any> ? T : JSHandle<T>;
  * passing along the parameters,
  * and returning the return value wrapped in `Promise<JSHandle<T>>`
  */
-export const makeCallableJSHandle = <
-  BrowserFunction extends (...args: any[]) => any,
->(
-  browserFunction: JSHandle<BrowserFunction>,
-): ((
-  ...args: Parameters<BrowserFunction>
-) => Promisify<JSHandleify<ReturnType<BrowserFunction>>>) => (...args) =>
+export const makeCallableJSHandle =
+  <BrowserFunction extends (...args: any[]) => any>(
+    browserFunction: JSHandle<BrowserFunction>,
+  ): ((
+    ...args: Parameters<BrowserFunction>
+  ) => Promisify<JSHandleify<ReturnType<BrowserFunction>>>) =>
+  (...args) =>
     browserFunction.evaluateHandle(
       (browserFn, ...args) => browserFn(...args),
       ...args,
