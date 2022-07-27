@@ -19,7 +19,7 @@ export interface AsyncHookTracker {
   addHook<T>(
     func: () => Promise<T>,
     captureFunction: (...args: any[]) => any,
-  ): Promise<T | undefined>;
+  ): Promise<T>;
   close(): Error | undefined;
 }
 
@@ -39,7 +39,19 @@ export const createAsyncHookTracker = (): AsyncHookTracker => {
     try {
       return await func();
     } catch (error) {
+      // If we throw an error here and it _is_ closed,
+      // there will be an unhandled rejection, ending the process, without a code frame.
+      //
+      // If it is closed, it is better to not throw an error because when close() was called,
+      // we would have already noticed that there was an async hook and thrown an error there.
+      // So, we only throw an error if it is open
       if (!isClosed) throw error;
+
+      // This line has no runtime effect, it is just there to make TS OK
+      // If someone forgot await and is using promise-wrapped values directly,
+      // TS is already giving them useful error messages.
+      // The `as never` here tells TS that we can ignore that sometimes this will return undefined
+      return undefined as never;
     } finally {
       if (!isClosed) hooks.delete(forgotAwaitError);
     }

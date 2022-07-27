@@ -1,6 +1,29 @@
 import * as kolorist from 'kolorist';
 import type { ElementHandle, JSHandle } from 'puppeteer';
 
+type Promisify<T> = T extends Promise<any> ? T : Promise<T>;
+type JSHandleify<T> = T extends JSHandle<any> ? T : JSHandle<T>;
+
+/**
+ * Wraps a JSHandle that points to a function in a browser,
+ * with a node function that calls the corresponding browser function,
+ * passing along the parameters,
+ * and returning the return value wrapped in `Promise<JSHandle<T>>`
+ */
+export const makeCallableJSHandle = <
+  BrowserFunction extends (...args: any[]) => any,
+>(
+  browserFunction: JSHandle<BrowserFunction>,
+): ((
+  ...args: Parameters<BrowserFunction>
+) => Promisify<JSHandleify<ReturnType<BrowserFunction>>>) => {
+  return (...args) =>
+    browserFunction.evaluateHandle(
+      (browserFn, ...args) => browserFn(...args),
+      ...args,
+    ) as any;
+};
+
 export const jsHandleToArray = async (arrayHandle: JSHandle) => {
   const properties = await arrayHandle.getProperties();
   const arr = Array.from({ length: properties.size });

@@ -35,6 +35,7 @@ Pleasantest is a library that allows you test web applications using real browse
   - [Utilities API: `PleasantestUtils`](#utilities-api-pleasantestutils)
   - [`jest-dom` Matchers](#jest-dom-matchers)
   - [`getAccessibilityTree`](#getaccessibilitytreeelement-elementhandle--page-options-accessibilitytreeoptions--promiseaccessibilitytreesnapshot)
+  - [`makeCallableJSHandle`](#makecallablejshandle)
   - [`toPassAxeTests`](#expectpagetopassaxetestsopts-topassaxetestsopts)
 - [Puppeteer Tips](#puppeteer-tips)
 - [Comparisons with other testing tools](#comparisons-with-other-testing-tools)
@@ -646,7 +647,7 @@ test(
 
 The utilities API provides shortcuts for loading and running code in the browser. The methods are wrappers around behavior that can be performed more verbosely with the [Puppeteer `Page` object](#pleasantestcontextpage). This API is exposed via the [`utils` property in `PleasantestContext`](#pleasantestcontextutils-pleasantestutils)
 
-#### `PleasantestUtils.runJS(code: string): Promise<void>`
+#### `PleasantestUtils.runJS(code: string, browserArgs?: unknown[]): Promise<Record<string, unknown>>`
 
 Execute a JS code string in the browser. The code string inherits the syntax abilities of the file it is in, i.e. if your test file is a `.tsx` file, then the code string can include JSX and TS. The code string can use (static or dynamic) ES6 imports to import other modules, including TS/JSX modules, and it supports resolving from `node_modules`, and relative paths from the test file. The code string supports top-level await to wait for a Promise to resolve. Since the code in the string is only a string, you cannot access variables that are defined in the Node.js scope. It is proably a bad idea to use interpolation in the code string, only static strings should be used, so that the source location detection works when an error is thrown.
 
@@ -668,7 +669,7 @@ test(
 );
 ```
 
-To pass variables from the test environment into the browser, you can pass them as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle). The arguments can be received in the browser as parameters to a default-exported function:
+To pass variables from the test environment into the browser, you can pass them in an array as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle). The arguments will be received in the browser via `import.meta.pleasantestArgs`:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -678,16 +679,72 @@ test(
   withBrowser(async ({ utils, screen }) => {
     // element is an ElementHandle (pointer to an element in the browser)
     const element = await screen.getByText(/button/i);
-    // we can pass element into runJS and the default exported function can access it as an Element
+    // we can pass element into runJS and access it as an Element via import.meta.pleasantestArgs
     await utils.runJS(
       `
-        export default (element) => console.log(element);
+      const [element] = import.meta.pleasantestArgs;
+      console.log(element);
       `,
       [element],
     );
   }),
 );
 ```
+
+The code string passed to `runJS` is also a module, and it can export values to make them available in Node. `runJS` returns a Promise resolving to the exports from the module that executed in the browser. Each export is wrapped in a `[`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) (a pointer to an in-browser JS object), so that it can be passed back into the browser if necessary, or deserialized in Node using `.jsonValue()`.
+
+```js
+test(
+  'receiving exported values from runJS',
+  withBrowser(async ({ utils }) => {
+    // Each export is available in the returned object.
+    // Each export is wrapped in a JSHandle, meaning that it points to an in-browser object
+    const { focusTarget, favoriteNumber } = await utils.runJS(`
+      export const focusTarget = document.activeElement
+      export const favoriteNumber = 20
+    `);
+
+    // Serializable JSHandles can be unwrapped using JSONValue:
+    console.log(await favoriteNumber.jsonValue()); // Logs "20"
+
+    // A JSHandle<Element>, or ElementHandle is not serializable
+    // But we can pass it back into the browser to use it (it will be unwrapped in the browser):
+
+    await utils.runJS(
+      `
+      // The import.meta.pleasantestArgs context object receives the parameters passed in below
+      const [focusTarget] = import.meta.pleasantestArgs;
+      console.log(focusTarget) // Logs the element in the browser
+      `,
+      // Passing the JSHandle in here passes it into the browser (unwrapped) in import.meta.pleasantestArgs
+      [focusTarget],
+    );
+  }),
+);
+```
+
+If you export a function from the browser, the easiest way to call it in Node is to use [`makeCallableJSHandle`](#makecallablejshandle).
+
+For TypeScript users, `runJS` accepts an optional type parameter, to specify the exported types of the in-browser module that is passed in. The default value for this parameter is `Record<string, unknown>` (an object with string properties and unknown values). Note that this type does not include `JSHandles`, those are wrapped in the return type from `runJS` automatically.
+
+Reusing the same example, the optional type would be:
+
+```ts
+test(
+  'receiving exported values from runJS',
+  withBrowser(async ({ utils }) => {
+    const { focusTarget, favoriteNumber } = await utils.runJS<{
+      focusTarget: Element;
+      favoriteNumber: number;
+    }>(`
+      export const focusTarget = document.activeElement
+      export const favoriteNumber = 20
+    `);
+  }),
+);
+```
+
+Now `focusTarget` automatically has the type `JSHandle<Element>` and `favoriteNumber` automatically has the type `JSHandle<number>`. Without passing in the type parameter to `runJS`, their types would both be `JSHandle<unknown>`.
 
 #### `PleasantestUtils.loadJS(jsPath: string): Promise<void>`
 
@@ -830,6 +887,40 @@ The second parameter (optional) is `AccessibilityTreeOptions`, and it allows you
 Disabling these options can be used to reduce the output or to exclude text that is intended to frequently change.
 
 The returned `Promise` wraps an `AccessibilityTreeSnapshot`, which can be passed directly as the `expect` first parameter in `expect(___).toMatchInlineSnapshot()`. The returned object can also be converted to a string using `String(accessibilityTreeSnapshot)`.
+
+### `makeCallableJSHandle(browserFunction: JSHandle<Function>): Function`
+
+Wraps a JSHandle that points to a function in a browser, with a node function that calls the corresponding browser function, passing along the parameters, and returning the return value wrapped in `Promise<JSHandle<T>>`.
+
+This is especially useful to make it easier to call browser functions returned by `runJS`. In this example, we make a `displayFavoriteNumber` function available in Node:
+
+```js
+import { makeCallableJSHandle, withBrowser } from 'pleasantest';
+
+test(
+  'calling functions with makeCallableJSHandle',
+  withBrowser(async ({ utils }) => {
+    const { displayFavoriteNumber } = await utils.runJS(`
+      export const displayFavoriteNumber = (number) => {
+        document.querySelector('.output').innerHTML = "Favorite number is: " + number
+      }
+    `);
+
+    // displayFavoriteNumber is a JSHandle<Function>
+    // (a pointer to a function in the browser)
+    // so we cannot call it directly, so we wrap it in a node function first:
+
+    const displayFavoriteNumberNode = makeCallableJSHandle(
+      displayFavoriteNumber,
+    );
+
+    // Note the added `await`.
+    // Even though the original function was not async, the wrapped function is.
+    // This is needed because the wrapped function needs to asynchronously communicate with the browser.
+    await displayFavoriteNumberNode(42);
+  }),
+);
+```
 
 ### `expect(page).toPassAxeTests(opts?: ToPassAxeTestsOpts)`
 
