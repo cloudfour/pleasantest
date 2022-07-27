@@ -197,6 +197,15 @@ Received ${this.utils.printReceived(arg)}`,
           () => matcher.call(this, elementHandle, ...matcherArgs),
           matchers[methodName],
         );
+        // AddHook resolves to undefined if the function throws after the async hook tracker closes
+        // Because it needs to not trigger an unhandled promise rejection
+        // asyncHookTracker can return undefined (even though its types say it won't)
+        // if the user forgot to use await,
+        // and the test already exited/threw because of the withBrowser forgot-await detection,
+        // but the code will keep running because it's impossible to stop without an unhandled promise rejection,
+        // which is frustrating to debug
+        // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
+        if (res === undefined) return { pass: !this.isNot, message: () => '' };
         return res;
       }
       return matcher.call(this, elementHandle, ...matcherArgs);
