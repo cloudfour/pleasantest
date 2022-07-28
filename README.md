@@ -691,7 +691,7 @@ test(
 );
 ```
 
-The code string passed to `runJS` is also a module, and it can export values to make them available in Node. `runJS` returns a Promise resolving to the exports from the module that executed in the browser. Each export is wrapped in a `[`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) (a pointer to an in-browser JS object), so that it can be passed back into the browser if necessary, or deserialized in Node using `.jsonValue()`.
+The code string passed to `runJS` is also a module, and it can export values to make them available in Node. `runJS` returns a Promise resolving to the exports from the module that executed in the browser. Each export is wrapped in a [`JSHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.5.2&show=api-class-jshandle) (a pointer to an in-browser JS object), so that it can be passed back into the browser if necessary, or deserialized in Node using `.jsonValue()`.
 
 ```js
 test(
