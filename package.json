@@ -79,7 +79,7 @@
     "@rollup/plugin-commonjs": "^22.0.1",
     "acorn": "^8.8.0",
     "cjs-module-lexer": "^1.2.2",
-    "es-module-lexer": "^0.10.5",
+    "es-module-lexer": "^1.0.1",
     "esbuild": "^0.14.49",
     "mime": "^3.0.0",
     "postcss": "^8.4.14",
