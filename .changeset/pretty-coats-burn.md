@@ -2,7 +2,7 @@
 'pleasantest': major
 ---
 
-Values exported from `runJS` are now available in Node.
+**Values exported from `runJS` are now available in Node.**
 
 For example:
 
