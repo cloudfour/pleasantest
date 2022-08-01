@@ -2,7 +2,7 @@
 'pleasantest': major
 ---
 
-The way that `runJS` receives parameters in the browser has changed. Now, parameters are available as `import.meta.pleasantestArgs` instead of through an automatically-called default export.
+**The way that `runJS` receives parameters in the browser has changed.** Now, parameters are available as `import.meta.pleasantestArgs` instead of through an automatically-called default export.
 
 For example, code that used to work like this:
 
