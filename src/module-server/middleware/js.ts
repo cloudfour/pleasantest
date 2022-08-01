@@ -98,12 +98,18 @@ export const jsMiddleware = async ({
       let map: DecodedSourceMap | RawSourceMap | string | undefined;
       if (typeof req.query['inline-code'] === 'string') {
         code = req.query['inline-code'];
+        const injectedArgsCode = `if (window._pleasantestArgs) {
+          import.meta.pleasantestArgs = [...window._pleasantestArgs]
+        }`;
         const fileSrc = await fs.readFile(file, 'utf8');
         const inlineStartIdx = fileSrc.indexOf(code);
+        code = injectedArgsCode + code;
         if (inlineStartIdx !== -1) {
           const str = new MagicString(fileSrc);
           str.remove(0, inlineStartIdx);
           str.remove(inlineStartIdx + code.length, fileSrc.length);
+          // Account for the injected import.meta.pleasantestArgs code in the source map
+          str.prepend(injectedArgsCode);
           map = str.generateMap({
             hires: true,
             source: id,
