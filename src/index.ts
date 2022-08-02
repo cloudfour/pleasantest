@@ -42,7 +42,10 @@ export interface PleasantestUtils {
    * The code string supports top-level await to wait for a Promise to resolve.
    * You can pass an array of variables to be passed into the browser as the 2nd parameter.
    */
-  runJS(code: string, args?: unknown[]): Promise<void>;
+  runJS<Module extends Record<string, unknown>>(
+    code: string,
+    args?: unknown[],
+  ): Promise<{ [Export in keyof Module]: puppeteer.JSHandle<Module[Export]> }>;
 
   /** Set the contents of a new style tag */
   injectCSS(css: string): Promise<void>;
@@ -333,7 +336,7 @@ const createTab = async ({
   const runJS: PleasantestUtils['runJS'] = (code, args) =>
     asyncHookTracker.addHook(async () => {
       await page
-        .exposeFunction('pleasantest_callFunction', (id: any, args: any) =>
+        .exposeFunction('_pleasantestCallFunction', (id: any, args: any) =>
           functionArgs[id](...args),
         )
         .catch((error) => {
@@ -354,36 +357,52 @@ const createTab = async ({
       // This uses the testPath as the url so that if there are relative imports
       // in the inline code, the relative imports are resolved relative to the test file
       const url = `http://localhost:${port}/${testPath}?inline-code=${encodedCode}&build-id=${buildStatus.buildId}`;
-      const res = await page.evaluate(
+
+      const outputHandle = await page.evaluateHandle(
         new Function(
           '...args',
-          `return import(${JSON.stringify(url)})
-            .then(async m => {
-              const argsWithFuncs = args.map(arg => {
-                if (typeof arg === 'object' && arg && arg.isFunction) {
-                  return async (...args) => {
-                    return await window.pleasantest_callFunction(arg.id, args);
-                  }
-                }
-                return arg
-              })
-              if (m.default) await m.default(...argsWithFuncs)
+          `
+          const argsWithFuncs = args.map(arg => {
+            if (typeof arg === 'object' && arg?.isFunction) {
+              return async (...args) => {
+                return await window._pleasantestCallFunction(arg.id, args);
+              }
+            }
+            return arg
+          })
+          window._pleasantestArgs = argsWithFuncs;
+          return import(${JSON.stringify(url)})
+            .then(async mod => {
+              window._pleasantestArgs = undefined;
+              return { success: true, result: { ...mod } }
             })
-            .catch(e =>
-             e instanceof Error
-               ? { message: e.message, stack: e.stack }
-               : e)`,
+            .catch(e => ({
+              success: false,
+              result: e instanceof Error ? { message: e.message, stack: e.stack } : e
+            }))`,
         ) as () => any,
         ...(Array.isArray(argsWithFuncsAsObjs)
           ? (argsWithFuncsAsObjs as any)
           : []),
       );
 
+      const { success, result } = Object.fromEntries(
+        await outputHandle.getProperties(),
+      );
+
       const errorsFromBuild = buildStatus.complete();
       // It only throws the first one but that is probably OK
       if (errorsFromBuild) throw errorsFromBuild[0];
 
-      await sourceMapErrorFromBrowser(res, requestCache, port, runJS);
+      if (await success.jsonValue())
+        return Object.fromEntries(await result.getProperties()) as any;
+      await sourceMapErrorFromBrowser(
+        await result.jsonValue(),
+        requestCache,
+        port,
+        runJS,
+      );
+      throw await result.jsonValue();
     }, runJS);
 
   const injectHTML: PleasantestUtils['injectHTML'] = (html) =>
@@ -495,5 +514,6 @@ export {
   accessibilityTreeSnapshotSerializer,
 } from './accessibility/index.js';
 
+export { makeCallableJSHandle } from './utils.js';
 export { type PleasantestUser } from './user.js';
 export { type WaitForOptions } from './pptr-testing-library.js';

@@ -1,6 +1,6 @@
 import aliasPlugin from '@rollup/plugin-alias';
 import { babel } from '@rollup/plugin-babel';
-import { withBrowser } from 'pleasantest';
+import { makeCallableJSHandle, withBrowser } from 'pleasantest';
 import type { PleasantestContext, PleasantestUtils } from 'pleasantest';
 import sveltePlugin from 'rollup-plugin-svelte';
 import vuePlugin from 'rollup-plugin-vue';
@@ -46,18 +46,28 @@ test(
 
     await utils.runJS(
       `
-      export default async (mockFuncA, mockFuncB) => {
-        const val = await mockFuncA('hello world')
-        if (val !== 5) throw new Error('Did not get return value');
-        await mockFuncB()
-      }
-    `,
+      const [mockFuncA, mockFuncB] = import.meta.pleasantestArgs;
+      const val = await mockFuncA('hello world');
+      if (val !== 5) throw new Error('Did not get return value');
+      await mockFuncB()
+      `,
       [mockFuncA, mockFuncB],
     );
 
     expect(mockFuncA).toHaveBeenCalledTimes(1);
-    expect(mockFuncA).toHaveBeenCalledWith('hello world');
+    expect(mockFuncA.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          "hello world",
+        ],
+      ]
+    `);
     expect(mockFuncB).toHaveBeenCalledTimes(1);
+    expect(mockFuncB.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [],
+      ]
+    `);
   }),
 );
 
@@ -67,14 +77,13 @@ test(
     const heading = await createHeading({ utils, screen });
     await utils.runJS(
       `
-        export default (heading, object) => {
-          if (heading.outerHTML !== "<h1>I'm a heading</h1>") {
-            throw new Error('element was not passed correctly')
-          }
-          if (object.some.serializable.value !== false) {
-            throw new Error('object was not passed correctly')
-          }
-        }
+      const [heading, object] = import.meta.pleasantestArgs
+      if (heading.outerHTML !== "<h1>I'm a heading</h1>") {
+        throw new Error('element was not passed correctly')
+      }
+      if (object.some.serializable.value !== false) {
+        throw new Error('object was not passed correctly')
+      }
       `,
       [heading, { some: { serializable: { value: false } } }],
     );
@@ -117,6 +126,44 @@ describe('Waiting for Promises in executed code', () => {
     }),
   );
 });
+
+test(
+  'runJS returns exported values, and allows calling returned functions',
+  withBrowser(async ({ utils }) => {
+    const result = await utils.runJS<{
+      a: number;
+      default: string;
+      b: (
+        arg1: number,
+        arg2: { test: 'object' },
+      ) => ['it worked', typeof arg1, typeof arg2];
+    }>(`
+      export const a = 25;
+      export default "hi"
+      export const b = (arg1, arg2) => {
+        return ['it worked!', arg1, arg2]
+      }
+    `);
+    expect(Object.keys(result).sort()).toStrictEqual(['a', 'b', 'default']);
+    expect(result.a.toString()).toEqual('JSHandle:25');
+    expect(result.b.toString()).toEqual('JSHandle@function');
+    expect(result.default.toString()).toEqual('JSHandle:hi');
+
+    expect(await result.a.jsonValue()).toStrictEqual(25);
+    expect(await result.b.jsonValue()).toStrictEqual({}); // function is not JSON-serializable
+    expect(await result.default.jsonValue()).toStrictEqual('hi');
+
+    const b = makeCallableJSHandle(result.b);
+    const callResult = await b(37, { test: 'object' });
+
+    expect(callResult.toString()).toEqual('JSHandle@array');
+    expect(await callResult.jsonValue()).toStrictEqual([
+      'it worked!',
+      37,
+      { test: 'object' },
+    ]);
+  }),
+);
 
 test(
   'supports TS in snippet',
@@ -329,7 +376,7 @@ test(
   withBrowser(async ({ utils }) => {
     const runPromise = formatErrorWithCodeFrame(
       utils.runJS(`
-        import { foo } from 'something-not-existing'
+        import 'something-not-existing'
       `),
     );
 
@@ -343,7 +390,7 @@ test(
   'resolution error if a relative path does not exist',
   withBrowser(async ({ utils }) => {
     const runPromise = utils.runJS(`
-      import { foo } from './bad-relative-path'
+      import './bad-relative-path'
     `);
 
     await expect(
@@ -481,6 +528,7 @@ describe('Ecosystem interoperability', () => {
     withBrowser(async ({ utils }) => {
       const runPromise = utils.runJS(`
         import CounterComponent from './svelte-component.svelte'
+        window._ = CounterComponent; // so that the import does not get removed by TS transpilation
       `);
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
