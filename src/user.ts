@@ -109,7 +109,12 @@ export const pleasantestUser = async (
       await el
         .evaluateHandle(
           runWithUtils(
-            (utils, clickEl, force: boolean, targetSize?: boolean | number) => {
+            (
+              utils,
+              clickEl: Element,
+              force: boolean,
+              targetSize?: boolean | number,
+            ) => {
               utils.assertAttached(clickEl);
               if (!force) {
                 if (targetSize !== false) {
