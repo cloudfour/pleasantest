@@ -1,6 +1,6 @@
 import type polka from 'polka';
 
-const defaultHTML = `
+export const defaultHTML = (bodyContent: string) => `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,11 +9,7 @@ const defaultHTML = `
     <link rel="icon" href="data:;base64,=" />
     <title>pleasantest</title>
   </head>
-  <body>
-    <h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
-      Your test will run here
-    </h1>
-  </body>
+  <body>${bodyContent}</body>
 </html>
 `;
 
@@ -24,6 +20,10 @@ export const indexHTMLMiddleware: polka.Middleware = (req, res, next) => {
   }
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/html');
-  res.write(defaultHTML);
+  res.write(
+    defaultHTML(`<h1 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
+        Your test will run here
+      </h1>`),
+  );
   res.end();
 };

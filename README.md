@@ -738,7 +738,7 @@ test(
 );
 ```
 
-#### `PleasantestUtils.injectHTML(html: string): Promise<void>`
+#### `PleasantestUtils.injectHTML(html: string, options?: { executeScriptTags: boolean }): Promise<void>`
 
 Set the contents of `document.body`.
 
@@ -752,6 +752,15 @@ test(
       <h1>Hi</h1>
     `);
   }),
+);
+```
+
+By default, `injectHTML` executes scripts in the injected markup. This can be disabled by passing the `executeScriptTags: false` option as the second parameter.
+
+```js
+await utils.injectHTML(
+  "<script>document.querySelector('div').textContent = 'changed'</script>",
+  { executeScriptTags: false },
 );
 ```
 
