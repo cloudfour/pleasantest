@@ -113,7 +113,7 @@ test(
 
 #### Option 2: Injecting HTML content
 
-If you have the HTML content available as a string, you can use that as well, using [`utils.injectHTML`](#pleasantestutilsinjecthtmlhtml-string-promisevoid):
+If you have the HTML content available as a string, you can use that as well, using [`utils.injectHTML`](#pleasantestutilsinjecthtmlhtml-string-options--executescripttags-boolean--promisevoid):
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -738,7 +738,7 @@ test(
 );
 ```
 
-#### `PleasantestUtils.injectHTML(html: string, options?: { executeScriptTags: boolean }): Promise<void>`
+#### `PleasantestUtils.injectHTML(html: string, options?: { executeScriptTags?: boolean }): Promise<void>`
 
 Set the contents of `document.body`.
 
