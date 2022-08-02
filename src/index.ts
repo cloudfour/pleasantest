@@ -69,7 +69,7 @@ export interface PleasantestContext {
 
 export interface WithBrowserOpts {
   headless?: boolean;
-  device?: puppeteer.devices.Device;
+  device?: puppeteer.Device;
   moduleServer?: ModuleServerOpts;
   user?: UserOpts;
 }
@@ -333,7 +333,7 @@ const createTab = async ({
   const runJS: PleasantestUtils['runJS'] = (code, args) =>
     asyncHookTracker.addHook(async () => {
       await page
-        .exposeFunction('pleasantest_callFunction', (id, args) =>
+        .exposeFunction('pleasantest_callFunction', (id: any, args: any) =>
           functionArgs[id](...args),
         )
         .catch((error) => {

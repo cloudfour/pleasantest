@@ -1,4 +1,4 @@
-import type { ElementHandle, JSHandle, Page } from 'puppeteer';
+import type { ElementHandle, JSHandle, KeyInput, Page } from 'puppeteer';
 
 import type { AsyncHookTracker } from './async-hooks.js';
 import { createClientRuntimeServer } from './module-server/client-runtime-server.js';
@@ -325,7 +325,7 @@ Element must be an <input> or <textarea> or an element with the contenteditable 
 // Note: command chunks are already lowercased so it is not case-sensitive
 // left side: command
 // right side: passed to pptr keyboard.press, full list at https://github.com/puppeteer/puppeteer/blob/main/src/common/USKeyboardLayout.ts
-const typeCommandsMap: Record<string, string> = {
+const typeCommandsMap: Record<string, KeyInput | undefined> = {
   '{enter}': 'Enter',
   '{arrowleft}': 'ArrowLeft',
   '{arrowright}': 'ArrowRight',

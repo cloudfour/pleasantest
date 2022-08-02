@@ -148,7 +148,7 @@ test(
     await expect(await screen.getByText(productsText)).not.toBeVisible();
     await expect(await screen.getByText(aboutText)).toBeVisible();
     // Click near the bottom of the screen (outside the menu), and the menu should close
-    await page.mouse.click(page.viewport().width / 2, page.viewport().height);
+    await page.mouse.click(page.viewport()!.width / 2, page.viewport()!.height);
     await expect(await screen.getByText(aboutText)).not.toBeVisible();
   }),
 );
@@ -219,7 +219,7 @@ test(
     await user.click(toggleMenuBtn);
 
     // Click near the bottom of the screen (outside the menu), and the menu should close
-    await page.mouse.click(page.viewport().width / 2, page.viewport().height);
+    await page.mouse.click(page.viewport()!.width / 2, page.viewport()!.height);
     await expect(aboutBtn).not.toBeVisible();
   }),
 );

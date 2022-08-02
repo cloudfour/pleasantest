@@ -273,30 +273,31 @@ export const waitFor: WaitFor = async (
 
     await page.exposeFunction(browserFuncName, cb);
 
-    const evalResult = await page.evaluateHandle(
-      // Using new Function to avoid babel transpiling the import
-      // @ts-expect-error pptr's types don't like new Function
-      new Function(
-        'opts',
-        'container',
-        `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
-        .then(async ({ waitFor }) => {
-          try {
-            const result = await waitFor(${browserFuncName}, { ...opts, container })
-            return { success: true, result }
-          } catch (error) {
-            if (/timed out in waitFor/i.test(error.message)) {
-              // Leave out stack trace so the stack trace is given from Node
-              return { success: false, result: { message: error.message } }
+    const evalResult: JSHandle<{ result: any; success: boolean }> =
+      await page.evaluateHandle(
+        // Using new Function to avoid babel transpiling the import
+        // @ts-expect-error pptr's types don't like new Function
+        new Function(
+          'opts',
+          'container',
+          `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
+          .then(async ({ waitFor }) => {
+            try {
+              const result = await waitFor(${browserFuncName}, { ...opts, container })
+              return { success: true, result }
+            } catch (error) {
+              if (/timed out in waitFor/i.test(error.message)) {
+                // Leave out stack trace so the stack trace is given from Node
+                return { success: false, result: { message: error.message } }
+              }
+              return { success: false, result: error }
             }
-            return { success: false, result: error }
-          }
-        })`,
-      ),
-      opts,
-      // Container has to be passed separately because puppeteer won't unwrap nested JSHandles
-      container,
-    );
+          })`,
+        ),
+        opts,
+        // Container has to be passed separately because puppeteer won't unwrap nested JSHandles
+        container,
+      );
     const wasSuccessful = await evalResult.evaluate((r) => r.success);
     const result = await evalResult.evaluate((r) =>
       r.success
