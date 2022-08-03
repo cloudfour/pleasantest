@@ -103,7 +103,13 @@ expect.addSnapshotSerializer(accessibilityTreeSnapshotSerializer);
 // Based on https://github.com/WordPress/gutenberg/blob/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe/src/index.js
 
 /** Formats the list of violations object returned by Axe analysis. */
-async function formatViolations(violations: axe.Result[], page: Page) {
+async function formatViolations(
+  violations: axe.Result[],
+  page: Page,
+): Promise<{
+  messageWithElementsStringified: string;
+  messageWithElementsRevived: unknown[];
+}> {
   const { port } = await createClientRuntimeServer();
   const formattedHandle = await page.evaluateHandle((violations) => {
     const output: (string | Element)[] = [];
@@ -187,7 +193,7 @@ Affected Nodes:
 
   return {
     messageWithElementsStringified:
-      (await messageWithElementsStringified.jsonValue()) as string,
+      await messageWithElementsStringified.jsonValue(),
     messageWithElementsRevived: await jsHandleToArray(
       messageWithElementsRevived,
     ),

@@ -11,7 +11,6 @@
       "pleasantest": ["./src/index.ts"],
 
       // These dependencies have export maps but don't have their types defined inside the export maps
-      "puppeteer": ["./node_modules/@types/puppeteer/index.d.ts"],
       "errorstacks": ["./node_modules/errorstacks/dist/types/index.d.ts"],
       "dom-accessibility-api": [
         "./node_modules/dom-accessibility-api/dist/index.d.ts"

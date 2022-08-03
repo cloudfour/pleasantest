@@ -125,14 +125,14 @@ Received ${this.utils.printReceived(arg)}`,
       // Whether the matcher threw (this is different from the matcher failing)
       // The matcher failing means that it returned a result for Jest to throw
       // But a matcher throwing means that the input was invalid or something
-      const thrownError = await result.evaluate((result) => result.thrown);
+      const thrownError = await result.evaluate((result: any) => result.thrown);
 
       // We have to evaluate the message right away
       // because Jest does not accept a promise from the returned message property
       const message = await result.evaluate(
         thrownError
-          ? (matcherResult) => matcherResult.error.message
-          : (matcherResult) => matcherResult.message(),
+          ? (matcherResult: any) => matcherResult.error.message
+          : (matcherResult: any) => matcherResult.message(),
       );
       const deserializedMessage = runJestUtilsInNode(message, this as any);
       const { messageWithElementsRevived, messageWithElementsStringified } =
