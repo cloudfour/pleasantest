@@ -114,7 +114,7 @@ test(
 
 #### Option 2: Injecting HTML content
 
-If you have the HTML content available as a string, you can use that as well, using [`utils.injectHTML`](#pleasantestutilsinjecthtmlhtml-string-promisevoid):
+If you have the HTML content available as a string, you can use that as well, using [`utils.injectHTML`](#pleasantestutilsinjecthtmlhtml-string-options--executescripttags-boolean--promisevoid):
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -795,7 +795,7 @@ test(
 );
 ```
 
-#### `PleasantestUtils.injectHTML(html: string): Promise<void>`
+#### `PleasantestUtils.injectHTML(html: string, options?: { executeScriptTags?: boolean }): Promise<void>`
 
 Set the contents of `document.body`.
 
@@ -809,6 +809,15 @@ test(
       <h1>Hi</h1>
     `);
   }),
+);
+```
+
+By default, `injectHTML` executes scripts in the injected markup. This can be disabled by passing the `executeScriptTags: false` option as the second parameter.
+
+```js
+await utils.injectHTML(
+  "<script>document.querySelector('div').textContent = 'changed'</script>",
+  { executeScriptTags: false },
 );
 ```
 

@@ -15,6 +15,7 @@ import { createBuildStatusTracker } from './module-server/build-status-tracker.j
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server.js';
 import type { ModuleServerOpts } from './module-server/index.js';
 import { createModuleServer } from './module-server/index.js';
+import { defaultHTML } from './module-server/middleware/index-html.js';
 import type { BoundQueries, WaitForOptions } from './pptr-testing-library.js';
 import {
   getQueriesForElement,
@@ -51,7 +52,10 @@ export interface PleasantestUtils {
   injectCSS(css: string): Promise<void>;
 
   /** Set the contents of document.body */
-  injectHTML(html: string): Promise<void>;
+  injectHTML(
+    html: string,
+    opts?: { executeScriptTags?: boolean },
+  ): Promise<void>;
 
   /** Load a CSS (or Sass, Less, etc.) file into the browser. Pass a path that will be resolved from your test file. */
   loadCSS(cssPath: string): Promise<void>;
@@ -405,12 +409,25 @@ const createTab = async ({
       throw await result.jsonValue();
     }, runJS);
 
-  const injectHTML: PleasantestUtils['injectHTML'] = (html) =>
+  const injectHTML: PleasantestUtils['injectHTML'] = (
+    html,
+    { executeScriptTags = true } = {},
+  ) =>
     asyncHookTracker.addHook(
       () =>
-        page.evaluate((html) => {
-          document.body.innerHTML = html;
-        }, html),
+        page.evaluate(
+          (html, executeScriptTags) => {
+            if (executeScriptTags) {
+              document.open();
+              document.write(html);
+              document.close();
+            } else {
+              document.documentElement.innerHTML = html;
+            }
+          },
+          defaultHTML(html),
+          executeScriptTags,
+        ),
       injectHTML,
     );
 
