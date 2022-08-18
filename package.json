@@ -82,7 +82,7 @@
     "esbuild": "^0.14.54",
     "mime": "^3.0.0",
     "postcss": "^8.4.16",
-    "puppeteer": "^13.5.2",
+    "puppeteer": "^13.7.0",
     "rollup": "^2.77.2",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
