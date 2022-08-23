@@ -4,7 +4,6 @@ import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 
-import { rollupPluginAriaQuery } from '../rollup-plugin-aria-query.js';
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
@@ -56,7 +55,6 @@ const removeCloneNodePlugin = {
 const config = {
   input: ['src/pptr-testing-library-client/index.ts'],
   plugins: [
-    rollupPluginAriaQuery(),
     rollupPluginDomAccessibilityApi(),
     stubPlugin,
     babel({ babelHelpers: 'bundled', extensions }),

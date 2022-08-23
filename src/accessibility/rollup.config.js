@@ -1,6 +1,6 @@
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import * as r from 'aria-query';
+import * as ariaQuery from 'aria-query';
 import { terser } from 'rollup-plugin-terser';
 
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
@@ -19,7 +19,7 @@ const requiredOwnedElementsPlugin = () => ({
   load(id) {
     if (id !== 'generated:requiredOwnedElements') return;
     let output = 'export default new Map([\n';
-    for (const [role, data] of r.roles) {
+    for (const [role, data] of ariaQuery.roles.entries()) {
       if (data.requiredOwnedElements.length > 0) {
         // Some of the sub-arrays have two items,
         // which means that the outer element owns elements

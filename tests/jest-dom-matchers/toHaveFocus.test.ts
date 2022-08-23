@@ -15,9 +15,7 @@ test(
       .toThrowErrorMatchingInlineSnapshot(`
             "[2mexpect([22m[31melement[39m[2m).not.toHaveFocus()[22m
 
-            Expected element with focus:
-              [32m<input type=\\"text\\" data-testid=\\"element-to-focus\\" />[39m
-            Received element with focus:
+            Received element is focused:
               [31m<input type=\\"text\\" data-testid=\\"element-to-focus\\" />[39m"
           `);
 
