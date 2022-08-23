@@ -83,7 +83,7 @@ const config = {
       keep_fnames: /^to/,
     }),
   ],
-  external: ['css'],
+  external: ['@adobe/css-tools'],
   treeshake: { moduleSideEffects: 'no-external' },
   output: { file: 'dist/jest-dom.js' },
 };

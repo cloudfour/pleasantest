@@ -42,12 +42,12 @@ test(
         exact: true,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Expected the element to have EXACTLY defined classes
+            "[2mexpect([22m[31melement[39m[2m).toHaveClass([22m[32m[32m\\"btn-danger extra\\"[39m[32m[39m[2m)[22m
 
-            btn-danger extra:
-            [32m  Received[39m
-            btn extra btn-danger:
-            [31m  null[39m"
+            Expected the element to have EXACTLY defined classes:
+            [32m  btn-danger extra[39m
+            Received:
+            [31m  btn extra btn-danger[39m"
           `);
 
     await expect(deleteButton).not.toHaveClass('btn-danger extra', {
