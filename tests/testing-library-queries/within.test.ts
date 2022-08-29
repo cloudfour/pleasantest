@@ -1,4 +1,3 @@
-import type { ElementHandle } from 'pleasantest';
 import { withBrowser } from 'pleasantest';
 
 test(
@@ -33,10 +32,9 @@ test(
       name: /checkout/i,
     });
 
-    const checkoutContainer =
-      await checkoutHeading.evaluateHandle<ElementHandle>(
-        (heading) => heading.parentElement,
-      );
+    const checkoutContainer = await checkoutHeading.evaluateHandle(
+      (heading) => heading.parentElement!,
+    );
 
     const checkoutQueries = within(checkoutContainer);
 

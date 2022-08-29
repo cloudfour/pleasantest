@@ -125,14 +125,12 @@ export const getQueriesForElement = (
 
         const { port } = await serverPromise;
 
-        const result: JSHandle<Element | Element[] | DTLError | null> =
-          await page.evaluateHandle(
-            // Using new Function to avoid babel transpiling the import
-            // @ts-expect-error pptr's types don't like new Function
-            new Function(
-              'argsString',
-              'element',
-              `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
+        const result = await page.evaluateHandle(
+          // Using new Function to avoid babel transpiling the import
+          new Function(
+            'argsString',
+            'element',
+            `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
                 .then(async ({ reviveElementsInString, printElement, addToElementCache, ...dtl }) => {
                   const deserializedArgs = JSON.parse(argsString, (key, value) => {
                     if (value.__serialized === 'RegExp')
@@ -158,13 +156,14 @@ export const getQueriesForElement = (
                     return { failed: true, messageWithElementsRevived, messageWithElementsStringified }
                   }
                 })`,
-            ),
-            serializedArgs,
-            element?.asElement() || (await page.evaluateHandle(() => document)),
-          );
+          ) as () => Element | Element[] | DTLError | null,
+          serializedArgs,
+          element?.asElement() || (await page.evaluateHandle(() => document)),
+        );
 
-        const failed = await result.evaluate(
-          (r) => typeof r === 'object' && r !== null && (r as DTLError).failed,
+        const failed: boolean = await (result as any).evaluate(
+          (r: unknown) =>
+            typeof r === 'object' && r !== null && (r as DTLError).failed,
         );
         if (failed) {
           const resultProperties = Object.fromEntries(
@@ -183,9 +182,11 @@ export const getQueriesForElement = (
         }
 
         // If it returns a JSHandle<Array>, make it into an array of JSHandles so that using [0] for getAllBy* queries works
-        if (await result.evaluate((r) => Array.isArray(r))) {
+        if (await (result as any).evaluate((r: unknown) => Array.isArray(r))) {
           const array = Array.from({
-            length: await result.evaluate((r) => (r as Element[]).length),
+            length: await (result as JSHandle<Element[]>).evaluate(
+              (r) => r.length,
+            ),
           });
           const props = await result.getProperties();
           for (const [key, value] of props.entries()) {
@@ -273,14 +274,12 @@ export const waitFor: WaitFor = async (
 
     await page.exposeFunction(browserFuncName, cb);
 
-    const evalResult: JSHandle<{ result: any; success: boolean }> =
-      await page.evaluateHandle(
-        // Using new Function to avoid babel transpiling the import
-        // @ts-expect-error pptr's types don't like new Function
-        new Function(
-          'opts',
-          'container',
-          `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
+    const evalResult = await page.evaluateHandle(
+      // Using new Function to avoid babel transpiling the import
+      new Function(
+        'opts',
+        'container',
+        `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
           .then(async ({ waitFor }) => {
             try {
               const result = await waitFor(${browserFuncName}, { ...opts, container })
@@ -293,11 +292,11 @@ export const waitFor: WaitFor = async (
               return { success: false, result: error }
             }
           })`,
-        ),
-        opts,
-        // Container has to be passed separately because puppeteer won't unwrap nested JSHandles
-        container,
-      );
+      ) as () => { result: any; success: boolean },
+      opts,
+      // Container has to be passed separately because puppeteer won't unwrap nested JSHandles
+      container,
+    );
     const wasSuccessful = await evalResult.evaluate((r) => r.success);
     const result = await evalResult.evaluate((r) =>
       r.success

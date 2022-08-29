@@ -101,7 +101,6 @@ Received ${this.utils.printReceived(arg)}`,
       const ctxString = JSON.stringify(this); // Contains stuff like isNot and promise
       const result = await elementHandle.evaluateHandle(
         // Using new Function to avoid babel transpiling the import
-        // @ts-expect-error pptr's types don't like new Function
         new Function(
           'element',
           '...matcherArgs',
@@ -117,7 +116,7 @@ Received ${this.utils.printReceived(arg)}`,
               return { thrown: true, error }
             }
           })`,
-        ),
+        ) as () => any,
         elementHandle,
         ...matcherArgs.map((arg) => (isJSHandle(arg) ? arg : serialize(arg))),
       );
@@ -138,7 +137,6 @@ Received ${this.utils.printReceived(arg)}`,
       const { messageWithElementsRevived, messageWithElementsStringified } =
         await elementHandle
           .evaluateHandle(
-            // @ts-expect-error pptr's types don't like new Function
             new Function(
               'el',
               'message',
@@ -153,7 +151,7 @@ Received ${this.utils.printReceived(arg)}`,
                   .join('')
                   return { messageWithElementsRevived, messageWithElementsStringified }
                 })`,
-            ),
+            ) as (el: Element, message: string) => any,
             deserializedMessage,
           )
           .then(async (returnHandle) => {
@@ -178,7 +176,7 @@ Received ${this.utils.printReceived(arg)}`,
       }
 
       return {
-        ...((await result.jsonValue()) as any),
+        ...(await result.jsonValue()),
         message: () => messageWithElementsStringified,
         messageForBrowser: messageWithElementsRevived,
       };
