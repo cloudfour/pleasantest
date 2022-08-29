@@ -176,7 +176,7 @@ Received ${this.utils.printReceived(arg)}`,
       }
 
       return {
-        ...((await result.jsonValue()) as any),
+        ...(await result.jsonValue()),
         message: () => messageWithElementsStringified,
         messageForBrowser: messageWithElementsRevived,
       };
