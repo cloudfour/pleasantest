@@ -1,5 +1,5 @@
 import type axe from 'axe-core';
-import type { ElementHandle, Page, Serializable } from 'puppeteer';
+import type { ElementHandle, Page } from 'puppeteer';
 
 import type { AsyncHookTracker } from '../async-hooks.js';
 import { activeAsyncHookTrackers } from '../async-hooks.js';
@@ -10,6 +10,19 @@ import {
   printColorsInErrorMessages,
   removeFuncFromStackTrace,
 } from '../utils.js';
+
+type JSONArray = Serializable[];
+interface JSONObject {
+  [key: string]: Serializable;
+}
+type Serializable =
+  | number
+  | string
+  | boolean
+  | null
+  | BigInt
+  | JSONArray
+  | JSONObject;
 
 const accessibilityTreeSymbol: unique symbol = Symbol('PT Accessibility Tree');
 
@@ -39,7 +52,7 @@ const getAccessibilityTree = async (
     typeof element === 'object' &&
     element.constructor.name === 'Page'
   ) {
-    element = await element.evaluateHandle<ElementHandle>(
+    element = await (element as Page).evaluateHandle(
       () => document.documentElement,
     );
   }
@@ -48,15 +61,14 @@ const getAccessibilityTree = async (
 
   const { port } = await serverPromise;
 
-  const result: string = await element.evaluate(
+  const result = await element.evaluate(
     // Using new Function to avoid babel transpiling the import
-    // @ts-expect-error pptr's types don't like new Function
     new Function(
       'element',
       'options',
       `return import("http://localhost:${port}/@pleasantest/accessibility")
         .then(accessibility => accessibility.getAccessibilityTree(element, options))`,
-    ),
+    ) as (element: Element, options: AccessibilityTreeOptions) => string,
     options,
   );
 
@@ -156,11 +168,10 @@ Affected Nodes:
       }
     }
     return output;
-  }, violations as unknown as Serializable);
+  }, violations);
 
   const outputHandle = await page.evaluateHandle(
     // Using new Function to avoid babel transpiling the import
-    // @ts-expect-error pptr's types don't like new Function
     new Function(
       'formattedArr',
       `return import("http://localhost:${port}/@pleasantest/accessibility")
@@ -184,12 +195,12 @@ Affected Nodes:
 
           return { messageWithElementsStringified, messageWithElementsRevived };
         })`,
-    ),
+    ) as () => any,
     formattedHandle,
   );
 
   const { messageWithElementsRevived, messageWithElementsStringified } =
-    Object.fromEntries(await outputHandle.getProperties());
+    Object.fromEntries(await outputHandle.getProperties()) as any;
 
   return {
     messageWithElementsStringified:

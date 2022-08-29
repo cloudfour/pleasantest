@@ -1,4 +1,3 @@
-import type { ElementHandle } from 'pleasantest';
 import { getAccessibilityTree, withBrowser } from 'pleasantest';
 
 test(
@@ -6,7 +5,7 @@ test(
   withBrowser(async ({ utils, page, screen }) => {
     await utils.injectHTML(`<ul></ul>`);
     await page.evaluate(() => (document.title = 'example title'));
-    const htmlElement = await page.evaluateHandle<ElementHandle>(
+    const htmlElement = await page.evaluateHandle(
       () => document.documentElement,
     );
     expect(String(await getAccessibilityTree(htmlElement))).toEqual(

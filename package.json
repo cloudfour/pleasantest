@@ -9,8 +9,8 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@axe-core/puppeteer": "^4.4.2",
-    "axe-core": "^4.4.2"
+    "@axe-core/puppeteer": "^4.4.4",
+    "axe-core": "^4.4.3"
   },
   "peerDependenciesMeta": {
     "@axe-core/puppeteer": {
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@ampproject/remapping": "2.2.0",
-    "@axe-core/puppeteer": "4.4.3",
+    "@axe-core/puppeteer": "4.4.4",
     "@babel/core": "7.16.7",
     "@babel/preset-env": "7.16.8",
     "@babel/preset-typescript": "7.16.7",
@@ -82,7 +82,7 @@
     "esbuild": "^0.15.5",
     "mime": "^3.0.0",
     "postcss": "^8.4.16",
-    "puppeteer": "^13.5.2",
+    "puppeteer": "^16.2.0",
     "rollup": "^2.77.2",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
