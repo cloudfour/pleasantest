@@ -138,6 +138,21 @@ test(
 );
 
 test(
+  'Whitespace is normalized in element names',
+  withBrowser(async ({ utils, page }) => {
+    // https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion
+    await utils.injectHTML(
+      `<button>Between these words is a ->\u00A0<- nbsp</button>`,
+    );
+    // The nbsp is normalized to a space so in the snapshot it is just a space
+    expect(await getAccessibilityTree(page)).toMatchInlineSnapshot(`
+      document "pleasantest"
+        button "Between these words is a -> <- nbsp"
+    `);
+  }),
+);
+
+test(
   'hidden elements are excluded',
   withBrowser(async ({ utils, page }) => {
     // https://www.w3.org/TR/wai-aria-1.2/#tree_exclusion

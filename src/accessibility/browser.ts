@@ -112,7 +112,7 @@ export const getAccessibilityTree = (
     );
   let text = (selfIsInAccessibilityTree && role) || '';
   if (selfIsInAccessibilityTree) {
-    let name = computeAccessibleName(element);
+    let name = computeAccessibleName(element).replace(/\s+/g, ' ');
     if (
       element === document.documentElement &&
       role === 'document' &&
