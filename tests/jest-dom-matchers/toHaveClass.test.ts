@@ -19,13 +19,13 @@ test(
     await expect(deleteButton).not.toHaveClass('btn-link');
     await expect(expect(deleteButton).toHaveClass('btn-link')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveClass([22m[32m[32m\\"btn-link\\"[39m[32m[39m[2m)[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveClass([22m[32m[32m"btn-link"[39m[32m[39m[2m)[22m
 
-            Expected the element to have class:
-            [32m  btn-link[39m
-            Received:
-            [31m  btn extra btn-danger[39m"
-          `);
+      Expected the element to have class:
+      [32m  btn-link[39m
+      Received:
+      [31m  btn extra btn-danger[39m"
+    `);
 
     await expect(deleteButton).toHaveClass('btn-danger extra btn', {
       // To check if the element has EXACTLY a set of classes
@@ -42,13 +42,13 @@ test(
         exact: true,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveClass([22m[32m[32m\\"btn-danger extra\\"[39m[32m[39m[2m)[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveClass([22m[32m[32m"btn-danger extra"[39m[32m[39m[2m)[22m
 
-            Expected the element to have EXACTLY defined classes:
-            [32m  btn-danger extra[39m
-            Received:
-            [31m  btn extra btn-danger[39m"
-          `);
+      Expected the element to have EXACTLY defined classes:
+      [32m  btn-danger extra[39m
+      Received:
+      [31m  btn extra btn-danger[39m"
+    `);
 
     await expect(deleteButton).not.toHaveClass('btn-danger extra', {
       // If it has more than expected it is going to fail

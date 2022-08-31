@@ -62,7 +62,7 @@ describe('printElement', () => {
     outerEl.style.whiteSpace = 'pre';
     // eslint-disable-next-line @cloudfour/unicorn/template-indent
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
-      "<div style=\\"white-space: pre;\\">
+      "<div style="white-space: pre;">
         first
         
           
@@ -73,7 +73,7 @@ describe('printElement', () => {
     outerEl.style.whiteSpace = 'pre-line';
     // eslint-disable-next-line @cloudfour/unicorn/template-indent
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
-      "<div style=\\"white-space: pre-line;\\">
+      "<div style="white-space: pre-line;">
         first
         
          
@@ -122,7 +122,7 @@ describe('printElement', () => {
     const outerEl = document.createElement('div');
     outerEl.dataset.asdf = 'foo';
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(
-      `"<div data-asdf=\\"foo\\" />"`,
+      `"<div data-asdf="foo" />"`,
     );
   });
   it('formats > 2 attributes on multiple lines', () => {
@@ -132,9 +132,9 @@ describe('printElement', () => {
     outerEl.setAttribute('style', 'background: green');
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div
-        data-asdf=\\"foo\\"
-        class=\\"class\\"
-        style=\\"background: green\\"
+        data-asdf="foo"
+        class="class"
+        style="background: green"
       />"
     `);
   });
@@ -146,9 +146,9 @@ describe('printElement', () => {
     outerEl.setAttribute('style', 'background: green');
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(`
       "<div
-        data-asdf=\\"foo\\"
-        class=\\"class\\"
-        style=\\"background: green\\"
+        data-asdf="foo"
+        class="class"
+        style="background: green"
       >
         content
       </div>"
@@ -159,7 +159,7 @@ describe('printElement', () => {
     outerEl.setAttribute('required', '');
     outerEl.setAttribute('value', '');
     expect(printElement(outerEl, false)).toMatchInlineSnapshot(
-      `"<input required value=\\"\\" />"`,
+      `"<input required value="" />"`,
     );
   });
   it('truncates long attributes', () => {
@@ -169,14 +169,14 @@ describe('printElement', () => {
       'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     );
     expect(printElement(el, false)).toMatchInlineSnapshot(
-      `"<a href=\\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[...]\\" />"`,
+      `"<a href="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[...]" />"`,
     );
   });
   it('truncates <path d="..." /> very short', () => {
     const el = document.createElement('path');
     el.setAttribute('d', 'svgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvgsvg');
     expect(printElement(el, false)).toMatchInlineSnapshot(
-      `"<path d=\\"svgsvgsvgsvgsvgsvgsvgsvgsvgsvg[...]\\" />"`,
+      `"<path d="svgsvgsvgsvgsvgsvgsvgsvgsvgsvg[...]" />"`,
     );
   });
 });

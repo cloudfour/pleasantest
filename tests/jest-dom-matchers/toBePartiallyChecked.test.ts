@@ -47,10 +47,10 @@ test(
     await expect(inputCheckboxIndeterminate).toBePartiallyChecked();
     await expect(expect(inputCheckboxIndeterminate).not.toBePartiallyChecked())
       .rejects.toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).not.toBePartiallyChecked()[22m
+      "[2mexpect([22m[31melement[39m[2m).not.toBePartiallyChecked()[22m
 
-            Received element is partially checked:
-              [31m<input type=\\"checkbox\\" data-testid=\\"input-checkbox-indeterminate\\" />[39m"
-          `);
+      Received element is partially checked:
+        [31m<input type="checkbox" data-testid="input-checkbox-indeterminate" />[39m"
+    `);
   }),
 );

@@ -17,7 +17,7 @@ test(
     await expect(
       expect(button).toHaveStyle('display: none' as any),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"pleasantest only supports specifying expected styles as objects, received \\"display: none\\""`,
+      `"pleasantest only supports specifying expected styles as objects, received "display: none""`,
     );
     await expect(button).toHaveStyle({ display: 'none' });
     await expect(expect(button).toHaveStyle({ display: 'invalid' })).rejects
