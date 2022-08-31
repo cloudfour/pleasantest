@@ -20,4 +20,5 @@ module.exports = {
   // it must be transpiled to CJS
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!ansi-regex)'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  testTimeout: 10_000,
 };

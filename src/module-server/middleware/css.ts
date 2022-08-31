@@ -56,7 +56,11 @@ export const cssMiddleware = ({
           },
         };
         // We need to call the transform hook, but get the CSS out of it before it converts it to JS
-        const result = await cssPlug.transform.call(
+        const cssTransform =
+          'handler' in cssPlug.transform
+            ? cssPlug.transform.handler
+            : cssPlug.transform;
+        const result = await cssTransform.call(
           ctx as TransformPluginContext,
           code,
           id,
