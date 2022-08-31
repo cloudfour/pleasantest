@@ -1,32 +1,56 @@
 /*
  * Refactored based on https://github.com/preactjs/wmr/blob/main/packages/wmr/src/lib/rollup-plugin-container.js
+ * https://github.com/preactjs/wmr/blob/main/LICENSE
+ * MIT License
+ * Copyright (c) 2020 The Preact Authors
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 /*
-  https://github.com/preactjs/wmr/blob/main/LICENSE
-  MIT License
-  Copyright (c) 2020 The Preact Authors
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-  */
+ * Plugin ordering based on https://github.com/vitejs/vite/blob/main/packages/vite/src/node/server/pluginContainer.ts
+ * https://github.com/vitejs/vite/blob/main/LICENSE
+ *
+ * MIT License
+ *
+ * Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 /*
   Specific commit: https://github.com/preactjs/wmr/blob/7e653cd1000b40bca32ae824401d2ddd16807c8d/packages/wmr/src/lib/rollup-plugin-container.js
 
-  Differences from original:
+  Differences from WMR version:
   - Inline types added
   - ESLint fixes
   - WMR-specific debugging removed
@@ -37,6 +61,7 @@
   - Source map handling added to transform hook
   - Error handling (with code frame, using source maps) added to transform hook
   - Stubbed out options hook was added
+  - Added object-hooks support and plugin ordering (from Vite version)
   */
 
 import { dirname, resolve } from 'node:path';
@@ -160,7 +185,15 @@ export const createPluginContainer = (plugins: Plugin[]) => {
     ctx,
     async buildStart() {
       await Promise.all(
-        plugins.map((plugin) => plugin.buildStart?.call(ctx as any, {} as any)),
+        getSortedPluginsByHook('buildStart', plugins).map(async (plugin) => {
+          if (plugin.buildStart) {
+            const f =
+              'handler' in plugin.buildStart
+                ? plugin.buildStart.handler
+                : plugin.buildStart;
+            await f.call(ctx as any, {} as any);
+          }
+        }),
       );
     },
 
@@ -172,7 +205,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       const key = identifierPair(id, importer);
 
       const opts: { id?: string } = {};
-      for (const p of plugins) {
+      for (const p of getSortedPluginsByHook('resolveId', plugins)) {
         if (!p.resolveId) continue;
 
         if (_skip) {
@@ -185,7 +218,9 @@ export const createPluginContainer = (plugins: Plugin[]) => {
 
         let result;
         try {
-          result = await p.resolveId.call(ctx as any, id, importer, {
+          const f =
+            'handler' in p.resolveId ? p.resolveId.handler : p.resolveId;
+          result = await f.call(ctx as any, id, importer, {
             isEntry: false,
           });
         } finally {
@@ -218,10 +253,14 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       const sourceMaps: (DecodedSourceMap | RawSourceMap)[] = inputMap
         ? [typeof inputMap === 'string' ? JSON.parse(inputMap) : inputMap]
         : [];
-      for (plugin of plugins) {
+      for (plugin of getSortedPluginsByHook('transform', plugins)) {
         if (!plugin.transform) continue;
         try {
-          const result = await plugin.transform.call(ctx as any, code, id);
+          const f =
+            'handler' in plugin.transform
+              ? plugin.transform.handler
+              : plugin.transform;
+          const result = await f.call(ctx as any, code, id);
           if (!result) continue;
 
           if (typeof result === 'object') {
@@ -275,17 +314,21 @@ export const createPluginContainer = (plugins: Plugin[]) => {
     },
 
     async options() {
-      for (plugin of plugins) {
+      for (plugin of getSortedPluginsByHook('options', plugins)) {
         // Since we don't have "input options", we just pass {}
         // This hook must be called for @rollup/plugin-babel
-        await plugin.options?.call(ctx as any, {});
+        if (!plugin.options) continue;
+        const f =
+          'handler' in plugin.options ? plugin.options.handler : plugin.options;
+        await f.call(ctx as any, {});
       }
     },
 
     async load(id: string): Promise<LoadResult> {
-      for (plugin of plugins) {
+      for (plugin of getSortedPluginsByHook('load', plugins)) {
         if (!plugin.load) continue;
-        const result = await plugin.load.call(ctx as any, id);
+        const f = 'handler' in plugin.load ? plugin.load.handler : plugin.load;
+        const result = await f.call(ctx as any, id);
         if (result) {
           return result;
         }
@@ -316,4 +359,30 @@ export const createPluginContainer = (plugins: Plugin[]) => {
   };
 
   return container;
+};
+
+const getSortedPluginsByHook = (
+  hookName: keyof Plugin,
+  plugins: readonly Plugin[],
+): Plugin[] => {
+  const pre: Plugin[] = [];
+  const normal: Plugin[] = [];
+  const post: Plugin[] = [];
+  for (const plugin of plugins) {
+    const hook = plugin[hookName];
+    if (hook) {
+      if (typeof hook === 'object') {
+        if (hook.order === 'pre') {
+          pre.push(plugin);
+          continue;
+        }
+        if (hook.order === 'post') {
+          post.push(plugin);
+          continue;
+        }
+      }
+      normal.push(plugin);
+    }
+  }
+  return [...pre, ...normal, ...post];
 };

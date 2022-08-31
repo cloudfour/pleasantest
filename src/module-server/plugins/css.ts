@@ -52,7 +52,10 @@ export const cssPlugin = ({
   });
   // Adds .meta.css to returned object (for use in CSS middleware)
   if (returnCSS) {
-    const originalTranform = plugin.transform!;
+    const originalTranform =
+      'handler' in plugin.transform!
+        ? plugin.transform.handler
+        : plugin.transform!;
     plugin.transform = async function (code, id) {
       let result = await originalTranform.call(this, code, id);
       if (typeof result === 'string') result = { code: result, map: '' };
