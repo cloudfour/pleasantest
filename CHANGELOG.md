@@ -1,5 +1,172 @@
 # pleasantest
 
+## 3.0.0
+
+### Major Changes
+
+- [#561](https://github.com/cloudfour/pleasantest/pull/561) [`b565e0b`](https://github.com/cloudfour/pleasantest/commit/b565e0b64e535337ea5ac53c0c17fa7227861f0f) Thanks [@calebeby](https://github.com/calebeby)! - **Normalize whitespace in element accessible names in `getAccessibilityTree`**. Markup with elements which have an accessible name that includes irregular whitespace, like non-breaking spaces, will now have a different output for `getAccessibilityTree` snapshots. Previously, the whitespace was included, now, whitespace is replaced with a single space.
+
+* [#535](https://github.com/cloudfour/pleasantest/pull/535) [`dc6f81c`](https://github.com/cloudfour/pleasantest/commit/dc6f81cf054c9ae57ed0d7ca05a1b624e580f930) Thanks [@calebeby](https://github.com/calebeby)! - **Values exported from `runJS` are now available in Node.**
+
+  For example:
+
+  ```js
+  test(
+    'receiving exported values from runJS',
+    withBrowser(async ({ utils }) => {
+      // Each export is available in the returned object.
+      // Each export is wrapped in a JSHandle, meaning that it points to an in-browser object
+      const { focusTarget, favoriteNumber } = await utils.runJS(`
+        export const focusTarget = document.activeElement
+        export const favoriteNumber = 20
+      `);
+
+      // Serializable JSHandles can be unwrapped using JSONValue:
+      console.log(await favoriteNumber.jsonValue()); // Logs "20"
+
+      // A JSHandle<Element>, or ElementHandle is not serializable
+      // But we can pass it back into the browser to use it (it will be unwrapped in the browser):
+
+      await utils.runJS(
+        `
+        // The import.meta.pleasantestArgs context object receives the parameters passed in below
+        const [focusTarget] = import.meta.pleasantestArgs;
+        console.log(focusTarget) // Logs the element in the browser
+        `,
+        // Passing the JSHandle in here passes it into the browser (unwrapped) in import.meta.pleasantestArgs
+        [focusTarget],
+      );
+    }),
+  );
+  ```
+
+  We've also introduced a utility function to make it easier to call `JSHandle`s that point to functions, `makeCallableJSHandle`. This function takes a `JSHandle<Function>` and returns a node function that calls the corresponding browser function, passing along the parameters, and returning the return value wrapped in `Promise<JSHandle<T>>`:
+
+  ```js
+  // new import:
+  import { makeCallableJSHandle } from 'pleasantest';
+
+  test(
+    'calling functions with makeCallableJSHandle',
+    withBrowser(async ({ utils }) => {
+      const { displayFavoriteNumber } = await utils.runJS(`
+        export const displayFavoriteNumber = (number) => {
+          document.querySelector('.output').innerHTML = "Favorite number is: " + number
+        }
+      `);
+
+      // displayFavoriteNumber is a JSHandle<Function>
+      // (a pointer to a function in the browser)
+      // so we cannot call it directly, so we wrap it in a node function first:
+
+      const displayFavoriteNumberNode = makeCallableJSHandle(
+        displayFavoriteNumber,
+      );
+
+      // Note the added `await`.
+      // Even though the original function was not async, the wrapped function is.
+      // This is needed because the wrapped function needs to asynchronously communicate with the browser.
+      await displayFavoriteNumberNode(42);
+    }),
+  );
+  ```
+
+  For TypeScript users, `runJS` now accepts a new optional type parameter, to specify the exported types of the in-browser module that is passed in. The default value for this parameter is `Record<string, unknown>` (an object with string properties and unknown values). Note that this type does not include `JSHandles`, those are wrapped in the return type from `runJS` automatically.
+
+  Using the first example, the optional type would be:
+
+  ```ts
+  test(
+    'receiving exported values from runJS',
+    withBrowser(async ({ utils }) => {
+      const { focusTarget, favoriteNumber } = await utils.runJS<{
+        focusTarget: Element;
+        favoriteNumber: number;
+      }>(`
+        export const focusTarget = document.activeElement
+        export const favoriteNumber = 20
+      `);
+    }),
+  );
+  ```
+
+  Now `focusTarget` automatically has the type `JSHandle<Element>` and `favoriteNumber` automatically has the type `JSHandle<number>`. Without passing in the type parameter to `runJS`, their types would both be `JSHandle<unknown>`.
+
+- [#541](https://github.com/cloudfour/pleasantest/pull/541) [`39085ac`](https://github.com/cloudfour/pleasantest/commit/39085ace6e2bdb64698156953a375376c7d9b912) Thanks [@calebeby](https://github.com/calebeby)! - **`injectHTML` now executes script tags in the injected markup by default**. This can be disabled by passing the `executeScriptTags: false` option as the second parameter.
+
+  For example, the script tag is now executed by default:
+
+  ```js
+  await utils.injectHTML(
+    "<script>document.querySelector('div').textContent = 'changed'</script>",
+  );
+  ```
+
+  But by passing `executeScriptTags: false`, we can disable execution:
+
+  ```js
+  await utils.injectHTML(
+    "<script>document.querySelector('div').textContent = 'changed'</script>",
+    { executeScriptTags: false },
+  );
+  ```
+
+* [#535](https://github.com/cloudfour/pleasantest/pull/535) [`dc6f81c`](https://github.com/cloudfour/pleasantest/commit/dc6f81cf054c9ae57ed0d7ca05a1b624e580f930) Thanks [@calebeby](https://github.com/calebeby)! - **The way that `runJS` receives parameters in the browser has changed.** Now, parameters are available as `import.meta.pleasantestArgs` instead of through an automatically-called default export.
+
+  For example, code that used to work like this:
+
+  ```js
+  test(
+    'old version of runJS parameters',
+    withBrowser(async ({ utils }) => {
+      // Pass a variable from node to the browser
+      const url = isDev ? 'dev.example.com' : 'prod.example.com';
+
+      await utils.runJS(
+        `
+        // Parameters get passed into the default-export function, which is called automatically
+        export default (url) => {
+          console.log(url)
+        }
+        `,
+        // array of parameters passed here
+        [url],
+      );
+    }),
+  );
+  ```
+
+  Now should be written like this:
+
+  ```js
+  test(
+    'new version of runJS parameters',
+    withBrowser(async ({ utils }) => {
+      // Pass a variable from node to the browser
+      const url = isDev ? 'dev.example.com' : 'prod.example.com';
+
+      await utils.runJS(
+        `
+        // Parameters get passed as an array into this context variable, and we can destructure them
+        const [url] = import.meta.pleasantestArgs
+        console.log(url)
+        // If we added a default exported function here, it would no longer be automatically called.
+        `,
+        // array of parameters passed here
+        [url],
+      );
+    }),
+  );
+  ```
+
+  This is a breaking change, because the previous mechanism for receiving parameters no longer works, and functions that are `default export`s from runJS are no longer called automatically.
+
+- [#506](https://github.com/cloudfour/pleasantest/pull/506) [`7592994`](https://github.com/cloudfour/pleasantest/commit/759299431ec8649b9d8152d88633ef3600d540ad) Thanks [@calebeby](https://github.com/calebeby)! - **Drop support for Node 12 and 17**
+
+### Minor Changes
+
+- [#557](https://github.com/cloudfour/pleasantest/pull/557) [`7bb10e0`](https://github.com/cloudfour/pleasantest/commit/7bb10e0435173f6c30272ed3dec920a29ce6d660) Thanks [@calebeby](https://github.com/calebeby)! - Update `@testing-library/dom` to `8.17.1` and `@testing-library/jest-dom` to `5.16.5`
+
 ## 2.2.0
 
 ### Minor Changes
