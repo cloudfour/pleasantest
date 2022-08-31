@@ -33,12 +33,12 @@ test(
     await expect(selectInput).toHaveValue(['second', 'third']);
     await expect(expect(selectInput).toHaveValue([])).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveValue([22m[2m)[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveValue([22m[2m)[22m
 
-            Expected the element to have value:
-            [32m  [][39m
-            Received:
-            [31m  [\\"second\\", \\"third\\"][39m"
-          `);
+      Expected the element to have value:
+      [32m  [][39m
+      Received:
+      [31m  ["second", "third"][39m"
+    `);
   }),
 );

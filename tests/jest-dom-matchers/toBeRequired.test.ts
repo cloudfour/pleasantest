@@ -36,11 +36,11 @@ test(
     await expect(optionalInput).not.toBeRequired();
     await expect(expect(optionalInput).toBeRequired()).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toBeRequired()[22m
+      "[2mexpect([22m[31melement[39m[2m).toBeRequired()[22m
 
-            Received element is not required:
-              [31m<input data-testid=\\"optional-input\\" />[39m"
-          `);
+      Received element is not required:
+        [31m<input data-testid="optional-input" />[39m"
+    `);
     await expect(unsportedType).not.toBeRequired();
     await expect(select).toBeRequired();
     await expect(textarea).toBeRequired();

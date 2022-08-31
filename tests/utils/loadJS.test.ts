@@ -34,15 +34,15 @@ test(
     const loadPromise = utils.loadJS('./external-with-syntax-error.ts');
     await expect(formatErrorWithCodeFrame(loadPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-        "[esbuild] The constant \\"someVariable\\" must be initialized
+      "[esbuild] The constant "someVariable" must be initialized
 
-        <root>/tests/utils/external-with-syntax-error.ts:###:###
+      <root>/tests/utils/external-with-syntax-error.ts:###:###
 
-          # | // @ts-expect-error: this is intentionally invalid
-        > # | const someVariable: string;
-            |       ^
-          # | 
-        "
-      `);
+        # | // @ts-expect-error: this is intentionally invalid
+      > # | const someVariable: string;
+          |       ^
+        # | 
+      "
+    `);
   }),
 );

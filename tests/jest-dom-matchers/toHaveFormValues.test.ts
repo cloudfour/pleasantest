@@ -23,18 +23,18 @@ test(
         rememberMe: true,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveFormValues()[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveFormValues()[22m
 
-            Expected the element to have form values
+      Expected the element to have form values
 
-            [32m- Expected[39m
-            [31m+ Received[39m
+      [32m- Expected[39m
+      [31m+ Received[39m
 
-            [2m  Object {[22m
-            [2m    \\"rememberMe\\": true,[22m
-            [32m-   \\"username\\": \\"jane\\",[39m
-            [31m+   \\"username\\": \\"jane.doe\\",[39m
-            [2m  }[22m"
-          `);
+      [2m  Object {[22m
+      [2m    "rememberMe": true,[22m
+      [32m-   "username": "jane",[39m
+      [31m+   "username": "jane.doe",[39m
+      [2m  }[22m"
+    `);
   }),
 );

@@ -34,13 +34,13 @@ test(
     await expect(input).toHaveDisplayValue('Luca');
     await expect(expect(input).toHaveDisplayValue('no')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveDisplayValue()[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveDisplayValue()[22m
 
-            Expected element to have display value:
-            [32m  no[39m
-            Received:
-            [31m  [\\"Luca\\"][39m"
-          `);
+      Expected element to have display value:
+      [32m  no[39m
+      Received:
+      [31m  ["Luca"][39m"
+    `);
     await expect(input).toHaveDisplayValue(/Luc/);
     await expect(textarea).toHaveDisplayValue('An example description here.');
     await expect(textarea).toHaveDisplayValue(/example/);
@@ -52,17 +52,17 @@ test(
     await expect(
       expect(input).toHaveDisplayValue(expect.stringContaining('Luc')),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Pleasantest does not support using asymmetric matchers in browser-based matchers
+      "Pleasantest does not support using asymmetric matchers in browser-based matchers
 
-            Received [31mStringContaining \\"Luc\\"[39m"
-          `);
+      Received [31mStringContaining "Luc"[39m"
+    `);
 
     await expect(
       expect(input).toHaveDisplayValue(expect.not.stringContaining('Luc')),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Pleasantest does not support using asymmetric matchers in browser-based matchers
+      "Pleasantest does not support using asymmetric matchers in browser-based matchers
 
-            Received [31mStringNotContaining \\"Luc\\"[39m"
-          `);
+      Received [31mStringNotContaining "Luc"[39m"
+    `);
   }),
 );

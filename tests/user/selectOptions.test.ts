@@ -128,7 +128,7 @@ test(
     await expect(
       user.selectOptions(selectEl, '4'),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Could not select an option \\"4\\", it is not one of the valid options in the <select>. Valid options are: [\\"1\\",\\"2\\",\\"3\\"]"`,
+      `"Could not select an option "4", it is not one of the valid options in the <select>. Valid options are: ["1","2","3"]"`,
     );
     await expect(selectEl).toHaveValue('1'); // Default is still selected
   }),
@@ -150,7 +150,7 @@ test(
     await expect(
       user.selectOptions(selectEl, option),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Could not select an option <option value=\\"3\\">not-an-option</option>, it is not one of the valid options in the <select>. Valid options are: [\\"1\\",\\"2\\",\\"3\\"]"`,
+      `"Could not select an option <option value="3">not-an-option</option>, it is not one of the valid options in the <select>. Valid options are: ["1","2","3"]"`,
     );
     await expect(selectEl).toHaveValue('1'); // Default is still selected
   }),

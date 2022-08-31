@@ -30,13 +30,13 @@ test(
         'Invalid time', // String performs a full-text match
       ),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toHaveErrorMessage()[22m
+      "[2mexpect([22m[31melement[39m[2m).toHaveErrorMessage()[22m
 
-            Expected the element to have error message:
-            [32m  [32m\\"Invalid time\\"[39m[32m[39m
-            Received:
-            [31m  [31m\\"Invalid time: the time must be between 9:00 AM and 5:00 PM\\"[39m[31m[39m"
-          `);
+      Expected the element to have error message:
+      [32m  [32m"Invalid time"[39m[32m[39m
+      Received:
+      [31m  [31m"Invalid time: the time must be between 9:00 AM and 5:00 PM"[39m[31m[39m"
+    `);
 
     // Case insensitive matching
     await expect(timeInput).toHaveErrorMessage(

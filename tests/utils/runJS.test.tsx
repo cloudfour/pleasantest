@@ -56,16 +56,16 @@ test(
 
     expect(mockFuncA).toHaveBeenCalledTimes(1);
     expect(mockFuncA.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "hello world",
         ],
       ]
     `);
     expect(mockFuncB).toHaveBeenCalledTimes(1);
     expect(mockFuncB.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [],
+      [
+        [],
       ]
     `);
   }),
@@ -292,7 +292,7 @@ test(
 
     expect(
       await page.evaluate(() => document.body.innerHTML.trim()),
-    ).toMatchInlineSnapshot(`"<h1 style=\\"\\">Hi</h1>"`);
+    ).toMatchInlineSnapshot(`"<h1 style="">Hi</h1>"`);
 
     await utils.injectHTML('');
 
@@ -333,19 +333,19 @@ test(
 
     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-        "[esbuild] Expected \\";\\" but found \\")\\"
+      "[esbuild] Expected ";" but found ")"
 
-        <root>/tests/utils/runJS.test.tsx:###:###
+      <root>/tests/utils/runJS.test.tsx:###:###
 
-          ### |   withBrowser(async ({ utils }) => {
-          ### |     const runPromise = utils.runJS(\`
-        > ### |       console.log('hi'))
-              |                        ^
-          ### |     \`);
-          ### | 
-          ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
-        "
-      `);
+        ### |   withBrowser(async ({ utils }) => {
+        ### |     const runPromise = utils.runJS(\`
+      > ### |       console.log('hi'))
+            |                        ^
+        ### |     \`);
+        ### | 
+        ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
+      "
+    `);
   }),
 );
 
@@ -358,16 +358,16 @@ test(
 
     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[esbuild] The constant \\"someVariable\\" must be initialized
+      "[esbuild] The constant "someVariable" must be initialized
 
-            <root>/tests/utils/external-with-syntax-error.ts:###:###
+      <root>/tests/utils/external-with-syntax-error.ts:###:###
 
-              # | // @ts-expect-error: this is intentionally invalid
-            > # | const someVariable: string;
-                |       ^
-              # | 
-            "
-          `);
+        # | // @ts-expect-error: this is intentionally invalid
+      > # | const someVariable: string;
+          |       ^
+        # | 
+      "
+    `);
   }),
 );
 

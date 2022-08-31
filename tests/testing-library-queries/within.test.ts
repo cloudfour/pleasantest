@@ -15,18 +15,18 @@ test(
 
     await expect(screen.getByRole('button')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Found multiple elements with the role \\"button\\"
+      "Found multiple elements with the role "button"
 
-            Here are the matching elements:
+      Here are the matching elements:
 
-            <button>Checkout button</button>
+      <button>Checkout button</button>
 
-            <button>Extra button</button>
+      <button>Extra button</button>
 
-            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+      (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
 
     const checkoutHeading = await screen.getByRole('heading', {
       name: /checkout/i,

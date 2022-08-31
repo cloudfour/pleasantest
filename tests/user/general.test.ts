@@ -12,7 +12,7 @@ test(
     const error = await user.click(button).catch((error) => error);
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
       "Error: Cannot perform action on element that is not visible (it has visibility:hidden):
-      <button style=\\"visibility:hidden; padding:20px\\">Hi</button>
+      <button style="visibility:hidden; padding:20px">Hi</button>
       -------------------------------------------------------
       tests/user/general.test.ts
 

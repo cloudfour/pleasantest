@@ -76,13 +76,13 @@ test(
     await utils.injectHTML('<h1>Hi</h1>');
     const error = await screen.getByRole('banner').catch((error) => error);
     expect(await printErrorFrames(error)).toMatchInlineSnapshot(`
-      "Error: Unable to find an accessible element with the role \\"banner\\"
+      "Error: Unable to find an accessible element with the role "banner"
 
       Here are the accessible roles:
 
         document:
 
-        Name \\"\\":
+        Name "":
         <body>
         <h1>Hi</h1>
       </body>
@@ -90,7 +90,7 @@ test(
         --------------------------------------------------
         heading:
 
-        Name \\"Hi\\":
+        Name "Hi":
         <h1>Hi</h1>
 
         --------------------------------------------------

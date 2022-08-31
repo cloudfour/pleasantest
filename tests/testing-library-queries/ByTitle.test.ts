@@ -13,18 +13,18 @@ test(
     // Too many
     await expect(screen.getByTitle(/Foo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Found multiple elements with the title: /Foo/.
+      "Found multiple elements with the title: /Foo/.
 
-            Here are the matching elements:
+      Here are the matching elements:
 
-            <img title=\\"Foo\\" />
+      <img title="Foo" />
 
-            <img title=\\"Foobar\\" />
+      <img title="Foobar" />
 
-            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+      (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
     expect(await screen.getAllByTitle(/Foo/)).toHaveLength(2);
     // Doesn't find any
     await expect(screen.getByTitle('Baz')).rejects
