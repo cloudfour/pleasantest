@@ -138,7 +138,7 @@ describe('special character sequences', () => {
       await expect(
         user.type(div, '{selectall}'),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"{selectall} command is only available for <input> and <textarea> elements, received: <div contenteditable=\\"\\">hello</div>"`,
+        `"{selectall} command is only available for <input> and <textarea> elements, received: <div contenteditable="">hello</div>"`,
       );
     }),
   );
@@ -186,9 +186,9 @@ describe('actionability checks', () => {
       const input = await screen.getByRole('textbox');
       await expect(user.type(input, 'some text')).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-              "Cannot perform action on element that is not visible (it is near zero opacity):
-              <input style=\\"opacity: 0\\" />"
-            `);
+        "Cannot perform action on element that is not visible (it is near zero opacity):
+        <input style="opacity: 0" />"
+      `);
       // With { force: true } it should skip the visibility check
       await user.type(input, 'some text', { force: true });
       await expect(input).toHaveValue('some text');

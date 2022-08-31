@@ -26,53 +26,53 @@ test(
     // Doesn't find any
     await expect(screen.getByRole('banner')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Unable to find an accessible element with the role \\"banner\\"
+      "Unable to find an accessible element with the role "banner"
 
-            Here are the accessible roles:
+      Here are the accessible roles:
 
-              document:
+        document:
 
-              Name \\"\\":
-              <body>[...]</body>
+        Name "":
+        <body>[...]</body>
 
-              --------------------------------------------------
-              heading:
+        --------------------------------------------------
+        heading:
 
-              Name \\"hi\\":
-              <div role=\\"heading\\">hi</div>
+        Name "hi":
+        <div role="heading">hi</div>
 
-              --------------------------------------------------
-              button:
+        --------------------------------------------------
+        button:
 
-              Name \\"butt1\\":
-              <div role=\\"button\\">butt1</div>
+        Name "butt1":
+        <div role="button">butt1</div>
 
-              Name \\"butt2\\":
-              <div role=\\"button\\">butt2</div>
+        Name "butt2":
+        <div role="button">butt2</div>
 
-              Name \\"Move to trash\\":
-              <button aria-describedby=\\"trash-desc\\">Move to trash</button>
+        Name "Move to trash":
+        <button aria-describedby="trash-desc">Move to trash</button>
 
-              --------------------------------------------------
+        --------------------------------------------------
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
     // Finds too many
     await expect(screen.getByRole('button')).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Found multiple elements with the role \\"button\\"
+      "Found multiple elements with the role "button"
 
-            Here are the matching elements:
+      Here are the matching elements:
 
-            <div role=\\"button\\">butt1</div>
+      <div role="button">butt1</div>
 
-            <div role=\\"button\\">butt2</div>
+      <div role="button">butt2</div>
 
-            <button aria-describedby=\\"trash-desc\\">Move to trash</button>
+      <button aria-describedby="trash-desc">Move to trash</button>
 
-            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+      (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
   }),
 );

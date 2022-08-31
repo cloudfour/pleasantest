@@ -23,17 +23,17 @@ test(
     // Finds too many
     await expect(screen.getByLabelText(/Input/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Found multiple elements with the text of: /Input/
+      "Found multiple elements with the text of: /Input/
 
-            Here are the matching elements:
+      Here are the matching elements:
 
-            <input id=\\"input1\\" />
+      <input id="input1" />
 
-            <input type=\\"checkbox\\" />
+      <input type="checkbox" />
 
-            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+      (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
   }),
 );

@@ -19,18 +19,18 @@ test(
     // Too many
     await expect(screen.getByDisplayValue(/Fo/)).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "Found multiple elements with the display value: /Fo/.
+      "Found multiple elements with the display value: /Fo/.
 
-            Here are the matching elements:
+      Here are the matching elements:
 
-            <input value=\\"Foo\\" />
+      <input value="Foo" />
 
-            <input value=\\"Fo\\" />
+      <input value="Fo" />
 
-            (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
+      (If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).
 
-            Within: #document"
-          `);
+      Within: #document"
+    `);
     // Doesn't find any
     await expect(screen.getByDisplayValue('Cheeseburger')).rejects
       .toThrowErrorMatchingInlineSnapshot(`

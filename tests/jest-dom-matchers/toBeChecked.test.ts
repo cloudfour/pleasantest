@@ -35,23 +35,23 @@ test(
     await expect(inputCheckboxChecked).toBeChecked();
     await expect(expect(inputCheckboxChecked).not.toBeChecked()).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).not.toBeChecked()[22m
+      "[2mexpect([22m[31melement[39m[2m).not.toBeChecked()[22m
 
-            Received element is checked:
-              [31m<input
-              type=\\"checkbox\\"
-              checked
-              data-testid=\\"input-checkbox-checked\\"
-            />[39m"
-          `);
+      Received element is checked:
+        [31m<input
+        type="checkbox"
+        checked
+        data-testid="input-checkbox-checked"
+      />[39m"
+    `);
     await expect(inputCheckboxUnchecked).not.toBeChecked();
     await expect(expect(inputCheckboxUnchecked).toBeChecked()).rejects
       .toThrowErrorMatchingInlineSnapshot(`
-            "[2mexpect([22m[31melement[39m[2m).toBeChecked()[22m
+      "[2mexpect([22m[31melement[39m[2m).toBeChecked()[22m
 
-            Received element is not checked:
-              [31m<input type=\\"checkbox\\" data-testid=\\"input-checkbox-unchecked\\" />[39m"
-          `);
+      Received element is not checked:
+        [31m<input type="checkbox" data-testid="input-checkbox-unchecked" />[39m"
+    `);
     await expect(ariaCheckboxChecked).toBeChecked();
     await expect(ariaCheckboxUnchecked).not.toBeChecked();
 
