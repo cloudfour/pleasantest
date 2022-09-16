@@ -31,7 +31,7 @@
     "@cloudfour/eslint-plugin": "21.1.0",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-babel": "5.3.1",
-    "@rollup/plugin-node-resolve": "13.3.0",
+    "@rollup/plugin-node-resolve": "14.1.0",
     "@testing-library/dom": "8.17.1",
     "@testing-library/jest-dom": "5.16.5",
     "@types/jest": "29.0.2",
