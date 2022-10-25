@@ -32,7 +32,7 @@
     "@rollup/plugin-alias": "4.0.0",
     "@rollup/plugin-babel": "6.0.2",
     "@rollup/plugin-node-resolve": "14.1.0",
-    "@testing-library/dom": "8.18.1",
+    "@testing-library/dom": "8.19.0",
     "@testing-library/jest-dom": "5.16.5",
     "@types/jest": "29.2.0",
     "@types/mime": "3.0.1",
