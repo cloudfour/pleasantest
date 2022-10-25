@@ -51,7 +51,7 @@
     "jest-environment-jsdom": "29.2.2",
     "kolorist": "1.6.0",
     "liquidjs": "9.42.0",
-    "magic-string": "0.26.6",
+    "magic-string": "0.26.7",
     "polka": "0.5.2",
     "preact": "10.10.6",
     "prettier": "2.7.1",
