@@ -27,7 +27,7 @@
     "@babel/preset-env": "7.16.8",
     "@babel/preset-typescript": "7.16.7",
     "@changesets/changelog-github": "0.4.7",
-    "@changesets/cli": "2.25.0",
+    "@changesets/cli": "2.25.2",
     "@cloudfour/eslint-plugin": "21.1.0",
     "@rollup/plugin-alias": "4.0.2",
     "@rollup/plugin-babel": "6.0.2",
