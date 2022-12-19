@@ -15,7 +15,6 @@ import { createBuildStatusTracker } from './module-server/build-status-tracker.j
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server.js';
 import type { ModuleServerOpts } from './module-server/index.js';
 import { createModuleServer } from './module-server/index.js';
-import { defaultHTML } from './module-server/middleware/index-html.js';
 import type { BoundQueries, WaitForOptions } from './pptr-testing-library.js';
 import {
   getQueriesForElement,
@@ -417,15 +416,23 @@ const createTab = async ({
       () =>
         page.evaluate(
           (html, executeScriptTags) => {
+            document.body.innerHTML = html;
             if (executeScriptTags) {
-              document.open();
-              document.write(html);
-              document.close();
-            } else {
-              document.documentElement.innerHTML = html;
+              // Scripts injected with innerHTML are not executed by default;
+              // To get the browser to execute them we must manually create the script tags
+              // and replace them
+              const scripts = document.body.querySelectorAll('script');
+              for (const script of scripts) {
+                const newScript = document.createElement('script');
+                newScript.text = script.innerHTML;
+                for (const attribute of script.attributes) {
+                  newScript.setAttribute(attribute.name, attribute.value);
+                }
+                script.replaceWith(newScript);
+              }
             }
           },
-          defaultHTML(html),
+          html,
           executeScriptTags,
         ),
       injectHTML,
