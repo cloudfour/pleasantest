@@ -275,8 +275,6 @@ const createTab = async ({
   } = await createModuleServer({
     ...defaultOptions.moduleServer,
     ...moduleServerOpts,
-    ...defaultOptions.moduleServer,
-    ...moduleServerOpts,
   });
 
   if (device) {
