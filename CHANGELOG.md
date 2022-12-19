@@ -1,5 +1,13 @@
 # pleasantest
 
+## 3.0.1
+
+### Patch Changes
+
+- [#631](https://github.com/cloudfour/pleasantest/pull/631) [`f124a5a`](https://github.com/cloudfour/pleasantest/commit/f124a5a12144a29e1263be25eefa09c4311be2a8) Thanks [@calebeby](https://github.com/calebeby)! - [bugfix] Don't override `<head>` when using `utils.injectHTML`
+
+  This was a bug introduced in `3.0.0`. This change fixes that behavior to match what is documented. The documented behavior is that `injectHTML` replaces the content of the body _only_. The behavior introduced in `3.0.0` also resets the `<head>` to the default; that was unintended behavior that is now removed.
+
 ## 3.0.0
 
 ### Major Changes
