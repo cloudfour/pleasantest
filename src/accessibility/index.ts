@@ -239,7 +239,7 @@ async function toPassAxeTests(
   } catch {
     throw removeFuncFromStackTrace(
       new Error(
-        'Install @axe-core/puppeteer and axe-core to use the toPassAxeTests matcher',
+        'Install @axe-core/puppeteer to use the toPassAxeTests matcher',
       ),
       toPassAxeTests,
     );
