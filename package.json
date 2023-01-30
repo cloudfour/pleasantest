@@ -80,7 +80,7 @@
     "acorn": "^8.8.1",
     "cjs-module-lexer": "^1.2.2",
     "es-module-lexer": "^1.1.0",
-    "esbuild": "^0.16.7",
+    "esbuild": "^0.17.4",
     "mime": "^3.0.0",
     "postcss": "^8.4.20",
     "puppeteer": "^16.2.0",
