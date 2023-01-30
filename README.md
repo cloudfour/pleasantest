@@ -669,7 +669,7 @@ test(
 );
 ```
 
-To pass variables from the test environment into the browser, you can pass them in an array as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/api/puppeteer.jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle). The arguments will be received in the browser via `import.meta.pleasantestArgs`:
+To pass variables from the test environment into the browser, you can pass them in an array as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/api/puppeteer.jshandle) or an [`ElementHandle`](https://pptr.dev/api/puppeteer.elementhandle/). The arguments will be received in the browser via `import.meta.pleasantestArgs`:
 
 ```js
 import { withBrowser } from 'pleasantest';
