@@ -935,7 +935,7 @@ test(
 
 This assertion, based on [`jest-puppeteer-axe`](https://github.com/WordPress/gutenberg/tree/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe), allows you to check a page using the [axe accessibility linter](https://github.com/dequelabs/axe-core).
 
-To use this assertion, you **must install `@axe-core/puppeteer` and `axe-core`**. They are optional peer dependencies for Pleasantest, but are needed for the `toPassAxeTests` assertion.
+To use this assertion, you **must install `@axe-core/puppeteer`**. It is listed as an optional peer dependency for Pleasantest, but it is necessary for the `toPassAxeTests` assertion.
 
 ```js
 test(
