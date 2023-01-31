@@ -669,7 +669,7 @@ test(
 );
 ```
 
-To pass variables from the test environment into the browser, you can pass them in an array as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/api/puppeteer.jshandle) or an [`ElementHandle`](https://pptr.dev/#?product=Puppeteer&version=v13.0.0&show=api-class-elementhandle). The arguments will be received in the browser via `import.meta.pleasantestArgs`:
+To pass variables from the test environment into the browser, you can pass them in an array as the 2nd parameter. Note that they must either be JSON-serializable or they can be a [`JSHandle`](https://pptr.dev/api/puppeteer.jshandle) or an [`ElementHandle`](https://pptr.dev/api/puppeteer.elementhandle/). The arguments will be received in the browser via `import.meta.pleasantestArgs`:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -935,7 +935,7 @@ test(
 
 This assertion, based on [`jest-puppeteer-axe`](https://github.com/WordPress/gutenberg/tree/3b2eccc289cfc90bd99252b12fc4c6e470ce4c04/packages/jest-puppeteer-axe), allows you to check a page using the [axe accessibility linter](https://github.com/dequelabs/axe-core).
 
-To use this assertion, you **must install `@axe-core/puppeteer` and `axe-core`**. They are optional peer dependencies for Pleasantest, but are needed for the `toPassAxeTests` assertion.
+To use this assertion, you **must install `@axe-core/puppeteer`**. It is listed as an optional peer dependency for Pleasantest, but it is necessary for the `toPassAxeTests` assertion.
 
 ```js
 test(

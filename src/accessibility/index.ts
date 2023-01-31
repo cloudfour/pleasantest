@@ -1,3 +1,4 @@
+// eslint-disable-next-line @cloudfour/n/no-extraneous-import
 import type axe from 'axe-core';
 import type { ElementHandle, Page } from 'puppeteer';
 
@@ -50,7 +51,7 @@ const getAccessibilityTree = async (
     // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
     element &&
     typeof element === 'object' &&
-    element.constructor.name === 'Page'
+    element.constructor.name === 'CDPPage'
   ) {
     element = await (element as Page).evaluateHandle(
       () => document.documentElement,
@@ -239,7 +240,7 @@ async function toPassAxeTests(
   } catch {
     throw removeFuncFromStackTrace(
       new Error(
-        'Install @axe-core/puppeteer and axe-core to use the toPassAxeTests matcher',
+        'Install @axe-core/puppeteer to use the toPassAxeTests matcher',
       ),
       toPassAxeTests,
     );

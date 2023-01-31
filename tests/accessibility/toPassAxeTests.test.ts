@@ -13,7 +13,7 @@ test(
       Violations found:
 
       [31m[1mImages must have alternate text[22m[39m (image-alt)
-      https://dequeuniversity.com/rules/axe/4.4/image-alt?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/image-alt?application=axe-puppeteer
       Affected Nodes:
 
       <img />
@@ -25,7 +25,7 @@ test(
         • Element's default semantics were not overridden with role="none" or role="presentation"
 
       [31m[1mDocument should have one main landmark[22m[39m (landmark-one-main)
-      https://dequeuniversity.com/rules/axe/4.4/landmark-one-main?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/landmark-one-main?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -38,7 +38,7 @@ test(
         • Document does not have a main landmark.
 
       [31m[1mPage should contain a level-one heading[22m[39m (page-has-heading-one)
-      https://dequeuniversity.com/rules/axe/4.4/page-has-heading-one?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/page-has-heading-one?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -51,7 +51,7 @@ test(
         • Page must have a level-one heading.
 
       [31m[1mAll page content should be contained by landmarks[22m[39m (region)
-      https://dequeuniversity.com/rules/axe/4.4/region?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/region?application=axe-puppeteer
       Affected Nodes:
 
       <img />
@@ -95,7 +95,7 @@ test(
       Violations found:
 
       [31m[1mDocument should have one main landmark[22m[39m (landmark-one-main)
-      https://dequeuniversity.com/rules/axe/4.4/landmark-one-main?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/landmark-one-main?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -116,7 +116,7 @@ test(
         • Document does not have a main landmark.
 
       [31m[1mPage should contain a level-one heading[22m[39m (page-has-heading-one)
-      https://dequeuniversity.com/rules/axe/4.4/page-has-heading-one?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/page-has-heading-one?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -137,7 +137,7 @@ test(
         • Page must have a level-one heading.
 
       [31m[1m<svg> elements with an img role must have an alternative text[22m[39m (svg-img-alt)
-      https://dequeuniversity.com/rules/axe/4.4/svg-img-alt?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.6/svg-img-alt?application=axe-puppeteer
       Affected Nodes:
 
       <svg
