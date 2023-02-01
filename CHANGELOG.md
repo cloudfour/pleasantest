@@ -1,5 +1,13 @@
 # pleasantest
 
+## 3.1.0
+
+### Minor Changes
+
+- [#650](https://github.com/cloudfour/pleasantest/pull/650) [`d83f32b`](https://github.com/cloudfour/pleasantest/commit/d83f32b79872973a577115c00abbe265f85168f3) Thanks [@calebeby](https://github.com/calebeby)! - Add support for node 19
+
+- [#640](https://github.com/cloudfour/pleasantest/pull/640) [`893d9d5`](https://github.com/cloudfour/pleasantest/commit/893d9d5d8fb61b95071815db190bbb11abd80fd9) Thanks [@calebeby](https://github.com/calebeby)! - Bump puppeteer and @axe-core/puppeteer versions
+
 ## 3.0.1
 
 ### Patch Changes
