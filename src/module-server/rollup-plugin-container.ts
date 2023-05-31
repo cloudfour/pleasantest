@@ -218,10 +218,11 @@ export const createPluginContainer = (plugins: Plugin[]) => {
 
         let result;
         try {
-          const f =
+          const resolveId =
             'handler' in p.resolveId ? p.resolveId.handler : p.resolveId;
-          result = await f.call(ctx as any, id, importer, {
+          result = await resolveId.call(ctx as any, id, importer, {
             isEntry: false,
+            assertions: {},
           });
         } finally {
           if (_skip) resolveSkips.delete(p, key);

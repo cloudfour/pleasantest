@@ -26,15 +26,39 @@
         "liquidjs"
       ],
       "matchDepTypes": ["devDependencies"],
-      "prCreation": "immediate",
       "stabilityDays": 0,
       "schedule": "every 1 month on the first day of the month before 7am",
+      "automerge": true,
       "groupName": "compatibility testing-only dependencies"
+    },
+    {
+      "matchPackagePatterns": ["rollup"],
+      "automerge": true,
+      "groupName": "rollup/plugins"
+    },
+    {
+      "matchPackagePatterns": ["eslint", "prettier"],
+      "automerge": true,
+      "groupName": "eslint/prettier"
+    },
+    {
+      "matchPackagePatterns": ["jest"],
+      "automerge": true,
+      "groupName": "jest-related"
+    },
+    {
+      "matchPackagePatterns": [
+        "@testing-library/dom",
+        "@testing-library/jest-dom",
+        "dom-accessibility-api"
+      ],
+      "groupName": "testing-library-related"
     }
   ],
-  "prConcurrentLimit": 5,
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 0,
   "branchConcurrentLimit": 15,
   "stabilityDays": 4,
-  "prCreation": "status-success",
+  "prCreation": "immediate",
   "dependencyDashboard": true
 }
