@@ -33,7 +33,6 @@
     },
     {
       "matchPackagePatterns": ["rollup"],
-      "stabilityDays": 7,
       "automerge": true,
       "groupName": "rollup/plugins"
     },
@@ -41,6 +40,11 @@
       "matchPackagePatterns": ["eslint", "prettier"],
       "automerge": true,
       "groupName": "eslint/prettier"
+    },
+    {
+      "matchPackagePatterns": ["jest"],
+      "automerge": true,
+      "groupName": "jest-related"
     }
   ],
   "prConcurrentLimit": 5,
