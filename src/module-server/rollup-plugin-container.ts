@@ -250,7 +250,8 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       inputMap?: DecodedSourceMap | RawSourceMap | string,
     ) {
       let code = originalCode;
-      // TODO: if any of the transforms is missing sourcemaps, then there should be no source maps emitted
+      // To consider implementing next time this code is touched:
+      // if any of the transforms is missing sourcemaps, then there should be no source maps emitted
       const sourceMaps: (DecodedSourceMap | RawSourceMap)[] = inputMap
         ? [typeof inputMap === 'string' ? JSON.parse(inputMap) : inputMap]
         : [];

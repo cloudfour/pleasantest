@@ -93,7 +93,6 @@ export const connectToBrowser = async (
   // - If there is no browser in the cache, multiple concurrent processes should only start 1 new browser
   // - If there is a killed browser in the cache, multiple concurrent processes should only start 1 new browser
   // - If there "starting" in the cache but nothing is really starting, multiple concurrent processes should only start 1 new browser
-  // TODO: Idea: use a state machine!!!
   const cachedBrowser = await connectToCachedBrowser(browser, headless);
   if (isBrowser(cachedBrowser)) {
     return cachedBrowser;

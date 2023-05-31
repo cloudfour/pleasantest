@@ -129,7 +129,8 @@ export const pleasantestUser = async (
                 )!;
                 if (coveringEl === clickEl || clickEl.contains(coveringEl))
                   return;
-                // TODO: try to find other points on the element that are clickable,
+                // To consider implementing next time this code is changed:
+                // Try to find other points on the element that are clickable,
                 // in case the covering element does not cover the whole click-target element
                 return utils.error`Could not click element:
 ${clickEl}
