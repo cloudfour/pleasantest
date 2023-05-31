@@ -26,27 +26,26 @@
         "liquidjs"
       ],
       "matchDepTypes": ["devDependencies"],
-      "prCreation": "immediate",
       "stabilityDays": 0,
       "schedule": "every 1 month on the first day of the month before 7am",
+      "automerge": true,
       "groupName": "compatibility testing-only dependencies"
     },
     {
-      "matchPackagePatterns": ["^typescript$", "^rollup-plugin-dts$"],
-      "prCreation": "immediate",
-      "stabilityDays": 0,
-      "groupName": "typescript/related"
+      "matchPackagePatterns": ["rollup"],
+      "stabilityDays": 7,
+      "automerge": true,
+      "groupName": "rollup/plugins"
     },
     {
-      "matchPackagePatterns": ["rollup"],
-      "prCreation": "immediate",
-      "stabilityDays": 0,
-      "groupName": "rollup/plugins"
+      "matchPackagePatterns": ["eslint", "prettier"],
+      "automerge": true,
+      "groupName": "eslint/prettier"
     }
   ],
   "prConcurrentLimit": 5,
   "branchConcurrentLimit": 15,
   "stabilityDays": 4,
-  "prCreation": "status-success",
+  "prCreation": "immediate",
   "dependencyDashboard": true
 }
