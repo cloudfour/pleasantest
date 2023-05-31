@@ -32,10 +32,16 @@
       "groupName": "compatibility testing-only dependencies"
     },
     {
-      "matchPackagePatterns": ["typescript", "rollup-plugin-dts"],
+      "matchPackagePatterns": ["^typescript$", "^rollup-plugin-dts$"],
       "prCreation": "immediate",
       "stabilityDays": 0,
       "groupName": "typescript"
+    },
+    {
+      "matchPackagePatterns": ["rollup"],
+      "prCreation": "immediate",
+      "stabilityDays": 0,
+      "groupName": "rollup"
     }
   ],
   "prConcurrentLimit": 5,
