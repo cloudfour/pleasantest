@@ -9,7 +9,7 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@axe-core/puppeteer": "^4.4.4"
+    "@axe-core/puppeteer": "^4.7.1"
   },
   "peerDependenciesMeta": {
     "@axe-core/puppeteer": {
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@ampproject/remapping": "2.2.1",
-    "@axe-core/puppeteer": "4.6.0",
+    "@axe-core/puppeteer": "4.7.1",
     "@babel/core": "7.16.7",
     "@babel/preset-env": "7.16.8",
     "@babel/preset-typescript": "7.16.7",
