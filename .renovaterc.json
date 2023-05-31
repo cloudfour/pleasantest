@@ -30,6 +30,12 @@
       "stabilityDays": 0,
       "schedule": "every 1 month on the first day of the month before 7am",
       "groupName": "compatibility testing-only dependencies"
+    },
+    {
+      "matchPackagePatterns": ["typescript", "rollup-plugin-dts"],
+      "prCreation": "immediate",
+      "stabilityDays": 0,
+      "groupName": "typescript"
     }
   ],
   "prConcurrentLimit": 5,
