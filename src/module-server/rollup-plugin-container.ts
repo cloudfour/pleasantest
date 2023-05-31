@@ -130,6 +130,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       if (skipSelf && plugin) skip.push(plugin);
       let out = await container.resolveId(id, importer, skip);
       if (typeof out === 'string') out = { id: out };
+      // eslint-disable-next-line @cloudfour/typescript-eslint/prefer-optional-chain
       if (!out || !out.id) out = { id };
       if (/^\.\.?[/\\]/.test(out.id) || out.id === '.') {
         out.id = resolve('.', importer ? dirname(importer) : '.', out.id);

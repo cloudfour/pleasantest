@@ -41,7 +41,7 @@ type ChangeDTLFn<DTLFn extends ValueOf<typeof queries>> = DTLFn extends (
   : never;
 
 export type BoundQueries = {
-  [K in keyof typeof queries]: ChangeDTLFn<typeof queries[K]>;
+  [K in keyof typeof queries]: ChangeDTLFn<(typeof queries)[K]>;
 };
 
 const queryNames = [
@@ -109,7 +109,7 @@ export const getQueriesForElement = (
   const serverPromise = createClientRuntimeServer();
   // @ts-expect-error TS doesn't understand the properties coming out of Object.fromEntries
   const queries: BoundQueries = Object.fromEntries(
-    queryNames.map((queryName: typeof queryNames[number]) => {
+    queryNames.map((queryName: (typeof queryNames)[number]) => {
       const query = async (...args: any[]) => {
         const serializedArgs = JSON.stringify(args, (_key, value) => {
           if (value instanceof RegExp) {
