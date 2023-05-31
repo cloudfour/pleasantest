@@ -73,6 +73,7 @@ export default [
 /**
  * Creates sub-bundles when you do `import fileName from "bundle:./path-here"
  * Mostly taken from https://github.com/preactjs/wmr/blob/1.0.0/src/plugins/bundle-plugin.js
+ *
  * @returns {import('rollup').Plugin}
  */
 function bundlePlugin() {

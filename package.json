@@ -41,7 +41,7 @@
     "dom-accessibility-api": "0.5.16",
     "errorstacks": "2.4.0",
     "esbuild-jest": "0.5.0",
-    "eslint": "8.37.0",
+    "eslint": "8.41.0",
     "jest": "29.4.1",
     "jest-environment-jsdom": "29.4.1",
     "kolorist": "1.6.0",

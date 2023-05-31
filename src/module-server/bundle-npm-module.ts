@@ -20,6 +20,7 @@ const dynamicCJSModules = new Set(['prop-types', 'react-dom', 'react']);
 
 /**
  * Bundle am npm module entry path into a single file
+ *
  * @param mod The full path of the module to bundle, including subpackage/path
  * @param id The imported identifier
  * @param optimize Whether the bundle should be a minified/optimized bundle, or the default quick non-optimized bundle

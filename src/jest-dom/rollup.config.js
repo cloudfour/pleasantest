@@ -54,6 +54,7 @@ const stubPlugin = {
  * Normally that would be fine, but for logging in the browser,
  * it makes hovering over the element in devtools not work
  * So we are removing the cloneNodes to fix hovering
+ *
  * @type {import('rollup').Plugin}
  */
 const removeCloneNodePlugin = {

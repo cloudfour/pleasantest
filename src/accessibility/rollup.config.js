@@ -11,6 +11,7 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
  * When 'generated:requiredOwnedElements' is imported,
  * This generates that file from aria-query
  * Contains a map from role names to required owned elements
+ *
  * @returns {import('rollup').Plugin}
  */
 const requiredOwnedElementsPlugin = () => ({
