@@ -137,7 +137,14 @@
   "remarkConfig": {
     "plugins": [
       "remark-validate-links",
-      "remark-lint-no-dead-urls"
+      [
+        "remark-lint-no-dead-urls",
+        {
+          "skipUrlPatterns": [
+            "https://twitter.com"
+          ]
+        }
+      ]
     ]
   },
   "repository": "cloudfour/pleasantest",
