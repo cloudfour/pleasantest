@@ -48,6 +48,7 @@
     }
   ],
   "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
   "branchConcurrentLimit": 15,
   "stabilityDays": 4,
   "prCreation": "immediate",
