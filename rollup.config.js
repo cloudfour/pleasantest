@@ -38,6 +38,7 @@ const mainConfig = {
       dir: 'dist/cjs',
       entryFileNames: '[name].cjs',
       chunkFileNames: '[name].cjs',
+      dynamicImportInCjs: false,
       externalLiveBindings: false,
       interop: (id) => {
         if (id === 'puppeteer') return 'esModule';
