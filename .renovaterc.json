@@ -4,7 +4,8 @@
   "rangeStrategy": "pin",
   "packageRules": [
     {
-      "matchPackageNames": ["node"],
+      "matchPackageNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
