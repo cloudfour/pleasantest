@@ -1,10 +1,13 @@
+import { createRequire } from 'node:module';
 import * as path from 'node:path';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
+
+const require = createRequire(import.meta.url);
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
@@ -74,7 +77,7 @@ const config = {
   ],
   external: [],
   treeshake: { moduleSideEffects: 'no-external' },
-  output: { file: 'dist/pptr-testing-library-client.js', preferConst: true },
+  output: { file: 'dist/pptr-testing-library-client.js' },
 };
 
 export default config;
