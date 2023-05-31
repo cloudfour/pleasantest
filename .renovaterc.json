@@ -45,9 +45,17 @@
       "matchPackagePatterns": ["jest"],
       "automerge": true,
       "groupName": "jest-related"
+    },
+    {
+      "matchPackagePatterns": [
+        "@testing-library/dom",
+        "@testing-library/jest-dom",
+        "dom-accessibility-api"
+      ],
+      "groupName": "testing-library-related"
     }
   ],
-  "prConcurrentLimit": 5,
+  "prConcurrentLimit": 3,
   "prHourlyLimit": 0,
   "branchConcurrentLimit": 15,
   "stabilityDays": 4,
