@@ -17,7 +17,7 @@
     }
   },
   "devDependencies": {
-    "@ampproject/remapping": "2.2.0",
+    "@ampproject/remapping": "2.2.1",
     "@axe-core/puppeteer": "4.6.0",
     "@babel/core": "7.16.7",
     "@babel/preset-env": "7.16.8",
