@@ -237,7 +237,8 @@ async function toPassAxeTests(
   try {
     const axePuppeteerModule = await import('@axe-core/puppeteer');
     AxePuppeteer = axePuppeteerModule.AxePuppeteer;
-  } catch {
+  } catch (error) {
+    if (!/cannot find module/i.test(String(error))) throw error;
     throw removeFuncFromStackTrace(
       new Error(
         'Install @axe-core/puppeteer to use the toPassAxeTests matcher',
