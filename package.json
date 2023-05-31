@@ -25,7 +25,7 @@
     "@changesets/changelog-github": "0.4.8",
     "@changesets/cli": "2.26.1",
     "@cloudfour/eslint-plugin": "21.1.0",
-    "@rollup/plugin-alias": "4.0.4",
+    "@rollup/plugin-alias": "5.0.0",
     "@rollup/plugin-babel": "6.0.3",
     "@rollup/plugin-node-resolve": "15.1.0",
     "@testing-library/dom": "8.19.0",
@@ -58,7 +58,7 @@
     "remark-lint-no-dead-urls": "1.1.0",
     "remark-validate-links": "12.1.0",
     "resolve.exports": "1.1.1",
-    "rollup-plugin-dts": "4.2.3",
+    "rollup-plugin-dts": "5.3.0",
     "rollup-plugin-svelte": "7.1.5",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-vue": "6.0.0",
@@ -71,7 +71,7 @@
     "vue": "3.2.45"
   },
   "dependencies": {
-    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
     "acorn": "^8.8.2",
     "cjs-module-lexer": "^1.2.2",
     "es-module-lexer": "^1.2.1",
@@ -79,7 +79,7 @@
     "mime": "^3.0.0",
     "postcss": "^8.4.21",
     "puppeteer": "^18.2.1",
-    "rollup": "^2.79.1",
+    "rollup": "^3.23.0",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
   },
