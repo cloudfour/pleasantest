@@ -35,13 +35,13 @@
       "matchPackagePatterns": ["^typescript$", "^rollup-plugin-dts$"],
       "prCreation": "immediate",
       "stabilityDays": 0,
-      "groupName": "typescript"
+      "groupName": "typescript/related"
     },
     {
       "matchPackagePatterns": ["rollup"],
       "prCreation": "immediate",
       "stabilityDays": 0,
-      "groupName": "rollup"
+      "groupName": "rollup/plugins"
     }
   ],
   "prConcurrentLimit": 5,
