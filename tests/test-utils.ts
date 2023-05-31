@@ -47,15 +47,11 @@ export const printErrorFrames = async (error?: Error) => {
 const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
 
 const removeLineNumbers = (input: string) => {
-  const lineRegex = /^(\s*>?\s*)(\d+)/gm;
+  const lineRegex = /^\s*▶?\s*(\d)*\s+│/gm;
   const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
   return (
     input
-      .replace(
-        lineRegex,
-        (_match, whitespace, numbers) =>
-          `${whitespace}${'#'.repeat(numbers.length)}`,
-      )
+      .replace(lineRegex, (_match, lineNum) => (lineNum ? ' ### │' : '     │'))
       // Take out the file paths so the tests will pass on more than 1 person's machine
       .replace(fileRegex, '<root>$1:###:###')
   );

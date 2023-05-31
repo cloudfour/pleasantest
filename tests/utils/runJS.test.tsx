@@ -248,19 +248,18 @@ test(
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-          "Error parsing module with es-module-lexer.
+        "Error parsing module with es-module-lexer.
 
-          <root>/tests/utils/runJS.test.tsx:###:###
-
-            ### |     async ({ utils }) => {
-            ### |       const runPromise = utils.runJS(\`
-          > ### |         asdf())
-                |               ^
-            ### |       \`);
-            ### | 
-            ### |       await expect(formatErrorWithCodeFrame(runPromise)).rejects
-          "
-        `);
+        <root>/tests/utils/runJS.test.tsx:###:###
+         ### │     async ({ utils }) => {
+         ### │       const runPromise = utils.runJS(\`
+         ### │         asdf())
+             │               ▲
+         ### │       \`);
+         ### │ 
+         ### │       await expect(formatErrorWithCodeFrame(runPromise)).rejects
+        "
+      `);
     },
   ),
 );
@@ -336,14 +335,13 @@ test(
       "[esbuild] Expected ";" but found ")"
 
       <root>/tests/utils/runJS.test.tsx:###:###
-
-        ### |   withBrowser(async ({ utils }) => {
-        ### |     const runPromise = utils.runJS(\`
-      > ### |       console.log('hi'))
-            |                        ^
-        ### |     \`);
-        ### | 
-        ### |     await expect(formatErrorWithCodeFrame(runPromise)).rejects
+       ### │   withBrowser(async ({ utils }) => {
+       ### │     const runPromise = utils.runJS(\`
+       ### │       console.log('hi'))
+           │                        ▲
+       ### │     \`);
+       ### │ 
+       ### │     await expect(formatErrorWithCodeFrame(runPromise)).rejects
       "
     `);
   }),
@@ -361,11 +359,10 @@ test(
       "[esbuild] The constant "someVariable" must be initialized
 
       <root>/tests/utils/external-with-syntax-error.ts:###:###
-
-        # | // @ts-expect-error: this is intentionally invalid
-      > # | const someVariable: string;
-          |       ^
-        # | 
+       ### │ // @ts-expect-error: this is intentionally invalid
+       ### │ const someVariable: string;
+           │       ▲
+       ### │ 
       "
     `);
   }),
@@ -533,19 +530,18 @@ describe('Ecosystem interoperability', () => {
 
       await expect(formatErrorWithCodeFrame(runPromise)).rejects
         .toThrowErrorMatchingInlineSnapshot(`
-          "Error parsing module with es-module-lexer. Did you mean to add a transform plugin to support .svelte files?
+        "Error parsing module with es-module-lexer. Did you mean to add a transform plugin to support .svelte files?
 
-          <root>/tests/utils/svelte-component.svelte:###:###
-
-             # |     count += 1;
-             # |   }
-          >  # | </script>
-               |          ^
-             # | 
-            ## | <button on:click={handleClick}>
-            ## |   Clicked {count} {count === 1 ? 'time' : 'times'}
-          "
-        `);
+        <root>/tests/utils/svelte-component.svelte:###:###
+         ### │     count += 1;
+         ### │   }
+         ### │ </script>
+             │          ▲
+         ### │ 
+         ### │ <button on:click={handleClick}>
+         ### │   Clicked {count} {count === 1 ? 'time' : 'times'}
+        "
+      `);
     }),
   );
 });
