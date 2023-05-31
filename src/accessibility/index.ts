@@ -21,7 +21,7 @@ type Serializable =
   | string
   | boolean
   | null
-  | BigInt
+  | bigint
   | JSONArray
   | JSONObject;
 
