@@ -9,7 +9,8 @@
     },
     {
       "matchPackageNames": ["^@types/node$"],
-      "rangeStrategy": "in-range-only"
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     },
     {
       "matchPackageNames": ["^aria-query$"],
