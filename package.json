@@ -60,7 +60,7 @@
     "remark-cli": "11.0.0",
     "remark-lint-no-dead-urls": "1.1.0",
     "remark-validate-links": "12.1.1",
-    "resolve.exports": "1.1.1",
+    "resolve.exports": "2.0.2",
     "rollup-plugin-dts": "5.3.0",
     "rollup-plugin-svelte": "7.1.5",
     "rollup-plugin-vue": "6.0.0",
