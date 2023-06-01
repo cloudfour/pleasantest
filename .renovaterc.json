@@ -8,12 +8,12 @@
       "rangeStrategy": "widen"
     },
     {
-      "matchPackageNames": ["^@types/node$"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": ["^@types\\/node$"],
       "enabled": false
     },
     {
       "matchPackageNames": ["^aria-query$"],
+      "rangeStrategy": "in-range-only",
       "enabled": false
     },
     {
