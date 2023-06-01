@@ -25,6 +25,23 @@ const stubs = {
       return addToElementCache(dom)
     }
   `,
+  'function-bind': `
+    const functionBind = Function.prototype.bind;
+    export default functionBind;
+  `,
+  'object-inspect': `
+    const inspect = (value) => String(value)
+    export default inspect;
+  `,
+  'has-bigints': `
+    function hasNativeBigInts() {
+      return typeof $BigInt === 'function'
+        && typeof BigInt === 'function'
+        && typeof $BigInt(42) === 'bigint' // eslint-disable-line no-magic-numbers
+        && typeof BigInt(42) === 'bigint'; // eslint-disable-line no-magic-numbers
+    };
+    export default hasNativeBigInts
+  `,
 };
 
 /** @type {import('rollup').Plugin} */
