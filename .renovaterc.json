@@ -4,14 +4,12 @@
   "rangeStrategy": "pin",
   "packageRules": [
     {
-      "matchPackageNames": ["^node$", "^@types/node$"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": ["^node$"],
       "rangeStrategy": "widen"
     },
     {
-      "matchPackageNames": ["^node$", "^@types/node$"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "rangeStrategy": "replace"
+      "matchPackageNames": ["^@types/node$"],
+      "rangeStrategy": "in-range-only"
     },
     {
       "matchPackageNames": ["^aria-query$"],
