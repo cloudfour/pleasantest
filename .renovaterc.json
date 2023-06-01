@@ -4,17 +4,16 @@
   "rangeStrategy": "pin",
   "packageRules": [
     {
-      "matchPackageNames": ["^node$"],
+      "matchPackageNames": ["node"],
       "rangeStrategy": "widen"
     },
     {
-      "matchPackageNames": ["^@types\\/node$"],
+      "matchPackageNames": ["@types/node"],
       "enabled": false
     },
     {
-      "matchPackageNames": ["^aria-query$"],
-      "rangeStrategy": "in-range-only",
-      "enabled": false
+      "matchPackageNames": ["aria-query"],
+      "rangeStrategy": "in-range-only"
     },
     {
       "matchDepTypes": ["dependencies"],
