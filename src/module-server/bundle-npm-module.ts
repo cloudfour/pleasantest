@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import { createRequire } from 'node:module';
 
 import commonjs from '@rollup/plugin-commonjs';
-import { parse, init } from 'cjs-module-lexer';
+import { init, parse } from 'cjs-module-lexer';
 import * as esbuild from 'esbuild';
 import type { Plugin, RollupCache } from 'rollup';
 import { rollup } from 'rollup';
