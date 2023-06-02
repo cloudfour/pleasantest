@@ -1,5 +1,6 @@
 module.exports = (api) => {
   const isRollup = api.caller((c) => c && c.name === '@rollup/plugin-babel');
+  const isTest = api.cache(() => process.env.NODE_ENV) === 'test';
 
   return {
     presets: [
@@ -12,6 +13,6 @@ module.exports = (api) => {
       ],
       ['@babel/preset-typescript', { optimizeConstEnums: true }],
     ],
-    plugins: isRollup ? ['babel-plugin-un-cjs'] : [],
+    plugins: isRollup && !isTest ? ['babel-plugin-un-cjs'] : [],
   };
 };
