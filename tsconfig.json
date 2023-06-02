@@ -51,7 +51,7 @@
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "importsNotUsedAsValues": "error",
+    "verbatimModuleSyntax": true,
     "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["jest"],
