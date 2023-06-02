@@ -12,10 +12,6 @@
       "enabled": false
     },
     {
-      "matchPackageNames": ["aria-query"],
-      "rangeStrategy": "in-range-only"
-    },
-    {
       "matchDepTypes": ["dependencies"],
       "rangeStrategy": "bump"
     },

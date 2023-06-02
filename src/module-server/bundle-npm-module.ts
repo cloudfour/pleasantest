@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import { createRequire } from 'node:module';
 
 import commonjs from '@rollup/plugin-commonjs';
-import { parse } from 'cjs-module-lexer';
+import { init, parse } from 'cjs-module-lexer';
 import * as esbuild from 'esbuild';
 import type { Plugin, RollupCache } from 'rollup';
 import { rollup } from 'rollup';
@@ -34,12 +34,12 @@ export const bundleNpmModule = async (
   let namedExports: string[] = [];
   if (dynamicCJSModules.has(id)) {
     let isValidCJS = true;
+    await init();
     try {
       const text = await fs.readFile(mod, 'utf8');
       // Goal: Determine if it is ESM or CJS.
       // Try to parse it with cjs-module-lexer, if it fails, assume it is ESM
-      // eslint-disable-next-line @cloudfour/typescript-eslint/await-thenable
-      await parse(text);
+      parse(text);
     } catch {
       isValidCJS = false;
     }
@@ -103,7 +103,6 @@ export { default } from '${mod}'`;
     format: 'es',
     indent: false,
     exports: 'named',
-    preferConst: true,
   });
 
   return output[0].code;
