@@ -1,5 +1,23 @@
 # pleasantest
 
+## 4.0.0
+
+### Major Changes
+
+- [#684](https://github.com/cloudfour/pleasantest/pull/684) [`53fe380`](https://github.com/cloudfour/pleasantest/commit/53fe380a7382f67ecbf43e57362a0eb156713617) Thanks [@renovate](https://github.com/apps/renovate)! - Update `@testing-library/dom` to `v9`.
+
+  Breaking changes:
+
+  - `ByRole` now only allows string as a role. The `exact`, `trim`, `collapseWhitespace`, and `normalizer` options are no longer supported for role queries.
+
+- [#681](https://github.com/cloudfour/pleasantest/pull/681) [`f00efad`](https://github.com/cloudfour/pleasantest/commit/f00efad029084dbef888506e78f54b36e85f0a90) Thanks [@calebeby](https://github.com/calebeby)! - Drop support for node 14 and 19
+
+- [#686](https://github.com/cloudfour/pleasantest/pull/686) [`563cd06`](https://github.com/cloudfour/pleasantest/commit/563cd065943f8f1dc29351d2025611bafc9a59c2) Thanks [@renovate](https://github.com/apps/renovate)! - Update Puppeteer from `v18` to `v20`. [The `puppeteer` changelog is available here](https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer/CHANGELOG.md#1900-2022-10-14).
+
+### Minor Changes
+
+- [#698](https://github.com/cloudfour/pleasantest/pull/698) [`fd66068`](https://github.com/cloudfour/pleasantest/commit/fd660686df142785e1500e3fcd61afce0f23080c) Thanks [@calebeby](https://github.com/calebeby)! - Add support for Node 20
+
 ## 3.1.0
 
 ### Minor Changes
