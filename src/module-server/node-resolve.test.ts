@@ -143,7 +143,7 @@ describe('resolving in node_modules', () => {
     `);
     expect(await fs.resolve('foo')).toBe('./node_modules/foo/index.js');
     await expect(fs.resolve('foo/asdf')).rejects.toThrow(
-      'Missing "./asdf" export in "foo" package',
+      'Missing "./asdf" specifier in "foo" package',
     );
   });
 

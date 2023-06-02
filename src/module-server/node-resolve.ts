@@ -192,12 +192,16 @@ export const resolveFromNodeModules = async (
   );
 };
 
-const readMainFields = (pkgJson: any, subPath: string, useExports: boolean) => {
+const readMainFields = (
+  pkgJson: any,
+  subPath: string,
+  useExports: boolean,
+): string | undefined => {
   if (useExports && 'exports' in pkgJson) {
     return resolve(pkgJson, subPath, {
       browser: true,
       conditions: ['development', 'esmodules', 'module'],
-    });
+    })?.[0];
   }
 
   let result;
@@ -218,5 +222,5 @@ const readMainFields = (pkgJson: any, subPath: string, useExports: boolean) => {
 
   if (!result && subPath === '.')
     result = resolveLegacy(pkgJson, { browser: false, fields: ['main'] });
-  return result;
+  return typeof result === 'string' ? result : undefined;
 };
