@@ -1,4 +1,3 @@
-// eslint-disable-next-line @cloudfour/n/no-extraneous-import
 import type axe from 'axe-core';
 import type { ElementHandle, Page } from 'puppeteer';
 

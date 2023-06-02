@@ -233,9 +233,7 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
         closeIndex,
       );
       const parsedArgs = deserialize(argsString);
-      // @ts-expect-error TS doesn't know about the properties
-      const res: string = context.utils[methodName](...parsedArgs);
-      // Const escaped = res.replace(/"/g, '\\"').replace(/\u001b/g, '\\u001b');
+      const res: string = (context.utils as any)[methodName](...parsedArgs);
       const escaped = JSON.stringify(res).replace(/^"/, '').replace(/"$/, '');
       message =
         message.slice(0, start) +
