@@ -57,7 +57,7 @@ export const bundleNpmModule = async (
   const bundle = await rollup({
     input: hasSyntheticNamedExports ? virtualEntry : mod,
     cache: npmCache,
-    shimMissingExports: true,
+    shimMissingExports: false,
     treeshake: true,
     preserveEntrySignatures: 'allow-extension',
     plugins: [
