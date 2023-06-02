@@ -22,7 +22,6 @@ module.exports = {
     '<rootDir>/node_modules/\\.pnpm/(?!ansi-regex)',
     '<rootDir>/node_modules/(?!(\\.pnpm|ansi-regex))',
   ],
-  // transformIgnorePatterns: [],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testTimeout: 10_000,
 };
