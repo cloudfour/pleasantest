@@ -13,7 +13,7 @@ module.exports = {
     '<rootDir>/src/.*(?<!\\.test)\\.ts',
   ],
   transform: {
-    '^.+\\.[jt]sx?$': ['esbuild-jest', { sourcemap: true }],
+    '^.+\\.[jt]sx?$': 'es-jest',
   },
   // Don't transform node_modules, _except_ ansi-regex
   // ansi-regex is ESM and since we are using Jest in CJS mode,
