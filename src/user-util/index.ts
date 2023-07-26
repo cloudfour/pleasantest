@@ -141,15 +141,18 @@ export const error = (
   literals: TemplateStringsArray,
   ...placeholders: (InterpolableIntoError | InterpolableIntoError[])[]
 ) => ({
-  error: literals.reduce((acc, val, i) => {
-    if (i !== 0) {
-      const item = placeholders[i - 1];
-      if (Array.isArray(item)) acc.push(...item);
-      else acc.push(item);
-    }
-    if (val !== '') acc.push(val);
-    return acc;
-  }, [] as (string | Element | number | boolean)[]),
+  error: literals.reduce(
+    (acc, val, i) => {
+      if (i !== 0) {
+        const item = placeholders[i - 1];
+        if (Array.isArray(item)) acc.push(...item);
+        else acc.push(item);
+      }
+      if (val !== '') acc.push(val);
+      return acc;
+    },
+    [] as (string | Element | number | boolean)[],
+  ),
 });
 
 const capitalizeText = (text: string) => text[0].toUpperCase() + text.slice(1);

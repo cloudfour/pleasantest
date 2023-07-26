@@ -73,7 +73,7 @@ const connectToCachedBrowser = async (
     return puppeteer
       .connect({ browserWSEndpoint: cachedWSEndpoint })
       .catch(
-        () => ({ connected: false, previousValue: cachedWSEndpoint } as const),
+        () => ({ connected: false, previousValue: cachedWSEndpoint }) as const,
       );
   }
 

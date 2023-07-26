@@ -204,9 +204,12 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
           );
         }
 
-        await ctx.page.evaluate((...colorErr) => {
-          console.log(...colorErr);
-        }, ...(ansiColorsLog(...failureMessage) as any));
+        await ctx.page.evaluate(
+          (...colorErr) => {
+            console.log(...colorErr);
+          },
+          ...(ansiColorsLog(...failureMessage) as any),
+        );
       }
 
       await cleanup(true);
