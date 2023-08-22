@@ -91,11 +91,6 @@ function bundlePlugin() {
 
       return resolved;
     },
-    resolveFileUrl({ relativePath, format }) {
-      return format === 'es'
-        ? `new URL('${relativePath}', import.meta.url).href`
-        : `require('path').join(__dirname,'${relativePath}')`;
-    },
     resolveImportMeta(property, { format }) {
       if (property === 'url' && format === 'cjs') {
         // eslint-disable-next-line no-template-curly-in-string
