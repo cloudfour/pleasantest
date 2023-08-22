@@ -1,8 +1,7 @@
 import { Console } from 'node:console';
 import type { AddressInfo, Socket } from 'node:net';
 
-import type { Polka } from 'polka';
-import polka from 'polka';
+import polka, { type Polka } from 'polka';
 
 interface ServerOpts {
   middleware: polka.Middleware[];

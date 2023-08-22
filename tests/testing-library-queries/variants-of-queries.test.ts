@@ -1,5 +1,4 @@
-import type { ElementHandle } from 'pleasantest';
-import { withBrowser } from 'pleasantest';
+import { type ElementHandle, withBrowser } from 'pleasantest';
 
 import { printErrorFrames } from '../test-utils.js';
 

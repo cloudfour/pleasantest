@@ -8,21 +8,29 @@ import { bgRed, bold, options as koloristOpts, red, white } from 'kolorist';
 import * as puppeteer from 'puppeteer';
 
 import { ansiColorsLog } from './ansi-colors-browser.js';
-import type { AsyncHookTracker } from './async-hooks.js';
-import { createAsyncHookTracker } from './async-hooks.js';
+import {
+  type AsyncHookTracker,
+  createAsyncHookTracker,
+} from './async-hooks.js';
 import { connectToBrowser } from './connect-to-browser.js';
 import { createBuildStatusTracker } from './module-server/build-status-tracker.js';
 import { cleanupClientRuntimeServer } from './module-server/client-runtime-server.js';
-import type { ModuleServerOpts } from './module-server/index.js';
-import { createModuleServer } from './module-server/index.js';
-import type { BoundQueries, WaitForOptions } from './pptr-testing-library.js';
 import {
+  type ModuleServerOpts,
+  createModuleServer,
+} from './module-server/index.js';
+import {
+  type BoundQueries,
+  type WaitForOptions,
   getQueriesForElement,
   waitFor as innerWaitFor,
 } from './pptr-testing-library.js';
 import { sourceMapErrorFromBrowser } from './source-map-error-from-browser.js';
-import type { PleasantestUser, UserOpts } from './user.js';
-import { pleasantestUser } from './user.js';
+import {
+  type PleasantestUser,
+  type UserOpts,
+  pleasantestUser,
+} from './user.js';
 import { assertElementHandle } from './utils.js';
 
 import './extend-expect.js';
@@ -179,7 +187,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
                 acc.length > 0 &&
                 typeof acc[acc.length - 1] === 'string'
               )
-                acc[acc.length - 1] += String(chunk);
+                (acc[acc.length - 1] as string) += String(chunk);
               else acc.push(typeof chunk === 'object' ? chunk : String(chunk));
               return acc;
             },

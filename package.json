@@ -131,8 +131,8 @@
     "build:watch": "rollup -c rollup.config.js --watch",
     "type": "tsc",
     "type:watch": "tsc --watch",
-    "lint:check": "eslint . && prettier --check . && remark README.md --frail",
-    "lint": "eslint --fix . && prettier --write . && remark README.md --frail",
+    "lint:check": "eslint . && prettier --check --cache . && remark README.md --frail",
+    "lint": "eslint --fix . && prettier --write --cache . && remark README.md --frail",
     "changeset": "changeset",
     "version": "changeset version && prettier --write .",
     "release": "npm run build && changeset publish"

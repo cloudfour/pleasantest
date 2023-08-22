@@ -4,8 +4,7 @@ import { createRequire } from 'node:module';
 import commonjs from '@rollup/plugin-commonjs';
 import { init, parse } from 'cjs-module-lexer';
 import * as esbuild from 'esbuild';
-import type { Plugin, RollupCache } from 'rollup';
-import { rollup } from 'rollup';
+import { type Plugin, type RollupCache, rollup } from 'rollup';
 
 import { isBareImport } from './extensions-and-detection.js';
 import { environmentVariablesPlugin } from './plugins/environment-variables-plugin.js';
