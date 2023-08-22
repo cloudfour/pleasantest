@@ -57,7 +57,11 @@ const mainConfig = {
 /** @type {import('rollup').RollupOptions} */
 const typesConfig = {
   input: 'src/index.ts',
-  output: [{ file: 'dist/index.d.ts', format: 'es' }],
+  output: [
+    { file: 'dist/index.d.ts', format: 'es' },
+    { file: 'dist/index.d.cts', format: 'es' },
+    { file: 'dist/index.d.mts', format: 'es' },
+  ],
   external: [...external, 'polka', 'axe-core'],
   plugins: [dts({ respectExternal: true })],
 };
