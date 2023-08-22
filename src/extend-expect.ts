@@ -1,7 +1,9 @@
 import type { ElementHandle, JSHandle } from 'puppeteer';
 
-import type { AsyncHookTracker } from './async-hooks.js';
-import { activeAsyncHookTrackers } from './async-hooks.js';
+import {
+  type AsyncHookTracker,
+  activeAsyncHookTrackers,
+} from './async-hooks.js';
 import { createClientRuntimeServer } from './module-server/client-runtime-server.js';
 import { deserialize, serialize } from './serialize/index.js';
 import {

@@ -1,8 +1,10 @@
 import type axe from 'axe-core';
 import type { ElementHandle, Page } from 'puppeteer';
 
-import type { AsyncHookTracker } from '../async-hooks.js';
-import { activeAsyncHookTrackers } from '../async-hooks.js';
+import {
+  type AsyncHookTracker,
+  activeAsyncHookTrackers,
+} from '../async-hooks.js';
 import { createClientRuntimeServer } from '../module-server/client-runtime-server.js';
 import {
   assertElementHandle,

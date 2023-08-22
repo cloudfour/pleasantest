@@ -1,8 +1,12 @@
 import * as path from 'node:path';
 
 import { Liquid } from 'liquidjs';
-import type { PleasantestUtils } from 'pleasantest';
-import { devices, getAccessibilityTree, withBrowser } from 'pleasantest';
+import {
+  type PleasantestUtils,
+  devices,
+  getAccessibilityTree,
+  withBrowser,
+} from 'pleasantest';
 
 const iPhone = devices['iPhone 11'];
 

@@ -29,8 +29,10 @@
   - Make it not break if a sourcemap is missing sources
   */
 
-import remapping from '@ampproject/remapping';
-import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
+import remapping, {
+  type DecodedSourceMap,
+  type RawSourceMap,
+} from '@ampproject/remapping';
 
 // Based on https://github.com/sveltejs/svelte/blob/abf11bb02b2afbd3e4cac509a0f70e318c306364/src/compiler/utils/mapped_code.ts#L221
 const nullSourceMap: RawSourceMap = {

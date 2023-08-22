@@ -1,5 +1,4 @@
-import { withBrowser } from 'pleasantest';
-import type { PleasantestUtils } from 'pleasantest';
+import { type PleasantestUtils, withBrowser } from 'pleasantest';
 import type * as puppeteeer from 'puppeteer';
 
 const setupOverlappingElements = async (
