@@ -26,6 +26,30 @@ test(
 );
 
 test(
+  'Returned non-serializable values',
+  withBrowser(async ({ utils, page, waitFor }) => {
+    await utils.injectHTML('<h1></h1>');
+    await utils.runJS(`
+      setTimeout(() => {
+        document.title = 'hallo'
+      }, 100)
+    `);
+    // At first the title won't be set to hallo
+    // Because it waits 100ms before it sets it
+    expect(await page.title()).not.toEqual('hallo');
+    const imNotSerializable = Symbol('test');
+    const waitForCallback = jest.fn(async () => {
+      expect(await page.title()).toEqual('hallo');
+      return imNotSerializable;
+    });
+    const returnedValue = await waitFor(waitForCallback);
+    expect(returnedValue).toBe(imNotSerializable);
+    expect(await page.title()).toEqual('hallo');
+    expect(waitForCallback).toHaveBeenCalled();
+  }),
+);
+
+test(
   'Throws error with timeout',
   withBrowser(async ({ waitFor }) => {
     const error1 = await waitFor(
@@ -40,7 +64,9 @@ test(
       tests/wait-for.test.ts
 
               throw new Error('something bad happened');
-                    ^"
+                    ^
+      -------------------------------------------------------
+      dist/cjs/index.cjs"
     `);
 
     // If the callback function never resolves (or takes too long to resolve),
