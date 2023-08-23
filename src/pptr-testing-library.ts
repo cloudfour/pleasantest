@@ -247,22 +247,12 @@ export interface WaitForOptions {
   mutationObserverOptions?: MutationObserverInit;
 }
 
-interface WaitFor {
-  <T>(
-    page: Page,
-    asyncHookTracker: AsyncHookTracker,
-    cb: () => T | Promise<T>,
-    { onTimeout, container, ...opts }: WaitForOptions,
-    wrappedFunction: (...args: any) => any,
-  ): Promise<T>;
-}
-
-export const waitFor: WaitFor = async (
-  page,
-  asyncHookTracker,
-  cb,
-  { onTimeout, container, ...opts },
-  wrappedFunction,
+export const waitFor = async <T>(
+  page: Page,
+  asyncHookTracker: AsyncHookTracker,
+  cb: () => T | Promise<T>,
+  { onTimeout, container, ...opts }: WaitForOptions,
+  wrappedFunction: (...args: any) => any,
 ) =>
   asyncHookTracker.addHook(async () => {
     const { port } = await createClientRuntimeServer();
@@ -272,7 +262,7 @@ export const waitFor: WaitFor = async (
     // So we need a unique name for each variable
     const browserFuncName = `pleasantest_waitFor_${waitForCounter}`;
 
-    let returnValue: any;
+    let returnValue: T | undefined;
     await page.exposeFunction(browserFuncName, async () => {
       returnValue = await cb();
     });
@@ -301,13 +291,11 @@ export const waitFor: WaitFor = async (
       container,
     );
     const wasSuccessful = await evalResult.evaluate((r) => r.success);
-    const result = wasSuccessful
-      ? returnValue
-      : await evalResult.evaluate((r) => ({
-          message: r.result.message,
-          stack: r.result.stack,
-        }));
-    if (wasSuccessful) return result;
+    if (wasSuccessful) return returnValue as T;
+    const result = await evalResult.evaluate((r) => ({
+      message: r.result.message,
+      stack: r.result.stack,
+    }));
     const err = new Error(result.message);
     if (result.stack) err.stack = result.stack;
     else removeFuncFromStackTrace(err, asyncHookTracker.addHook);
