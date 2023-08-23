@@ -51,10 +51,11 @@
       "groupName": "jest-related"
     },
     {
-      "matchPackagePatterns": [
+      "matchPackageNames": [
         "@testing-library/dom",
         "@testing-library/jest-dom",
-        "dom-accessibility-api"
+        "dom-accessibility-api",
+        "aria-query"
       ],
       "groupName": "testing-library-related"
     }
