@@ -111,7 +111,7 @@ export const jsMiddleware = async ({
           // Account for the injected import.meta.pleasantestArgs code in the source map
           str.prepend(injectedArgsCode);
           map = str.generateMap({
-            hires: true,
+            hires: 'boundary',
             source: id,
             includeContent: true,
           }) as any;
