@@ -46,7 +46,7 @@
       "groupName": "eslint/prettier"
     },
     {
-      "matchPackagePatterns": ["jest"],
+      "matchPackagePatterns": ["jest", "pretty-format"],
       "automerge": true,
       "groupName": "jest-related"
     },
