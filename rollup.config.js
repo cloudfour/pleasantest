@@ -91,19 +91,6 @@ function bundlePlugin() {
 
       return resolved;
     },
-    resolveFileUrl({ relativePath, format }) {
-      return format === 'es'
-        ? `new URL('${relativePath}', import.meta.url).href`
-        : `require('path').join(__dirname,'${relativePath}')`;
-    },
-    resolveImportMeta(property, { format }) {
-      if (property === 'url' && format === 'cjs') {
-        // eslint-disable-next-line no-template-curly-in-string
-        return '`file://${__filename}`';
-      }
-
-      return null;
-    },
     async load(id) {
       if (!id.startsWith('\0bundle:')) return;
       id = id.slice(8);

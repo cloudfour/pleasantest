@@ -111,10 +111,13 @@ export const connectToBrowser = async (
     return connectedBrowser;
   }
 
-  const subprocess = childProcess.fork(startDisownedBrowserPath, {
-    detached: true,
-    stdio: 'ignore',
-  });
+  const subprocess = childProcess.fork(
+    fileURLToPath(startDisownedBrowserPath),
+    {
+      detached: true,
+      stdio: 'ignore',
+    },
+  );
   const wsEndpoint = await new Promise<string>((resolve, reject) => {
     subprocess.send({ browser, headless });
     subprocess.on('message', (msg: any) => {
