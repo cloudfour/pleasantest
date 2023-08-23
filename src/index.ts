@@ -536,7 +536,7 @@ export const configureDefaults = (options: WithBrowserOpts) => {
   defaultOptions = options;
 };
 
-export const devices = puppeteer.devices;
+export const devices = puppeteer.KnownDevices;
 
 afterAll(async () => {
   await cleanupClientRuntimeServer();
