@@ -28,7 +28,6 @@ test(
 test(
   'Returned non-serializable values',
   withBrowser(async ({ utils, page, waitFor }) => {
-    await utils.injectHTML('<h1></h1>');
     await utils.runJS(`
       setTimeout(() => {
         document.title = 'hallo'
