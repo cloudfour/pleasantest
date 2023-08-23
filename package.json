@@ -118,9 +118,14 @@
   },
   "main": "./dist/cjs/index.cjs",
   "exports": {
-    "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs",
-    "types": "./dist/index.d.ts"
+    "require": {
+      ".": "./dist/cjs/index.cjs",
+      "types": "./dist/index.d.cts"
+    },
+    "import": {
+      ".": "./dist/esm/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
   },
   "types": "./dist/index.d.ts",
   "scripts": {
