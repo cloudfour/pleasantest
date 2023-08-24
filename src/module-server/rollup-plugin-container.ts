@@ -71,7 +71,7 @@ import { Parser } from 'acorn';
 import type {
   LoadResult,
   ResolveIdResult,
-  PluginContext as RollupPluginContext,
+  TransformPluginContext as RollupPluginContext,
 } from 'rollup';
 
 import { combineSourceMaps } from './combine-source-maps.js';
@@ -103,6 +103,9 @@ type PluginContext = Omit<
   | 'moduleIds'
   | 'resolveId'
   | 'load'
+  | 'debug'
+  | 'getCombinedSourcemap'
+  | 'info'
 >;
 
 export const createPluginContainer = (plugins: Plugin[]) => {
