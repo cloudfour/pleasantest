@@ -43,7 +43,6 @@
       "rollup-plugin-postcss-original-types": [
         "./node_modules/rollup-plugin-postcss/types/index.d.ts"
       ],
-      "magic-string-original-types": ["./node_modules/magic-string/index.d.ts"],
       "amp-remapping-original-types": [
         "./node_modules/@ampproject/remapping/dist/types/remapping.d.ts"
       ]

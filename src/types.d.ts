@@ -31,12 +31,6 @@ declare module 'rollup-plugin-postcss' {
   export default mod.default;
 }
 
-declare module 'magic-string' {
-  export * from 'magic-string-original-types';
-  import mod from 'magic-string-original-types';
-  export default mod.default;
-}
-
 declare module '@ampproject/remapping' {
   export * from 'amp-remapping-original-types';
   import mod from 'amp-remapping-original-types';
