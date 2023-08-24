@@ -27,7 +27,7 @@
     "@cloudfour/eslint-plugin": "23.0.0",
     "@rollup/plugin-alias": "5.0.0",
     "@rollup/plugin-babel": "6.0.3",
-    "@rollup/plugin-node-resolve": "15.1.0",
+    "@rollup/plugin-node-resolve": "15.2.0",
     "@rollup/plugin-terser": "0.4.3",
     "@testing-library/dom": "9.3.0",
     "@testing-library/jest-dom": "6.0.1",
@@ -63,7 +63,7 @@
     "remark-validate-links": "12.1.1",
     "resolve.exports": "2.0.2",
     "rollup-plugin-dts": "6.0.0",
-    "rollup-plugin-svelte": "7.1.5",
+    "rollup-plugin-svelte": "7.1.6",
     "rollup-plugin-vue": "6.0.0",
     "sass": "1.62.1",
     "simple-code-frame": "1.3.0",
@@ -74,7 +74,7 @@
     "vue": "3.3.4"
   },
   "dependencies": {
-    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "acorn": "^8.10.0",
     "cjs-module-lexer": "^1.2.3",
     "es-module-lexer": "^1.3.0",
@@ -82,7 +82,7 @@
     "mime": "^3.0.0",
     "postcss": "^8.4.28",
     "puppeteer": "^21.1.0",
-    "rollup": "^3.23.1",
+    "rollup": "^3.28.0",
     "rollup-plugin-postcss": "^4.0.2",
     "source-map": "0.8.0-beta.0"
   },
