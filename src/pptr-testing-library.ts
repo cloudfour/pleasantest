@@ -247,22 +247,12 @@ export interface WaitForOptions {
   mutationObserverOptions?: MutationObserverInit;
 }
 
-interface WaitFor {
-  <T>(
-    page: Page,
-    asyncHookTracker: AsyncHookTracker,
-    cb: () => T | Promise<T>,
-    { onTimeout, container, ...opts }: WaitForOptions,
-    wrappedFunction: (...args: any) => any,
-  ): Promise<T>;
-}
-
-export const waitFor: WaitFor = async (
-  page,
-  asyncHookTracker,
-  cb,
-  { onTimeout, container, ...opts },
-  wrappedFunction,
+export const waitFor = async <T>(
+  page: Page,
+  asyncHookTracker: AsyncHookTracker,
+  cb: () => T | Promise<T>,
+  { onTimeout, container, ...opts }: WaitForOptions,
+  wrappedFunction: (...args: any) => any,
 ) =>
   asyncHookTracker.addHook(async () => {
     const { port } = await createClientRuntimeServer();
@@ -272,7 +262,10 @@ export const waitFor: WaitFor = async (
     // So we need a unique name for each variable
     const browserFuncName = `pleasantest_waitFor_${waitForCounter}`;
 
-    await page.exposeFunction(browserFuncName, cb);
+    let returnValue: T | undefined;
+    await page.exposeFunction(browserFuncName, async () => {
+      returnValue = await cb();
+    });
 
     const evalResult = await page.evaluateHandle(
       // Using new Function to avoid babel transpiling the import
@@ -282,8 +275,8 @@ export const waitFor: WaitFor = async (
         `return import("http://localhost:${port}/@pleasantest/dom-testing-library")
           .then(async ({ waitFor }) => {
             try {
-              const result = await waitFor(${browserFuncName}, { ...opts, container })
-              return { success: true, result }
+              await waitFor(${browserFuncName}, { ...opts, container })
+              return { success: true }
             } catch (error) {
               if (/timed out in waitFor/i.test(error.message)) {
                 // Leave out stack trace so the stack trace is given from Node
@@ -298,12 +291,11 @@ export const waitFor: WaitFor = async (
       container,
     );
     const wasSuccessful = await evalResult.evaluate((r) => r.success);
-    const result = await evalResult.evaluate((r) =>
-      r.success
-        ? r.result
-        : { message: r.result.message, stack: r.result.stack },
-    );
-    if (wasSuccessful) return result;
+    if (wasSuccessful) return returnValue as T;
+    const result = await evalResult.evaluate((r) => ({
+      message: r.result.message,
+      stack: r.result.stack,
+    }));
     const err = new Error(result.message);
     if (result.stack) err.stack = result.stack;
     else removeFuncFromStackTrace(err, asyncHookTracker.addHook);

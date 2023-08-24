@@ -1,4 +1,8 @@
 module.exports = {
+  // See https://jestjs.io/docs/configuration/#prettierpath-string -> "Prettier version 3 is not supported!"
+  // Blocked by https://github.com/prettier/prettier-synchronized/issues/4#issuecomment-1649355749
+  // and https://github.com/jestjs/jest/pull/14311#issuecomment-1649358074
+  prettierPath: null,
   testEnvironment: 'node',
   moduleNameMapper: {
     '^pleasantest$': '<rootDir>/dist/cjs/index.cjs',
