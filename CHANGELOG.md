@@ -1,5 +1,19 @@
 # pleasantest
 
+## 4.1.0
+
+### Minor Changes
+
+- [#726](https://github.com/cloudfour/pleasantest/pull/726) [`e71e259`](https://github.com/cloudfour/pleasantest/commit/e71e2590e6c205006b36d2c92a67517ab8bb383d) Thanks [@calebeby](https://github.com/calebeby)! - Fix fork URL for ESM use
+
+- [#732](https://github.com/cloudfour/pleasantest/pull/732) [`29b8671`](https://github.com/cloudfour/pleasantest/commit/29b8671d7ef710ad54cbb35faaea35468a5fd081) Thanks [@calebeby](https://github.com/calebeby)! - Allow returning non-serializable values from `waitFor`
+
+- [#728](https://github.com/cloudfour/pleasantest/pull/728) [`76f1862`](https://github.com/cloudfour/pleasantest/commit/76f1862acd328f4ef5ea51c69f787df9fd427eb1) Thanks [@calebeby](https://github.com/calebeby)! - Re-export devices from `puppeteer.KnownDevices` instead of deprecated `puppeteer.devices`
+
+### Patch Changes
+
+- [#725](https://github.com/cloudfour/pleasantest/pull/725) [`24b347d`](https://github.com/cloudfour/pleasantest/commit/24b347d229894ec61fc4b6b457c8bdcfa45dfb1d) Thanks [@calebeby](https://github.com/calebeby)! - Fix types in export map
+
 ## 4.0.0
 
 ### Major Changes
