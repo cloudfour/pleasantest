@@ -1,11 +1,8 @@
 <h1 align="center">
-  <br/>
   <img width="400" src="pleasantest-logo.svg" alt="Pleasantest">
-  <br/>
-  <br/>
 </h1>
 
-Pleasantest is a library that allows you test web applications using real browsers in your Jest tests. Pleasantest is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
+Pleasantest is a library that allows you to test web applications using real browsers in your Jest tests. Pleasantest is focused on helping you write tests that are [as similar as possible to how users use your application](https://twitter.com/kentcdodds/status/977018512689455106).
 
 [![NPM version](http://img.shields.io/npm/v/pleasantest.svg)](https://www.npmjs.org/package/pleasantest) [![Build Status](https://github.com/cloudfour/pleasantest/workflows/Node.js%20CI/badge.svg)](https://github.com/cloudfour/pleasantest/actions/workflows/ci.yml)
 
@@ -66,9 +63,9 @@ module.exports = {
 };
 ```
 
-If you are using Babel outside of Jest, you can make your Babel config change based on whether it is being used in Jest, by following [these instructions](https://jestjs.io/docs/getting-started#using-babel).
+If you are using Babel outside of Jest, you can make your Babel config change based on whether it is being used in Jest by following [these instructions](https://jestjs.io/docs/getting-started#using-babel).
 
-Then you can create a test file, for example `something.test.ts`:
+Then you can create a test file, for example, `something.test.ts`:
 
 ```js
 test('test name', () => {
@@ -76,7 +73,7 @@ test('test name', () => {
 });
 ```
 
-To add Pleasantest to the test, wrap the test function with [`withBrowser`](#withbrowser), and mark the function as `async`. The `withBrowser` wrapper tells Pleasantest to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test, unless the test failed. It is possible to have browser tests and non-browser tests in the same test suite.
+To add Pleasantest to the test, wrap the test function with [`withBrowser`](#withbrowser) and mark the function as `async`. The `withBrowser` wrapper tells Pleasantest to launch a browser for the test. By default, a headless browser will be launched. The browser will close at the end of the test unless the test fails. It is possible to have browser and non-browser tests in the same test suite.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -131,7 +128,7 @@ test(
 );
 ```
 
-You could also load the HTML string from another file, for example if you are using [handlebars](https://handlebarsjs.com):
+You could also load the HTML string from another file, for example, if you are using [handlebars](https://handlebarsjs.com):
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -168,7 +165,7 @@ test(
 
 ### Selecting Rendered Elements
 
-You can use [Testing Library queries](https://testing-library.com/docs/queries/about#overview) to find elements on the page. The goal is to select elements in a way similar to how a user would; for example by selecting based on a button's text rather than its class name.
+You can use [Testing Library queries](https://testing-library.com/docs/queries/about#overview) to find elements on the page. The goal is to select elements like a user would, for example, by selecting based on a button's text rather than its class name.
 
 The Testing Library queries are exposed through the [`screen` property](#pleasantestcontextscreen) in the test context parameter.
 
@@ -259,7 +256,7 @@ This might be helpful if your tests depend on CSS classes that change the visibi
 
 If you loaded your content by navigating to a real page, you shouldn't have to worry about this; your CSS should already be loaded. Also, if you rendered your content using a client-side framework and you import your CSS (or Sass, Less, etc.) into your JS (i.e. `import './something.css'`), then it should also just work.
 
-Otherwise, you need to manually tell Pleasantest to load your CSS, using [`utils.loadCSS`](#pleasantestutilsloadcsscsspath-string-promisevoid)
+Otherwise, you need to manually tell Pleasantest to load your CSS using [`utils.loadCSS`](#pleasantestutilsloadcsscsspath-string-promisevoid):
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -277,7 +274,7 @@ test(
 
 ### Troubleshooting/Debugging a Failing Test
 
-1. Switch to headed mode to open a visible browser and see what is going on. You can use the DOM inspector, network tab, console, and anything else that might help you figure out what is wrong.
+1. Switch to headed mode to open a visible browser and see what is happening. You can use the DOM inspector, network tab, console, and anything else to help you determine what went wrong.
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -310,11 +307,11 @@ test(
 
 Pleasantest performs actionability checks when interacting with the page using the [User API](#user-api-pleasantestuser). This concept is closely modeled after [Cypress](https://docs.cypress.io/guides/core-concepts/interacting-with-elements.html#Actionability) and [Playwright's](https://playwright.dev/docs/actionability) implementations of actionability.
 
-The core concept behind actionability is that if a real user would not be able to perform an action in your page, you should not be able to perform the actions in your test either. For example, since a user cannot click on an invisible element, your test should not allow you to click on invisible elements.
+The core concept behind actionability is that if a real user cannot perform an action on your page, you should not be able to perform the actions in your test either. For example, since a user cannot click on an invisible element, your test should not allow you to click on invisible elements.
 
 We are working on adding more actionability checks.
 
-Here are the actionability checks that are currently implemented. Different methods in the User API perform different actionability checks based on what makes sense. In the API documentation for the [User API](#user-api-pleasantestuser), the actionability checks that each method performs are listed.
+Here are the actionability checks that are currently implemented. Different methods in the User API perform different actionability checks based on what makes sense. In the API documentation for the [User API](#user-api-pleasantestuser), each method's actionability checks are listed.
 
 #### Attached
 
@@ -337,7 +334,7 @@ Per the [W3C Web Content Accessibility Guidelines (WCAG) 2.1](https://www.w3.org
 
 ## Full Example
 
-There is a menu example in the [examples folder](./examples/menu/index.test.ts)
+You can find a menu example in the [examples folder](./examples/menu/index.test.ts).
 
 ## API
 
@@ -356,25 +353,35 @@ test(
 );
 ```
 
-Call Signatures:
+#### Call Signatures
 
-- `withBrowser(testFn: (context: PleasantestContext) => Promise<void>)`
-- `withBrowser(opts: WithBrowserOpts, testFn: (context: PleasantestContext) => Promise<void>)`
-- `withBrowser.headed(testFn: (context: PleasantestContext) => Promise<void>)`
-- `withBrowser.headed(opts: WithBrowserOpts, testFn: (context: PleasantestContext) => Promise<void>)`
+```js
+withBrowser(testFn: (context: PleasantestContext) => Promise<void>)
+```
+```js
+withBrowser(opts: WithBrowserOpts, testFn: (context: PleasantestContext) => Promise<void>)
+```
+```js
+withBrowser.headed(testFn: (context: PleasantestContext) => Promise<void>)
+```
+```js
+withBrowser.headed(opts: WithBrowserOpts, testFn: (context: PleasantestContext) => Promise<void>)
+```
 
-`WithBrowserOpts` (all properties are optional):
+#### `WithBrowserOpts` 
 
-- `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. If you use the `withBrowser.headed` chain, that will override the value of `headless`.
+All properties are optional:
+
+- `headless`: `boolean`, default `true`: Whether to open a headless (not visible) browser. Using the `withBrowser.headed` chain will override the value of `headless`.
 - `device`: Device Object [documented here](https://pptr.dev/api/puppeteer.device).
 - `moduleServer`: Module Server options object (all properties are optional). They will be applied to files imported through [`utils.runJS`](#pleasantestutilsrunjscode-string-browserargs-unknown-promiserecordstring-unknown) or [`utils.loadJS`](#pleasantestutilsloadjsjspath-string-promisevoid).
   - `plugins`: Array of Rollup, Vite, or WMR plugins to add.
   - `envVars`: Object with string keys and string values for environment variables to pass in as `import.meta.env.*` / `process.env.*`
   - `esbuild`: ([`TransformOptions`](https://esbuild.github.io/api/#transform-api) | `false`) Options to pass to esbuild. Set to false to disable esbuild.
-- `user`: User API options object (all properties are optional). They will be applied when calling `user.*` methods.
+- `user`: User API options object (all properties are optional). They will be applied when calling the `user.*` methods.
   - `targetSize`: (`number | boolean`, default `44`): Set the minimum target size for `user.click`. Set to `false` to disable target size checks. This option can also be passed to individual `user.click` calls in the 2nd parameter.
 
-You can configure the default options (applied to all tests in current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
+You can configure the default options (applied to all tests in the current file) by using the `configureDefaults` method. If you want defaults to apply to all files, Create a [test setup file](https://jestjs.io/docs/configuration#setupfilesafterenv-array) and call `configureDefaults` there:
 
 ```js
 import { configureDefaults } from 'pleasantest'
@@ -391,7 +398,9 @@ configureDefaults({
 })
 ```
 
-By default, `withBrowser` will launch a headless Chromium browser. You can tell it to instead launch a headed (visible) browser by chaining `.headed`:
+#### Launching a headed (visible) browser
+
+By default, `withBrowser` launches a headless Chromium browser. To launch a headed (visible) browser, you can chain `.headed`:
 
 ```js
 import { withBrowser } from 'pleasantest';
@@ -404,9 +413,13 @@ test(
 );
 ```
 
-If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something, for example `throw new Error('leave the browser open')`
+#### Keeping the browser open
 
-You can also emulate a device viewport and user agent, by passing the `device` property to the options object in `withBrowser`:
+If the test passes, the browser will close. You can force the browser to stay open by making the test fail by throwing something, for example, `throw new Error('leave the browser open')`.
+
+#### Emulating a device viewport and user agent
+
+You can also emulate a device viewport and user agent by passing the `device` property to the options object in `withBrowser`:
 
 ```js
 import { withBrowser, devices } from 'pleasantest';
@@ -420,7 +433,7 @@ test(
 );
 ```
 
-The `devices` import from `pleasantest` is re-exported from Puppeteer, [here is the full list of available devices](https://github.com/puppeteer/puppeteer/blob/v7.1.0/src/common/DeviceDescriptors.ts).
+The `devices` import from `pleasantest` is re-exported from Puppeteer. [Here is the full list of available devices](https://github.com/puppeteer/puppeteer/blob/v7.1.0/src/common/DeviceDescriptors.ts).
 
 ### `PleasantestContext` Object (passed into test function wrapped by `withBrowser`)
 
@@ -446,7 +459,7 @@ test(
   'test name',
   withBrowser(async ({ waitFor, page }) => {
     //                 ^^^^^^^
-    // Wait until the url changes to ...
+    // Wait until the URL changes to ...
     await waitFor(async () => {
       expect(page.url).toBe('https://something.com/something');
     });
