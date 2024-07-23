@@ -129,7 +129,7 @@ export const resolveFromNodeModules = async (
   const cacheKey = resolveCacheKey(id, importer, root);
   const cached = resolveCache.get(cacheKey);
   if (cached) return cached;
-  const pathChunks = id.split(/[\/]/g);
+  const pathChunks = id.split(/[\\/]/g);
   const isNpmNamespace = id[0] === '@';
   // If it is an npm namespace, then get the first two folders, otherwise just one
   const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
