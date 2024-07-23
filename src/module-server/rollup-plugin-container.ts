@@ -64,6 +64,7 @@
   - Added object-hooks support and plugin ordering (from Vite version)
   */
 
+import { promises as fs } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
@@ -282,7 +283,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
           }
         } catch (error) {
           if (error instanceof ErrorWithLocation) {
-            if (!error.filename) error.filename = id;
+            if (!error.filename) error.filename = await fs.realpath(id);
             // If the error has a location,
             // apply the source maps to get the original location
             const line = error.line;
@@ -304,7 +305,11 @@ export const createPluginContainer = (plugins: Plugin[]) => {
                     ? undefined
                     : sourceLocation.column;
               }
-              error.filename = sourceLocation.source || id;
+              // Source map filenames get URI encoded
+              error.filename = sourceLocation.source
+                ? // Fix path slashes (windows), drive capitalization (windows)
+                  await fs.realpath(decodeURIComponent(sourceLocation.source))
+                : id;
             }
           }
 

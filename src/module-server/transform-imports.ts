@@ -30,6 +30,7 @@
   - Parsing errors are thrown with code frame
   */
 
+import { promises as fs } from 'node:fs';
 import { extname } from 'node:path';
 
 import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
@@ -77,7 +78,7 @@ export const transformImports = async (
       message: `Error parsing module with es-module-lexer.${suggestion}`,
       line,
       column,
-      filename: id,
+      filename: await fs.realpath(id),
     });
 
     if (map) {
@@ -90,7 +91,11 @@ export const transformImports = async (
         modifiedError.column =
           sourceLocation.column === null ? undefined : sourceLocation.column;
       }
-      modifiedError.filename = sourceLocation.source || id;
+      // Source map filenames get URI encoded
+      modifiedError.filename = sourceLocation.source
+        ? // Fix path slashes (windows), drive capitalization (windows)
+          await fs.realpath(decodeURIComponent(sourceLocation.source))
+        : id;
     }
     throw modifiedError;
   }

@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
-import { dirname, posix, relative, resolve, sep } from 'node:path';
+import { EOL } from 'node:os';
+import { dirname, isAbsolute, posix, relative, resolve, sep } from 'node:path';
 
 import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
 import MagicString from 'magic-string';
@@ -102,7 +103,7 @@ export const jsMiddleware = async ({
           import.meta.pleasantestArgs = [...window._pleasantestArgs]
         }`;
         const fileSrc = await fs.readFile(file, 'utf8');
-        const inlineStartIdx = fileSrc.indexOf(code);
+        const inlineStartIdx = fileSrc.indexOf(code.replaceAll('\n', EOL));
         code = injectedArgsCode + code;
         if (inlineStartIdx !== -1) {
           const str = new MagicString(fileSrc);
@@ -180,16 +181,16 @@ export const jsMiddleware = async ({
           if (resolved) {
             spec = typeof resolved === 'object' ? resolved.id : resolved;
             if (spec.startsWith('@npm/')) return addBuildId(`/${spec}`);
-            if (/^(\/|\\|[a-z]:\\)/i.test(spec)) {
+            if (isAbsolute(path)) {
               // Change FS-absolute paths to relative
-              spec = relative(dirname(file), spec).split(sep).join(posix.sep);
+              spec = relative(dirname(file), spec).split(sep).join('/');
               if (!/^\.?\.?\//.test(spec)) spec = `./${spec}`;
             }
 
             if (typeof resolved === 'object' && resolved.external) {
               if (/^(data|https?):/.test(spec)) return spec;
 
-              spec = relative(root, spec).split(sep).join(posix.sep);
+              spec = relative(root, spec).split(sep).join('/');
               if (!/^(\/|[\w-]+:)/.test(spec)) spec = `/${spec}`;
               return addBuildId(spec);
             }

@@ -124,7 +124,7 @@ export const withBrowser: WithBrowser = (...args: any[]) => {
     // ignore if it is the current file
     if (stackItem === thisFile) return false;
     // ignore if it is an internal-to-node thing
-    if (!stackItem.startsWith('/')) return false;
+    if (stackItem.startsWith('node:')) return false;
     // Find the first item that is not the current file
     return true;
   });

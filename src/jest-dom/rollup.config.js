@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import * as path from 'node:path';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
@@ -12,7 +13,9 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
-    export { toHaveStyle } from "${require.resolve('./to-have-style')}"
+    export { toHaveStyle } from "${require
+      .resolve('./to-have-style')
+      .replaceAll(path.sep, '/')}"
   `,
   // No need for polyfill in real browser
   'css.escape': `
