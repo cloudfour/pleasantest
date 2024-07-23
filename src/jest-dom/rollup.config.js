@@ -13,9 +13,9 @@ const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 const stubs = {
   [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
-    export { toHaveStyle } from "${require
-      .resolve('./to-have-style')
-      .replaceAll(path.sep, '/')}"
+    export { toHaveStyle } from ${JSON.stringify(
+      require.resolve('./to-have-style'),
+    )}
   `,
   // No need for polyfill in real browser
   'css.escape': `
