@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs';
-import { dirname, join, resolve as pResolve, posix, relative } from 'node:path';
+import { dirname, join, resolve as pResolve, relative, sep } from 'node:path';
 
 import { resolve, legacy as resolveLegacy } from 'resolve.exports';
 
@@ -129,7 +129,7 @@ export const resolveFromNodeModules = async (
   const cacheKey = resolveCacheKey(id, importer, root);
   const cached = resolveCache.get(cacheKey);
   if (cached) return cached;
-  const pathChunks = id.split(posix.sep);
+  const pathChunks = id.split(/[\/]/g);
   const isNpmNamespace = id[0] === '@';
   // If it is an npm namespace, then get the first two folders, otherwise just one
   const packageName = pathChunks.slice(0, isNpmNamespace ? 2 : 1);
@@ -161,7 +161,10 @@ export const resolveFromNodeModules = async (
   }
 
   const pkgJson = await readPkgJson(pkgDir);
-  const main = readMainFields(pkgJson, subPath, true);
+  // Main/exports fields in package.json are defined with forward slashes.
+  // On windows, subPath will have \ instead of /, but we need to change it
+  // to match what will be listed in the package.json.
+  const main = readMainFields(pkgJson, subPath.replaceAll(sep, '/'), true);
   let result;
   if (main) result = join(pkgDir, main);
   else if (!('exports' in pkgJson)) {
