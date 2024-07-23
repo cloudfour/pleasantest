@@ -1,5 +1,4 @@
 import { createRequire } from 'node:module';
-import * as path from 'node:path';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
