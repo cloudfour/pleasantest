@@ -494,8 +494,12 @@ describe('Ecosystem interoperability', () => {
           plugins: [
             sveltePlugin({
               preprocess: sveltePreprocess({
-                // Does not work with module set to nodenext, works with either commonjs or esnext
-                typescript: { compilerOptions: { module: 'commonjs' } },
+                typescript: {
+                  compilerOptions: {
+                    module: 'preserve',
+                    moduleResolution: 'bundler',
+                  },
+                },
               }),
             }),
           ],
