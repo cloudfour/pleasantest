@@ -32,7 +32,6 @@
     "@testing-library/dom": "9.3.0",
     "@testing-library/jest-dom": "6.0.1",
     "@types/jest": "29.5.4",
-    "@types/mime": "4.0.0",
     "@types/node": "16.18.34",
     "@types/polka": "0.5.4",
     "@typescript-eslint/eslint-plugin": "6.4.1",
