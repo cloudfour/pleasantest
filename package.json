@@ -70,7 +70,7 @@
     "smoldash": "0.11.0",
     "svelte": "3.59.1",
     "svelte-preprocess": "5.0.4",
-    "typescript": "5.1.6",
+    "typescript": "5.5.3",
     "vue": "3.3.4"
   },
   "dependencies": {
