@@ -12,8 +12,8 @@ import {
 type ElementToElementHandle<Input> = Input extends Element
   ? ElementHandle<Input>
   : Input extends (Element | ElementHandle)[]
-  ? { [K in keyof Input]: ElementToElementHandle<Input[K]> }
-  : Input;
+    ? { [K in keyof Input]: ElementToElementHandle<Input[K]> }
+    : Input;
 
 type Promisify<Input> = Input extends Promise<any> ? Input : Promise<Input>;
 type ValueOf<Input> = Input extends any[] ? Input[number] : Input[keyof Input];
