@@ -60,7 +60,7 @@
     "react-dom": "18.2.0",
     "remark-cli": "11.0.0",
     "remark-lint-no-dead-urls": "1.1.0",
-    "remark-validate-links": "12.1.1",
+    "remark-validate-links": "13.0.1",
     "resolve.exports": "2.0.2",
     "rollup-plugin-dts": "6.0.0",
     "rollup-plugin-svelte": "7.1.6",
