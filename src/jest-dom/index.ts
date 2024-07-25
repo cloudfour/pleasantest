@@ -34,13 +34,12 @@ const runUtilInNode = (name: string, args: any[]) => {
   return `$JEST_UTILS.${name}$${stringifiedArgs}$END_JEST_UTILS$`;
 };
 
-type RecursivePartial<T> = T extends Record<string, unknown>
-  ? T extends () => any
-    ? T
-    : {
-        [K in keyof T]?: RecursivePartial<T[K]>;
-      }
-  : T;
+type RecursivePartial<T> =
+  T extends Record<string, unknown>
+    ? T extends () => any
+      ? T
+      : { [K in keyof T]?: RecursivePartial<T[K]> }
+    : T;
 
 export const jestContext: RecursivePartial<jest.MatcherUtils> = {
   equals: (a, b) =>

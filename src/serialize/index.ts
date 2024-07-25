@@ -156,8 +156,8 @@ export const printElement = (
         attr.value.length > 40 && attr.name === 'd' && tagName === 'path'
           ? `${attr.value.slice(0, 30)}[...]`
           : attr.value.length > 150
-          ? `${attr.value.slice(0, 150)}[...]`
-          : attr.value;
+            ? `${attr.value.slice(0, 150)}[...]`
+            : attr.value;
       return `${highlight.attribute(attr.name)}${highlight.equals(
         '=',
       )}${highlight.string(`"${truncatedAttrValue}"`)}`;
@@ -166,8 +166,8 @@ export const printElement = (
     selfClosing
       ? highlight.bracket(`${splitAttrs ? '\n' : ' '}/`)
       : splitAttrs
-      ? '\n'
-      : ''
+        ? '\n'
+        : ''
   }${highlight.bracket('>')}${
     selfClosing
       ? ''
