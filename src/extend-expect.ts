@@ -225,7 +225,7 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
   const closeRegex = /\$END_JEST_UTILS\$/g;
   let jestUtilsCall;
   while ((jestUtilsCall = jestUtilsCalls.pop())) {
-    const start = jestUtilsCall.index!;
+    const start = jestUtilsCall.index;
     const methodName = jestUtilsCall[1];
     closeRegex.lastIndex = start;
     const closeIndex = closeRegex.exec(message)?.index;
