@@ -36,7 +36,7 @@
       "groupName": "compatibility testing-only dependencies"
     },
     {
-      "matchPackagePatterns": ["rollup"],
+      "matchPackagePatterns": ["rollup", "acorn"],
       "automerge": true,
       "groupName": "rollup/plugins"
     },
