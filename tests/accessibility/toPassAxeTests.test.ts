@@ -95,7 +95,7 @@ test(
       Violations found:
 
       [31m[1mDocument should have one main landmark[22m[39m (landmark-one-main)
-      https://dequeuniversity.com/rules/axe/4.7/landmark-one-main?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.9/landmark-one-main?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -116,7 +116,7 @@ test(
         • Document does not have a main landmark.
 
       [31m[1mPage should contain a level-one heading[22m[39m (page-has-heading-one)
-      https://dequeuniversity.com/rules/axe/4.7/page-has-heading-one?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.9/page-has-heading-one?application=axe-puppeteer
       Affected Nodes:
 
       <html lang="en">
@@ -137,7 +137,7 @@ test(
         • Page must have a level-one heading.
 
       [31m[1m<svg> elements with an img role must have an alternative text[22m[39m (svg-img-alt)
-      https://dequeuniversity.com/rules/axe/4.7/svg-img-alt?application=axe-puppeteer
+      https://dequeuniversity.com/rules/axe/4.9/svg-img-alt?application=axe-puppeteer
       Affected Nodes:
 
       <svg
