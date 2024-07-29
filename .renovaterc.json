@@ -41,6 +41,10 @@
       "groupName": "rollup/plugins"
     },
     {
+      "matchPackagePatterns": ["axe-core"],
+      "groupName": "axe-core"
+    },
+    {
       "matchPackagePatterns": ["eslint", "prettier"],
       "automerge": true,
       "groupName": "eslint/prettier"
