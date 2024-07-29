@@ -62,17 +62,19 @@
   - Error handling (with code frame, using source maps) added to transform hook
   - Stubbed out options hook was added
   - Added object-hooks support and plugin ordering (from Vite version)
+  - Updated to use import { parseAst } from 'rollup/parseAst' instead of acorn (rollup v4 change)
   */
 
 import { dirname, resolve } from 'node:path';
 
 import type { DecodedSourceMap, RawSourceMap } from '@ampproject/remapping';
-import { Parser } from 'acorn';
 import type {
   LoadResult,
   ResolveIdResult,
   TransformPluginContext as RollupPluginContext,
 } from 'rollup';
+// eslint-disable-next-line @cloudfour/n/file-extension-in-import
+import { parseAst } from 'rollup/parseAst';
 
 import { combineSourceMaps } from './combine-source-maps.js';
 import { ErrorWithLocation } from './error-with-location.js';
@@ -112,7 +114,6 @@ export const createPluginContainer = (plugins: Plugin[]) => {
   const MODULES = new Map();
 
   let plugin: Plugin | undefined;
-  const parser = Parser;
 
   const ctx: PluginContext = {
     meta: {
@@ -120,11 +121,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
       watchMode: true,
     },
     parse(code, opts) {
-      return parser.parse(code, {
-        sourceType: 'module',
-        ecmaVersion: 2020,
-        locations: true,
-        onComment: [],
+      return parseAst(code, {
         ...opts,
       });
     },
@@ -225,7 +222,7 @@ export const createPluginContainer = (plugins: Plugin[]) => {
             'handler' in p.resolveId ? p.resolveId.handler : p.resolveId;
           result = await resolveId.call(ctx as any, id, importer, {
             isEntry: false,
-            assertions: {},
+            attributes: {},
           });
         } finally {
           if (_skip) resolveSkips.delete(p, key);
