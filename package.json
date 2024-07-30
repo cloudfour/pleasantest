@@ -51,7 +51,7 @@
     "liquidjs": "10.16.1",
     "magic-string": "0.30.11",
     "mime": "4.0.4",
-    "patch-package": "^8.0.0",
+    "patch-package": "8.0.0",
     "polka": "0.5.2",
     "preact": "10.23.1",
     "prettier": "3.3.3",
