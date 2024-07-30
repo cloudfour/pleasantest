@@ -82,9 +82,12 @@ test(
         document:
 
         Name "":
+        <html lang="en">
+        <head>[...]</head>
         <body>
-        <h1>Hi</h1>
-      </body>
+          <h1>Hi</h1>
+        </body>
+      </html>
 
         --------------------------------------------------
         heading:

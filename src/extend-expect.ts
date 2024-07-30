@@ -20,6 +20,7 @@ const methods = [
   'toContainElement',
   'toContainHTML',
   'toHaveAccessibleDescription',
+  // 'toHaveAccessibleErrorMessage',
   'toHaveAccessibleName',
   'toHaveTextContent',
   'toHaveAttribute',
@@ -37,6 +38,7 @@ const methods = [
   'toHaveDisplayValue',
   'toBeChecked',
   'toBePartiallyChecked',
+  // Below here are deprecated matchers
   'toHaveErrorMessage',
 ] as const;
 
@@ -351,10 +353,9 @@ declare global {
       toHaveFormValues(expectedValues: Record<string, unknown>): Promise<R>;
       /**
        * Check if an element has specific css properties applied
-       * Unlike jest-dom, pleasantest does not support specifying expected styles as strings, they must be specified as an object.
        * https://github.com/testing-library/jest-dom#tohavestyle
        */
-      toHaveStyle(css: Record<string, unknown>): Promise<R>;
+      toHaveStyle(css: string | Record<string, unknown>): Promise<R>;
       /**
        * Check whether the given element has a text content
        * https://github.com/testing-library/jest-dom#tohavetextcontent
@@ -392,7 +393,6 @@ declare global {
       /**
        * Check whether the given element is partially checked.
        * It accepts an `input` of type `checkbox` and elements with a `role` of `checkbox` with `aria-checked="mixed"`, or input of type `checkbox` with `indeterminate` set to `true`
-       
        * https://github.com/testing-library/jest-dom#tobepartiallychecked
        */
       toBePartiallyChecked(): Promise<R>;
@@ -400,6 +400,8 @@ declare global {
       /**
        * Check whether the given element has an ARIA error message (via aria-errormessage)
        * https://github.com/testing-library/jest-dom#tohaveerrormessage
+       *
+       * @deprecated - use `toHaveAccessibleErrorMessage` instead
        */
       toHaveErrorMessage(text: string | RegExp): Promise<R>;
     }
