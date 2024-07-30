@@ -1,3 +1,6 @@
+// eslint-disable-next-line @cloudfour/n/file-extension-in-import
+import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
+import type { ARIARole } from 'aria-query';
 import type { ElementHandle, JSHandle } from 'puppeteer';
 
 import {
@@ -14,33 +17,43 @@ import {
   removeFuncFromStackTrace,
 } from './utils.js';
 
-const methods = [
-  'toBeInTheDocument',
-  'toBeEmptyDOMElement',
-  'toContainElement',
-  'toContainHTML',
-  'toHaveAccessibleDescription',
-  // 'toHaveAccessibleErrorMessage',
-  'toHaveAccessibleName',
-  'toHaveTextContent',
-  'toHaveAttribute',
-  'toHaveClass',
-  'toHaveStyle',
-  'toHaveFocus',
-  'toHaveFormValues',
-  'toBeVisible',
-  'toBeDisabled',
-  'toBeEnabled',
-  'toBeRequired',
-  'toBeInvalid',
-  'toBeValid',
-  'toHaveValue',
-  'toHaveDisplayValue',
-  'toBeChecked',
-  'toBePartiallyChecked',
-  // Below here are deprecated matchers
-  'toHaveErrorMessage',
-] as const;
+// We are checking both objects here to make sure
+// that we don't forget to define the types for any matchers either
+// (at the bottom of this file)
+type MatcherNames = Exclude<
+  keyof TestingLibraryMatchers<unknown, unknown>,
+  // Exclude deprecated matchers, we don't need to include those.
+  'toBeInTheDOM' | 'toBeEmpty' | 'toHaveDescription' | 'toHaveErrorMessage'
+>;
+
+// Using an object here so that TS will tell us if there are any matchers
+// added to jest-dom upstream but that are missing from this list
+const matcherNames: { [K in MatcherNames]: true } = {
+  toBeDisabled: true,
+  toBeEnabled: true,
+  toBeEmptyDOMElement: true,
+  toBeInTheDocument: true,
+  toBeInvalid: true,
+  toBeRequired: true,
+  toBeValid: true,
+  toBeVisible: true,
+  toContainElement: true,
+  toContainHTML: true,
+  toHaveAccessibleDescription: true,
+  toHaveAccessibleErrorMessage: true,
+  toHaveAccessibleName: true,
+  toHaveAttribute: true,
+  toHaveClass: true,
+  toHaveFocus: true,
+  toHaveFormValues: true,
+  toHaveStyle: true,
+  toHaveTextContent: true,
+  toHaveValue: true,
+  toHaveDisplayValue: true,
+  toBeChecked: true,
+  toBePartiallyChecked: true,
+  toHaveRole: true,
+} satisfies { [K in keyof jest.Matchers<unknown>]?: true }; // Ensure that our list _only_ contains methods we've defined types for
 
 const isJSHandle = (input: unknown): input is JSHandle => {
   if (typeof input !== 'object' || !input) return false;
@@ -49,7 +62,7 @@ const isJSHandle = (input: unknown): input is JSHandle => {
 };
 
 const matchers: jest.ExpectExtendMap = Object.fromEntries(
-  methods.map((methodName) => {
+  Object.keys(matcherNames).map((methodName) => {
     const matcher = async function (
       this: jest.MatcherUtils,
       elementHandle: ElementHandle | null,
@@ -253,157 +266,254 @@ const runJestUtilsInNode = (message: string, context: jest.MatcherContext) => {
 
 expect.extend(matchers);
 
-// These type definitions are incomplete, only including methods we've tested
-// More can be added from https://unpkg.com/@types/testing-library__jest-dom/index.d.ts
-// You can copy-paste and change the return types to promises
 declare global {
   // eslint-disable-next-line @cloudfour/typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
       /**
-       * Check whether an element is disabled from the user's perspective.
-       * https://github.com/testing-library/jest-dom#tobedisabled
-       */
-      toBeDisabled(): Promise<R>;
-      /**
-       * Check whether an element is not disabled from the user's perspective.
-       * https://github.com/testing-library/jest-dom#tobeenabled
-       * Same as .not.toBeDisabled()
-       */
-      toBeEnabled(): Promise<R>;
-      /**
-       * Assert whether an element has content or not.
-       * https://github.com/testing-library/jest-dom#tobeemptydomelement
-       */
-      toBeEmptyDOMElement(): Promise<R>;
-      /**
        * Assert whether an element is present in the document or not.
+       *
        * https://github.com/testing-library/jest-dom#tobeinthedocument
        */
       toBeInTheDocument(): Promise<R>;
       /**
-       * Check if the value of an element is currently invalid.
-       * Uses [HTML5 Constraint Validation](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation) and checks for `aria-invalid`.
-       * https://github.com/testing-library/jest-dom#tobeinvalid
-       */
-      toBeInvalid(): Promise<R>;
-      /**
-       * Check if a form element is currently required.
-       * https://github.com/testing-library/jest-dom#toberequired
-       */
-      toBeRequired(): Promise<R>;
-      /**
-       * Check if the value of an element is currently valid.
-       * Uses [HTML5 Constraint Validation](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation) and checks for `aria-invalid`.
-       * https://github.com/testing-library/jest-dom#tobevalid
-       */
-      toBeValid(): Promise<R>;
-      /**
-       * Check if an element is currently visible to the user.
+       * This allows you to check if an element is currently visible to the user.
+       *
+       * An element is visible if **all** the following conditions are met:
+       * it does not have its css property display set to none
+       * it does not have its css property visibility set to either hidden or collapse
+       * it does not have its css property opacity set to 0
+       * its parent element is also visible (and so on up to the top of the DOM tree)
+       * it does not have the hidden attribute
+       * if `<details />` it has the open attribute
+       *
        * https://github.com/testing-library/jest-dom#tobevisible
        */
       toBeVisible(): Promise<R>;
       /**
-       * Check if an element contains another element as a descendant.
+       * Assert whether an element has content or not.
+       *
+       * https://github.com/testing-library/jest-dom#tobeemptydomelement
+       */
+      toBeEmptyDOMElement(): Promise<R>;
+      /**
+       * Allows you to check whether an element is disabled from the user's perspective.
+       *
+       * Matches if the element is a form control and the `disabled` attribute is specified on this element or the
+       * element is a descendant of a form element with a `disabled` attribute.
+       *
+       * https://github.com/testing-library/jest-dom#tobedisabled
+       */
+      toBeDisabled(): Promise<R>;
+      /**
+       * Allows you to check whether an element is not disabled from the user's perspective.
+       *
+       * Works like `not.toBeDisabled()`.
+       *
+       * Use this matcher to avoid double negation in your tests.
+       *
+       * https://github.com/testing-library/jest-dom#tobeenabled
+       */
+      toBeEnabled(): Promise<R>;
+      /**
+       * Check if a form element, or the entire `form`, is currently invalid.
+       *
+       * An `input`, `select`, `textarea`, or `form` element is invalid if it has an `aria-invalid` attribute with no
+       * value or a value of "true", or if the result of `checkValidity()` is false.
+       *
+       * https://github.com/testing-library/jest-dom#tobeinvalid
+       */
+      toBeInvalid(): Promise<R>;
+      /**
+       * This allows you to check if a form element is currently required.
+       *
+       * An element is required if it is having a `required` or `aria-required="true"` attribute.
+       *
+       * https://github.com/testing-library/jest-dom#toberequired
+       */
+      toBeRequired(): Promise<R>;
+      /**
+       * Allows you to check if a form element is currently required.
+       *
+       * An `input`, `select`, `textarea`, or `form` element is invalid if it has an `aria-invalid` attribute with no
+       * value or a value of "false", or if the result of `checkValidity()` is true.
+       *
+       * https://github.com/testing-library/jest-dom#tobevalid
+       */
+      toBeValid(): Promise<R>;
+      /**
+       * Allows you to assert whether an element contains another element as a descendant or not.
+       *
        * https://github.com/testing-library/jest-dom#tocontainelement
        */
       toContainElement(
         element: ElementHandle<HTMLElement | SVGElement> | null,
       ): Promise<R>;
       /**
-       * Check whether a string representing a HTML element is contained in another element.
+       * Assert whether a string representing a HTML element is contained in another element.
+       *
        * https://github.com/testing-library/jest-dom#tocontainhtml
        */
-      toContainHTML(html: string): Promise<R>;
+      toContainHTML(htmlText: string): Promise<R>;
       /**
-       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-description).
-       * You can pass the exact string, or you can make a partial match passing a regular expression
-       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
-       */
-      toHaveAccessibleDescription(text?: string | RegExp): Promise<R>;
-      /**
-       * Assert that an element has the expected [accessible description](https://www.w3.org/TR/accname-1.1/#dfn-accessible-name).
-       * It is useful, for instance, to assert that form elements and buttons are properly labelled.
-       * You can pass the exact string, or you can make a partial match passing a regular expression
-       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
-       */
-      toHaveAccessibleName(text?: string | RegExp): Promise<R>;
-      /**
-       * Check whether the given element has an attribute or not.
-       * You can also optionally check that the attribute has a specific expected value
+       * Allows you to check if a given element has an attribute or not.
+       *
+       * You can also optionally check that the attribute has a specific expected value or partial match using
+       * [expect.stringContaining](https://jestjs.io/docs/en/expect.html#expectnotstringcontainingstring) or
+       * [expect.stringMatching](https://jestjs.io/docs/en/expect.html#expectstringmatchingstring-regexp).
+       *
        * https://github.com/testing-library/jest-dom#tohaveattribute
        */
-      toHaveAttribute(attr: string, value?: string): Promise<R>;
+      toHaveAttribute(attr: string, value?: unknown): Promise<R>;
       /**
-       * Check whether the given element has certain classes within its class attribute.
+       * Check whether the given element has certain classes within its `class` attribute.
+       *
        * You must provide at least one class, unless you are asserting that an element does not have any classes.
+       *
        * https://github.com/testing-library/jest-dom#tohaveclass
        */
-      toHaveClass(...classNames: string[]): Promise<R>;
+      toHaveClass(...classNames: (string | RegExp)[]): Promise<R>;
       toHaveClass(classNames: string, options?: { exact: boolean }): Promise<R>;
       /**
-       * Check whether an element has focus
+       * This allows you to check whether the given form element has the specified displayed value (the one the
+       * end user will see). It accepts <input>, <select> and <textarea> elements with the exception of <input type="checkbox">
+       * and <input type="radio">, which can be meaningfully matched only using toBeChecked or toHaveFormValues.
+       *
+       * https://github.com/testing-library/jest-dom#tohavedisplayvalue
+       */
+      toHaveDisplayValue(
+        value: string | RegExp | (string | RegExp)[],
+      ): Promise<R>;
+      /**
+       * Assert whether an element has focus or not.
+       *
        * https://github.com/testing-library/jest-dom#tohavefocus
        */
       toHaveFocus(): Promise<R>;
       /**
-       * Check if a form or fieldset contains form controls for each given name, and value.
+       * Check if a form or fieldset contains form controls for each given name, and having the specified value.
+       *
+       * Can only be invoked on a form or fieldset element.
+       *
        * https://github.com/testing-library/jest-dom#tohaveformvalues
        */
       toHaveFormValues(expectedValues: Record<string, unknown>): Promise<R>;
       /**
-       * Check if an element has specific css properties applied
+       * Check if an element has specific css properties with specific values applied.
+       *
+       * Only matches if the element has *all* the expected properties applied, not just some of them.
+       *
        * https://github.com/testing-library/jest-dom#tohavestyle
        */
       toHaveStyle(css: string | Record<string, unknown>): Promise<R>;
       /**
-       * Check whether the given element has a text content
+       * Check whether the given element has a text content or not.
+       *
+       * When a string argument is passed through, it will perform a partial case-sensitive match to the element
+       * content.
+       *
+       * To perform a case-insensitive match, you can use a RegExp with the `/i` modifier.
+       *
+       * If you want to match the whole content, you can use a RegExp to do it.
+       *
        * https://github.com/testing-library/jest-dom#tohavetextcontent
        */
       toHaveTextContent(
         text: string | RegExp,
         options?: { normalizeWhitespace: boolean },
       ): Promise<R>;
-
       /**
        * Check whether the given form element has the specified value.
-       * It accepts <input>, <select> and <textarea> elements with the exception of <input type="checkbox"> and <input type="radio">, which should be matched using toBeChecked or toHaveFormValues.
+       *
+       * Accepts `<input>`, `<select>`, and `<textarea>` elements with the exception of `<input type="checkbox">` and
+       * `<input type="radiobox">`, which can be matched only using
+       * [toBeChecked](https://github.com/testing-library/jest-dom#tobechecked) or
+       * [toHaveFormValues](https://github.com/testing-library/jest-dom#tohaveformvalues).
+       *
        * https://github.com/testing-library/jest-dom#tohavevalue
        */
       toHaveValue(value?: string | string[] | number | null): Promise<R>;
-
       /**
-       * Check whether the given form element has the specified displayed value (the one the end user will see).
-       * It accepts <input>, <select> and <textarea> elements with the exception of <input type="checkbox"> and <input type="radio">, which should be matched using toBeChecked or toHaveFormValues.
-       * https://github.com/testing-library/jest-dom#tohavedisplayvalue
-       */
-      toHaveDisplayValue(
-        value: string | RegExp | (string | RegExp)[],
-      ): Promise<R>;
-
-      /**
-       * Check whether the given element is checked.
-       * Accepts an `input` of type `checkbox` or `radio`
-       * and elements with a `role` of `checkbox`, `radio` or `switch`
-       * with a valid `aria-checked` attribute of "true" or "false".
+       * Assert whether the given element is checked.
+       *
+       * It accepts an `input` of type `checkbox` or `radio` and elements with a `role` of `radio` with a valid
+       * `aria-checked` attribute of "true" or "false".
+       *
        * https://github.com/testing-library/jest-dom#tobechecked
        */
       toBeChecked(): Promise<R>;
+      /**
+       * This allows to assert that an element has the expected [accessible description](https://w3c.github.io/accname/).
+       *
+       * You can pass the exact string of the expected accessible description, or you can make a
+       * partial match passing a regular expression, or by using either
+       * [expect.stringContaining](https://jestjs.io/docs/en/expect.html#expectnotstringcontainingstring)
+       * or [expect.stringMatching](https://jestjs.io/docs/en/expect.html#expectstringmatchingstring-regexp).
+       *
+       * https://github.com/testing-library/jest-dom#tohaveaccessibledescription
+       */
+      toHaveAccessibleDescription(text?: string | RegExp): Promise<R>;
 
       /**
-       * Check whether the given element is partially checked.
-       * It accepts an `input` of type `checkbox` and elements with a `role` of `checkbox` with `aria-checked="mixed"`, or input of type `checkbox` with `indeterminate` set to `true`
+       * This allows you to assert that an element has the expected
+       * [accessible error message](https://w3c.github.io/aria/#aria-errormessage).
+       *
+       * You can pass the exact string of the expected accessible error message.
+       * Alternatively, you can perform a partial match by passing a regular expression
+       * or by using either
+       * [expect.stringContaining](https://jestjs.io/docs/en/expect.html#expectnotstringcontainingstring)
+       * or [expect.stringMatching](https://jestjs.io/docs/en/expect.html#expectstringmatchingstring-regexp).
+       *
+       * https://github.com/testing-library/jest-dom#tohaveaccessibleerrormessage
+       */
+      toHaveAccessibleErrorMessage(text?: string | RegExp): Promise<R>;
+
+      /**
+       * This allows to assert that an element has the expected [accessible name](https://w3c.github.io/accname/).
+       * It is useful, for instance, to assert that form elements and buttons are properly labelled.
+       *
+       * You can pass the exact string of the expected accessible name, or you can make a
+       * partial match passing a regular expression, or by using either
+       * [expect.stringContaining](https://jestjs.io/docs/en/expect.html#expectnotstringcontainingstring)
+       * or [expect.stringMatching](https://jestjs.io/docs/en/expect.html#expectstringmatchingstring-regexp).
+       *
+       * https://github.com/testing-library/jest-dom#tohaveaccessiblename
+       */
+      toHaveAccessibleName(text?: string | RegExp): Promise<R>;
+      /**
+       * This allows you to assert that an element has the expected
+       * [role](https://www.w3.org/TR/html-aria/#docconformance).
+       *
+       * This is useful in cases where you already have access to an element via
+       * some query other than the role itself, and want to make additional
+       * assertions regarding its accessibility.
+       *
+       * The role can match either an explicit role (via the `role` attribute), or
+       * an implicit one via the [implicit ARIA
+       * semantics](https://www.w3.org/TR/html-aria/).
+       *
+       * Note: roles are matched literally by string equality, without inheriting
+       * from the ARIA role hierarchy. As a result, querying a superclass role
+       * like 'checkbox' will not include elements with a subclass role like
+       * 'switch'.
+       *
+       * https://github.com/testing-library/jest-dom#tohaverole
+       */
+      toHaveRole(
+        // Get autocomplete for ARIARole union types, while still supporting another string
+        // Ref: https://github.com/microsoft/TypeScript/issues/29729#issuecomment-567871939
+        // eslint-disable-next-line @cloudfour/typescript-eslint/ban-types
+        role: ARIARole | (string & {}),
+      ): Promise<R>;
+      /**
+       * This allows you to check whether the given element is partially checked.
+       * It accepts an input of type checkbox and elements with a role of checkbox
+       * with a aria-checked="mixed", or input of type checkbox with indeterminate
+       * set to true
+       *
        * https://github.com/testing-library/jest-dom#tobepartiallychecked
        */
       toBePartiallyChecked(): Promise<R>;
-
-      /**
-       * Check whether the given element has an ARIA error message (via aria-errormessage)
-       * https://github.com/testing-library/jest-dom#tohaveerrormessage
-       *
-       * @deprecated - use `toHaveAccessibleErrorMessage` instead
-       */
-      toHaveErrorMessage(text: string | RegExp): Promise<R>;
     }
   }
 }
