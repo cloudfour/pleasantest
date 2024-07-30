@@ -50,6 +50,10 @@ const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
 
 const removeLineNumbers = (input: string) => {
   const lineRegex = /^\s*▶?\s*(\d)*\s+│/gm;
+  // Creates a regex for the current directory.
+  // Backslashes need to be escaped for use in the regex.
+  // The [\\d:] part (double escaped because it is in a string) allows digits or colons
+  // (to match the line/column number)
   const fileRegex = new RegExp(
     `${process.cwd().replaceAll('\\', '\\\\')}([a-zA-Z/\\\\._-]*)[\\d:]*`,
     'g',
@@ -58,6 +62,8 @@ const removeLineNumbers = (input: string) => {
     input
       .replace(lineRegex, (_match, lineNum) => (lineNum ? ' ### │' : '     │'))
       // Take out the file paths so the tests will pass on more than 1 person's machine
+      // Take out the line numbers so that code changes shifting the line numbers
+      // don't break the tests
       .replace(
         fileRegex,
         (_match, relativePath) =>

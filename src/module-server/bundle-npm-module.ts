@@ -70,9 +70,10 @@ export const bundleNpmModule = async (
           },
           load(id) {
             if (id === virtualEntry) {
-              return `export * from ${JSON.stringify(mod)}
-              export {${namedExports.join(', ')}} from ${JSON.stringify(mod)}
-              export { default } from ${JSON.stringify(mod)}`;
+              const modNameString = JSON.stringify(mod);
+              return `export * from ${modNameString}
+              export {${namedExports.join(', ')}} from ${modNameString}
+              export { default } from ${modNameString}`;
             }
           },
         } as Plugin),

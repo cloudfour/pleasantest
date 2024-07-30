@@ -102,13 +102,7 @@ export const jsMiddleware = async ({
           import.meta.pleasantestArgs = [...window._pleasantestArgs]
         }`;
         const fileSrc = await fs.readFile(file, 'utf8');
-        let EOL = '\n';
-        // Find the first line end (\n) and check if the character before is \r
-        // This tells us whether the file uses \r\n or just \n for line endings.
-        // Using node:os.EOL is not sufficient because git on windows
-        // Can be configured to check out files with either kind of line ending.
-        const firstLineEndPos = fileSrc.indexOf('\n');
-        if (fileSrc[firstLineEndPos - 1] === '\r') EOL = '\r\n';
+        const EOL = detectLineEndings(fileSrc);
         const inlineStartIdx = fileSrc.indexOf(code.replaceAll('\n', EOL));
         code = injectedArgsCode + code;
         if (inlineStartIdx !== -1) {
@@ -239,4 +233,14 @@ export const jsMiddleware = async ({
       next(error);
     }
   };
+};
+
+const detectLineEndings = (fileSrc: string) => {
+  // Find the first line end (\n) and check if the character before is \r
+  // This tells us whether the file uses \r\n or just \n for line endings.
+  // Using node:os.EOL is not sufficient because git on windows
+  // Can be configured to check out files with either kind of line ending.
+  const firstLineEndPos = fileSrc.indexOf('\n');
+  if (fileSrc[firstLineEndPos - 1] === '\r') return '\r\n';
+  return '\n';
 };
