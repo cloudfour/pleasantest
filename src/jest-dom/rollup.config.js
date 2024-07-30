@@ -9,7 +9,7 @@ import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibil
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
 await new Promise((resolve, reject) => {
-  const child = fork('./node_modules/.bin/patch-package', [], {
+  const child = fork('./node_modules/patch-package/index.js', [], {
     stdio: 'inherit',
   });
   child.on('exit', (code) => {
