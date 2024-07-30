@@ -26,10 +26,10 @@ test(
       'Invalid time', // String performs a full-text match
     );
     await expect(
-  expect(timeInput).toHaveAccessibleErrorMessage(
-    'Invalid time' // String performs a full-text match
-  )
-).rejects.toThrowErrorMatchingInlineSnapshot(`
+      expect(timeInput).toHaveAccessibleErrorMessage(
+        'Invalid time', // String performs a full-text match
+      ),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`
 "[2mexpect([22m[31melement[39m[2m).toHaveAccessibleErrorMessage([22m[32mexpected[39m[2m)[22m
 
 Expected element to have accessible error message:
