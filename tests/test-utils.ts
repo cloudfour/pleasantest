@@ -23,7 +23,9 @@ export const printErrorFrames = async (error?: Error) => {
           return stackFrame.raw;
         }
 
-        const relativePath = path.relative(process.cwd(), stackFrame.fileName);
+        const relativePath = path
+          .relative(process.cwd(), stackFrame.fileName)
+          .replaceAll(path.sep, '/');
         if (relativePath.startsWith('dist/')) return relativePath;
         let file;
         try {
@@ -48,12 +50,25 @@ const stripAnsi = (input: string) => input.replace(ansiRegex(), '');
 
 const removeLineNumbers = (input: string) => {
   const lineRegex = /^\s*▶?\s*(\d)*\s+│/gm;
-  const fileRegex = new RegExp(`${process.cwd()}([a-zA-Z/._-]*)[\\d:]*`, 'g');
+  // Creates a regex for the current directory.
+  // Backslashes need to be escaped for use in the regex.
+  // The [\\d:] part (double escaped because it is in a string) allows digits or colons
+  // (to match the line/column number)
+  const fileRegex = new RegExp(
+    `${process.cwd().replaceAll('\\', '\\\\')}([a-zA-Z/\\\\._-]*)[\\d:]*`,
+    'g',
+  );
   return (
     input
       .replace(lineRegex, (_match, lineNum) => (lineNum ? ' ### │' : '     │'))
       // Take out the file paths so the tests will pass on more than 1 person's machine
-      .replace(fileRegex, '<root>$1:###:###')
+      // Take out the line numbers so that code changes shifting the line numbers
+      // don't break the tests
+      .replace(
+        fileRegex,
+        (_match, relativePath) =>
+          `<root>${relativePath.replaceAll(path.sep, '/')}:###:###`,
+      )
   );
 };
 

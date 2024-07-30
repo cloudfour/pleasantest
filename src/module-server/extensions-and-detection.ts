@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 export const npmPrefix = '@npm/';
 
 export const isRelativeOrAbsoluteImport = (id: string) =>
@@ -5,7 +6,7 @@ export const isRelativeOrAbsoluteImport = (id: string) =>
   id === '..' ||
   id.startsWith('./') ||
   id.startsWith('../') ||
-  id.startsWith('/');
+  isAbsolute(id);
 
 export const isBareImport = (id: string) =>
   !(

@@ -41,7 +41,7 @@ const createFs = async (input: string) => {
   );
 
   /** Replaces all instances of randomized tmp dir with "." */
-  const unrandomizePath = (text: string) => text.split(dir).join('.');
+  const unrandomizePath = (text: string) => text.replaceAll(dir, '.');
 
   const resolve = async (id: string, { from }: { from?: string } = {}) => {
     const result = await nodeResolve(
@@ -49,10 +49,14 @@ const createFs = async (input: string) => {
       join(dir, from || 'index.js'),
       dir,
     ).catch((error) => {
-      throw changeErrorMessage(error, (error) => unrandomizePath(error));
+      throw changeErrorMessage(error, (error) =>
+        unrandomizePath(error).replaceAll(sep, '/'),
+      );
     });
     if (result)
-      return unrandomizePath(typeof result === 'string' ? result : result.path);
+      return unrandomizePath(
+        typeof result === 'string' ? result : result.path,
+      ).replaceAll(sep, '/');
   };
 
   return { resolve };
