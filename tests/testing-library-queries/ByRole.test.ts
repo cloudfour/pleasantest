@@ -33,7 +33,10 @@ test(
         document:
 
         Name "":
+        <html lang="en">
+        <head>[...]</head>
         <body>[...]</body>
+      </html>
 
         --------------------------------------------------
         heading:
@@ -52,6 +55,12 @@ test(
 
         Name "Move to trash":
         <button aria-describedby="trash-desc">Move to trash</button>
+
+        --------------------------------------------------
+        paragraph:
+
+        Name "":
+        <p id="trash-desc">Items in the trash will be permanently removed after 30 days.</p>
 
         --------------------------------------------------
 

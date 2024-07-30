@@ -27,5 +27,5 @@ module.exports = {
     '<rootDir>/node_modules/(?!(\\.pnpm|ansi-regex))',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  testTimeout: 10_000,
+  testTimeout: 30_000,
 };

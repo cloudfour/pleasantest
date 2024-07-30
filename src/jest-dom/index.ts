@@ -1,5 +1,6 @@
 import { addToElementCache, serialize } from '../serialize/index.js';
 // @ts-expect-error types are not provided for this sub-path import
+// eslint-disable-next-line @cloudfour/n/file-extension-in-import
 export * from '@testing-library/jest-dom/matchers';
 export {
   reviveElementsInString,

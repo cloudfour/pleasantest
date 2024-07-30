@@ -1,7 +1,7 @@
 import { withBrowser } from 'pleasantest';
 
 test(
-  'toHaveErrorMessage',
+  'toHaveAccessibleErrorMessage',
   withBrowser(async ({ screen, utils }) => {
     await utils.injectHTML(`
       <label for="startTime"> Please enter a start time for the meeting: </label>
@@ -19,30 +19,30 @@ test(
 
     const timeInput = await screen.getByLabelText(/start time/i);
 
-    await expect(timeInput).toHaveErrorMessage(
+    await expect(timeInput).toHaveAccessibleErrorMessage(
       'Invalid time: the time must be between 9:00 AM and 5:00 PM',
     );
-    await expect(timeInput).not.toHaveErrorMessage(
+    await expect(timeInput).not.toHaveAccessibleErrorMessage(
       'Invalid time', // String performs a full-text match
     );
     await expect(
-      expect(timeInput).toHaveErrorMessage(
+      expect(timeInput).toHaveAccessibleErrorMessage(
         'Invalid time', // String performs a full-text match
       ),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "[2mexpect([22m[31melement[39m[2m).toHaveErrorMessage()[22m
+"[2mexpect([22m[31melement[39m[2m).toHaveAccessibleErrorMessage([22m[32mexpected[39m[2m)[22m
 
-      Expected the element to have error message:
-      [32m  [32m"Invalid time"[39m[32m[39m
-      Received:
-      [31m  [31m"Invalid time: the time must be between 9:00 AM and 5:00 PM"[39m[31m[39m"
-    `);
+Expected element to have accessible error message:
+[32m  Invalid time[39m
+Received:
+[31m  Invalid time: the time must be between 9:00 AM and 5:00 PM[39m"
+`);
 
     // Case insensitive matching
-    await expect(timeInput).toHaveErrorMessage(
+    await expect(timeInput).toHaveAccessibleErrorMessage(
       /^invalid time: the time must be between 9:00 am and 5:00 pm$/i,
     );
     // Partial matching
-    await expect(timeInput).toHaveErrorMessage(/Invalid time/);
+    await expect(timeInput).toHaveAccessibleErrorMessage(/Invalid time/);
   }),
 );

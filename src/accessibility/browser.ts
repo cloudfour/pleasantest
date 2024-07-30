@@ -12,7 +12,7 @@ import type { AccessibilityTreeOptions } from './index.js';
 export * as colors from 'kolorist';
 export { printElement } from '../serialize/index.js';
 
-// We haver to tell kolorist to print the colors
+// We have to tell kolorist to print the colors
 // because by default it won't since we are in the browser
 // (the colored message gets sent to node to be printed)
 colors.options.enabled = true;
