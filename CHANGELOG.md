@@ -1,5 +1,41 @@
 # pleasantest
 
+## 5.0.0
+
+### Major Changes
+
+- [#749](https://github.com/cloudfour/pleasantest/pull/749) [`10bee94`](https://github.com/cloudfour/pleasantest/commit/10bee945d3b07e10897e6c567d7f7e2198a6247f) Thanks [@calebeby](https://github.com/calebeby)! - Drop support for node 16
+
+- [#715](https://github.com/cloudfour/pleasantest/pull/715) [`78cecbe`](https://github.com/cloudfour/pleasantest/commit/78cecbe3f3a990d84f720db9a47c686a0996b0d7) Thanks [@renovate](https://github.com/apps/renovate)! - `aria-query` was updated to `5.3.0`.
+  This update provides updated alignment with the ARIA spec,
+  and will affect Testing Library queries and `getAccessibilityTree` results.
+
+- [#715](https://github.com/cloudfour/pleasantest/pull/715) [`78cecbe`](https://github.com/cloudfour/pleasantest/commit/78cecbe3f3a990d84f720db9a47c686a0996b0d7) Thanks [@renovate](https://github.com/apps/renovate)! - We are now using `@testing-library/jest-dom@6`.
+  We now support all of the jest-dom matchers, except for the deprecated ones.
+
+  - `toHaveErrorMessage` was deprecated, use `toHaveAccessibleErrorMessage` instead
+  - `toHaveRole` was added
+
+### Minor Changes
+
+- [#726](https://github.com/cloudfour/pleasantest/pull/726) [`e71e259`](https://github.com/cloudfour/pleasantest/commit/e71e2590e6c205006b36d2c92a67517ab8bb383d) Thanks [@calebeby](https://github.com/calebeby)! - Fix fork URL for ESM use
+
+- [#732](https://github.com/cloudfour/pleasantest/pull/732) [`29b8671`](https://github.com/cloudfour/pleasantest/commit/29b8671d7ef710ad54cbb35faaea35468a5fd081) Thanks [@calebeby](https://github.com/calebeby)! - Allow returning non-serializable values from `waitFor`
+
+- [#754](https://github.com/cloudfour/pleasantest/pull/754) [`6f8ba78`](https://github.com/cloudfour/pleasantest/commit/6f8ba78f9ccabd10c6aa207224c94e46fef3e0dd) Thanks [@renovate](https://github.com/apps/renovate)! - Update `puppeteer` to `v22`. [The Puppeteer changelog is available here](https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer/CHANGELOG.md#2200-2024-02-05)
+
+- [#728](https://github.com/cloudfour/pleasantest/pull/728) [`76f1862`](https://github.com/cloudfour/pleasantest/commit/76f1862acd328f4ef5ea51c69f787df9fd427eb1) Thanks [@calebeby](https://github.com/calebeby)! - Re-export devices from `puppeteer.KnownDevices` instead of deprecated `puppeteer.devices`
+
+- [#749](https://github.com/cloudfour/pleasantest/pull/749) [`10bee94`](https://github.com/cloudfour/pleasantest/commit/10bee945d3b07e10897e6c567d7f7e2198a6247f) Thanks [@calebeby](https://github.com/calebeby)! - Add support for node 22
+
+- [#748](https://github.com/cloudfour/pleasantest/pull/748) [`6d757ef`](https://github.com/cloudfour/pleasantest/commit/6d757ef1456365d3232d549f00bc7a196dc136de) Thanks [@calebeby](https://github.com/calebeby)! - Reimplement windows support
+
+  Long ago, Pleasantest worked on Windows, but without regular testing it gradually diverged. This release adds proper Windows support back and adds automated testing for it.
+
+### Patch Changes
+
+- [#725](https://github.com/cloudfour/pleasantest/pull/725) [`24b347d`](https://github.com/cloudfour/pleasantest/commit/24b347d229894ec61fc4b6b457c8bdcfa45dfb1d) Thanks [@calebeby](https://github.com/calebeby)! - Fix types in export map
+
 ## 4.0.0
 
 ### Major Changes
