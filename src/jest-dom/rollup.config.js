@@ -1,5 +1,4 @@
-import * as childProcess from 'node:child_process';
-import { promisify } from 'node:util';
+import { fork } from 'node:child_process';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
@@ -7,13 +6,17 @@ import terser from '@rollup/plugin-terser';
 
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 
-const exec = promisify(childProcess.exec);
-
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
-const { stdout, stderr } = await exec('./node_modules/.bin/patch-package');
-process.stdout.write(stdout);
-process.stderr.write(stderr);
+await new Promise((resolve, reject) => {
+  const child = fork('./node_modules/.bin/patch-package', [], {
+    stdio: 'inherit',
+  });
+  child.on('exit', (code) => {
+    if (code === 0) resolve();
+    else reject(new Error(`patch-package exited with code ${code}`));
+  });
+});
 
 const stubs = {
   chalk: `
