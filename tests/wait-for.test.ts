@@ -9,10 +9,10 @@ test(
     await utils.runJS(`
       setTimeout(() => {
         document.write('<h2>Hi</h2>')
-      }, 100)
+      }, 500)
     `);
     // At first the element should not be there
-    // Because it waits 100ms to add it
+    // Because it waits 500ms to add it
     expect(await page.$('h2')).toBeNull();
     const waitForCallback = jest.fn(async () => {
       expect(await page.$('h2')).not.toBeNull();

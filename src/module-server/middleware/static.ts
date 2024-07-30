@@ -1,6 +1,7 @@
 import { createReadStream, promises as fs } from 'node:fs';
 import { posix, resolve } from 'node:path';
 
+// eslint-disable-next-line @cloudfour/n/file-extension-in-import
 import mime from 'mime/lite';
 import type polka from 'polka';
 

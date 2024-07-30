@@ -277,7 +277,7 @@ const createTab = async ({
 > => {
   const asyncHookTracker = createAsyncHookTracker();
   const browser = await connectToBrowser('chromium', headless);
-  const browserContext = await browser.createIncognitoBrowserContext();
+  const browserContext = await browser.createBrowserContext();
   const page = await browserContext.newPage();
   const {
     requestCache,

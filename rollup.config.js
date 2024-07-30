@@ -19,7 +19,6 @@ const external = [
   '@rollup/plugin-commonjs',
   'esbuild',
   /postcss/,
-  /mime/,
   '@axe-core/puppeteer',
 ];
 

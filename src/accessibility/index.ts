@@ -52,7 +52,7 @@ const getAccessibilityTree = async (
     // eslint-disable-next-line @cloudfour/typescript-eslint/no-unnecessary-condition
     element &&
     typeof element === 'object' &&
-    element.constructor.name === 'CDPPage'
+    element.constructor.name === 'CdpPage'
   ) {
     element = await (element as Page).evaluateHandle(
       () => document.documentElement,

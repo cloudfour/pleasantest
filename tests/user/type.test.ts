@@ -150,11 +150,11 @@ test(
     await utils.injectHTML(`<textarea>1234</textarea>`);
     const input = await screen.getByRole('textbox');
     let startTime = Date.now();
-    await user.type(input, '123');
-    expect(Date.now() - startTime).toBeLessThan(100);
+    await user.type(input, '1234567890');
+    expect(Date.now() - startTime).toBeLessThan(200);
     startTime = Date.now();
-    await user.type(input, '123', { delay: 50 });
-    expect(Date.now() - startTime).toBeGreaterThan(150);
+    await user.type(input, '1234567890', { delay: 100 });
+    expect(Date.now() - startTime).toBeGreaterThan(1000);
   }),
 );
 

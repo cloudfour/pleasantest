@@ -1,4 +1,5 @@
-import { createRequire } from 'node:module';
+import * as childProcess from 'node:child_process';
+import { promisify } from 'node:util';
 
 import babel from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
@@ -6,27 +7,25 @@ import terser from '@rollup/plugin-terser';
 
 import { rollupPluginDomAccessibilityApi } from '../rollup-plugin-dom-accessibility-api.js';
 
-const require = createRequire(import.meta.url);
+const exec = promisify(childProcess.exec);
 
 const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'];
 
+const { stdout, stderr } = await exec('./node_modules/.bin/patch-package');
+process.stdout.write(stdout);
+process.stderr.write(stderr);
+
 const stubs = {
-  [require.resolve('@testing-library/jest-dom/dist/to-have-style')]: `
-    export { toHaveStyle } from ${JSON.stringify(
-      require.resolve('./to-have-style'),
-    )}
+  chalk: `
+    import * as colors from 'kolorist'
+    export default colors
   `,
   // No need for polyfill in real browser
   'css.escape': `
     const escape = (str) => CSS.escape(str)
     export default escape
   `,
-  'aria-query': `
-    export const roles = {
-      'get': () => ({ props: { 'aria-checked': true } })
-    }
-  `,
-  'lodash/isEqualWith': `
+  'lodash/isEqualWith.js': `
     import { isEqual } from 'smoldash'
     export default (value, other, customizer) => {
       const result = customizer(value, other)
@@ -87,7 +86,7 @@ const config = {
       keep_fnames: /^to/,
     }),
   ],
-  external: ['@adobe/css-tools'],
+  external: [],
   treeshake: { moduleSideEffects: 'no-external' },
   output: { file: 'dist/jest-dom.js' },
 };

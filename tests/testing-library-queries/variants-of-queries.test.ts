@@ -22,14 +22,14 @@ type Equal<A, B> = A extends (infer T1)[]
     ? Equal<T1, T2>
     : false
   : A extends ElementHandle<infer T1>
-  ? B extends ElementHandle<infer T2>
-    ? Equal<T1, T2>
-    : false
-  : B extends A
-  ? A extends B
-    ? true
-    : false
-  : false;
+    ? B extends ElementHandle<infer T2>
+      ? Equal<T1, T2>
+      : false
+    : B extends A
+      ? A extends B
+        ? true
+        : false
+      : false;
 
 test(
   'findBy',
@@ -82,9 +82,12 @@ test(
         document:
 
         Name "":
+        <html lang="en">
+        <head>[...]</head>
         <body>
-        <h1>Hi</h1>
-      </body>
+          <h1>Hi</h1>
+        </body>
+      </html>
 
         --------------------------------------------------
         heading:

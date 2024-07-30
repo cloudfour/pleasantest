@@ -1,0 +1,20 @@
+diff --git a/node_modules/@testing-library/jest-dom/dist/matchers-15a34310.mjs b/node_modules/@testing-library/jest-dom/dist/matchers-15a34310.mjs
+index e98c067..ff110fb 100644
+--- a/node_modules/@testing-library/jest-dom/dist/matchers-15a34310.mjs
++++ b/node_modules/@testing-library/jest-dom/dist/matchers-15a34310.mjs
+@@ -927,10 +927,14 @@ function getStyleDeclaration(document, css) {
+ 
+   // The next block is necessary to normalize colors
+   const copy = document.createElement('div');
++  const {getComputedStyle} = document.defaultView;
++  document.body.appendChild(copy)
+   Object.keys(css).forEach(property => {
+     copy.style[property] = css[property];
+-    styles[property] = copy.style[property];
++    const computed = getComputedStyle(copy)
++    styles[property] = computed[property] || computed.getPropertyValue(property);
+   });
++  document.body.removeChild(copy)
+ 
+   return styles
+ }
