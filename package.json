@@ -31,7 +31,7 @@
     "@rollup/plugin-terser": "0.4.4",
     "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "6.4.8",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "16.18.34",
     "@types/polka": "0.5.7",
     "@typescript-eslint/eslint-plugin": "7.18.0",
