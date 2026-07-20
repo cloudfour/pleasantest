@@ -11,22 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           # Fetch all git history for correct changelog commits
           fetch-depth: 0
 
       - name: Setup Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
-          node-version: 18.x
+          node-version: 18.20.8
           cache: 'npm'
       - run: npm i -g npm@latest
       - name: Install Dependencies
         run: npm ci
 
       - name: Create Release Pull Request or Publish to npm
-        uses: changesets/action@v1
+        uses: changesets/action@v1.9.0
         with:
           publish: npm run release
           version: npm run version
