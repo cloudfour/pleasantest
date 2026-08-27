@@ -1,73 +1,11 @@
 {
-  "extends": ["group:recommended", "group:monorepos"],
-  "timezone": "America/Los_Angeles",
-  "rangeStrategy": "pin",
-  "packageRules": [
-    {
-      "matchPackageNames": ["node"],
-      "rangeStrategy": "widen"
-    },
-    {
-      "matchPackageNames": ["@types/node"],
-      "enabled": false
-    },
-    {
-      "matchDepTypes": ["dependencies"],
-      "rangeStrategy": "bump"
-    },
-    {
-      "matchDepTypes": ["peerDependencies"],
-      "rangeStrategy": "widen"
-    },
-    {
-      "matchPackagePatterns": [
-        "preact",
-        "prop-types",
-        "react",
-        "sass",
-        "svelte",
-        "vue",
-        "liquidjs"
-      ],
-      "matchDepTypes": ["devDependencies"],
-      "stabilityDays": 0,
-      "schedule": "every 1 month on the first day of the month before 7am",
-      "automerge": true,
-      "groupName": "compatibility testing-only dependencies"
-    },
-    {
-      "matchPackagePatterns": ["rollup"],
-      "automerge": true,
-      "groupName": "rollup/plugins"
-    },
-    {
-      "matchPackagePatterns": ["axe-core"],
-      "groupName": "axe-core"
-    },
-    {
-      "matchPackagePatterns": ["eslint", "prettier"],
-      "automerge": true,
-      "groupName": "eslint/prettier"
-    },
-    {
-      "matchPackagePatterns": ["jest", "pretty-format"],
-      "automerge": true,
-      "groupName": "jest-related"
-    },
-    {
-      "matchPackageNames": [
-        "@testing-library/dom",
-        "@testing-library/jest-dom",
-        "dom-accessibility-api",
-        "aria-query"
-      ],
-      "groupName": "testing-library-related"
-    }
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Renovate is intentionally disabled: Pleasantest is no longer actively maintained.",
+    "The previous config set prConcurrentLimit to 3 and three Renovate PRs have sat open since 2024, so Renovate had been unable to open anything new since March 2025 - it was already inert, just noisily so.",
+    "Updating dependencies here would not reach the package's users in any case, since that requires a release and the last publish was v5.0.0 in July 2024.",
+    "Dependabot still reports security advisories, which is the coverage that matters for an unmaintained public package.",
+    "To pick maintenance back up, delete this file and add: { \"extends\": [\"local>cloudfour/renovate-config:library\"] }"
   ],
-  "prConcurrentLimit": 3,
-  "prHourlyLimit": 0,
-  "branchConcurrentLimit": 15,
-  "stabilityDays": 4,
-  "prCreation": "immediate",
-  "dependencyDashboard": true
+  "enabled": false
 }
